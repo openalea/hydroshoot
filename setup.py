@@ -46,7 +46,7 @@ setup_kwds = dict(
     long_description=readme + '\n\n' + history,
     author="Rami Albasha, Christian Fournier, Christophe Pradal, Eric Lebon, ",
     author_email="rami albasha at inra dot fr, @fournier-ch, @pradal, eric dot lebon at inra dot fr, ",
-    url='https://github.com/Rami Albasha/hydroshoot',
+    url='https://github.com/openalea-incubator/hydroshoot',
     license='cecill-c',
     zip_safe=False,
 
