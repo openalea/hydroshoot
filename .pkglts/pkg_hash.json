@@ -1,0 +1,61 @@
+{
+  ".gitignore": {
+    "github": "MRdLys3vaDL9iwBuZQW4YB3oJ8OwaGJeAHqZDUpPSpGHl0pENcpfsckLl8SPhFIKnodXkYM41AsPFBz5QJQu0w=="
+  }, 
+  ".travis.yml": {
+    "travis": "p39laCS5PHN7gbwAtgU28Z+UXHRifGIORlali3ZkK7OQKjjRhn1Dbwscp76SZeocjKUEBtl3fI1857Ri37wPWQ==", 
+    "travis.addons": "z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg==", 
+    "travis.after": "z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg==", 
+    "travis.install": "e95/YtD9DDjev/b0KW6Z1BBd3l3Iqq45t3vSBVZf2L20obvaoginuBglogprMoRmskZK22c4h1dGgTh0NMjQOg==", 
+    "travis.script": "STjpu3u3YoOeTz4mBIflZ58OodPdFRPFtLt6c8CUciNwe/fYhCTxlKTMB/S7VL1ippUsQVIfrFGl+OQ/ALWmPQ=="
+  }, 
+  "AUTHORS.rst": {
+    "doc": "DkU7oQmldfrfWCnkefErjQUIy4CWPgQKkf/92p+dvBQWx7qyplJ9Ic62obSpr2+hDfw7qN9EiQAPgnm8hzp2/A=="
+  }, 
+  "CONTRIBUTING.rst": {}, 
+  "HISTORY.rst": {}, 
+  "LICENSE": {
+    "license": "21ExMhSzB2uXQuU1VoH7++nrb4u6TbesqGtJDpM39OLPWft9SJ2tJ956R6foYmkI9VuJay7SUrhFLPxxMEHLxg=="
+  }, 
+  "MANIFEST.in": {
+    "pysetup": "nWIhyghfvxUWRjKYpFJPAIr4kSPE2OfU8Zr+1QkiAxzvB0aWoAYyG2V/UnieGhhocdlNaiXL6u8qeKHqUQcO3w=="
+  }, 
+  "README.rst": {
+    "doc": "LVozszxbm8Mm3f3ePQsmGYR6ID8vUGGE2K+wY6m//7J5q98O4Hn9iKMfAUxtn0OBc09SNmATLWK3c/sNFVrFiA=="
+  }, 
+  "conda_hydroshoot/bld.bat": {}, 
+  "conda_hydroshoot/build.sh": {}, 
+  "conda_hydroshoot/meta.yaml": {}, 
+  "doc/_static/nonempty.txt": {}, 
+  "doc/authors.rst": {}, 
+  "doc/contributing.rst": {}, 
+  "doc/history.rst": {}, 
+  "doc/index.rst": {}, 
+  "doc/installation.rst": {}, 
+  "doc/readme.rst": {}, 
+  "doc/usage.rst": {}, 
+  "dvlpt_requirements.txt": {
+    "pysetup": "lCbGKPjPfZaLiwclMKKn7EdCraYOyhNIZcfBdXCFnX8YV/uOTypLRFYBm7uxfWtnSe62wAlYDv/2EzakafsQtw=="
+  }, 
+  "requirements.txt": {
+    "pysetup": "/5djJXLbrvuFk7LIgtfgYR8RnQrY5BEmOB4zEd0PrKeswR/8sQkzj4yKy7Zl3LAdRzYjPDhWiRkS1oMCG4FX7Q=="
+  }, 
+  "setup.cfg": {
+    "pysetup": "1iCSDvs9xY0GOgde2dHQdpu5siqLRSbSiVZr6vEMin886x1NKrTLw0f1AJuSUwPfsoXa1a1EfRsDFadXx3Qy8A=="
+  }, 
+  "setup.py": {
+    "pysetup.call": "2wHuP94SpWKZpqOzExkQGTxnhGPgBHK3qOdPn0Ncstj5FkZ7FBGGM/inqAXaI4QLKQtTNlOUYRGSkYUWAUcf1w==", 
+    "pysetup.kwds": "9s4Yv9Rkidu894r9LFMh7KSo9Wof576QjBlEhpVxUfwAmwpmb6vQt/H2PUgoodZrwlqdkEJl74uXnO5e5loMMg=="
+  }, 
+  "src/hydroshoot/__init__.py": {
+    "base": "gR33dW0qqYmsV9NSNB+DD8XmuxnC2t0mKjnMoU5728qh97fSER6MbX+3QKxpZDLByZToaAay4xhx8acxketJmA=="
+  }, 
+  "src/hydroshoot/data_access.py": {
+    "data": "KypmxgIOSMmeUkbZYMILEM6s9rROkCxyZWmurCgLa2kmxY7eU2wmtvoZOXRrgBQYmhgdOseihPikN/6h2LbGXQ=="
+  }, 
+  "src/hydroshoot/version.py": {
+    "version": "8tWEvNZfrOFEZfSGOYZLW6d6y+VuHZ9zlkxFZZp5JmnZwmwqllXDRnPUfWwZUZsQJ9yENNYTb08PQvtPlfSogA=="
+  }, 
+  "src/hydroshoot_data/__init__.py": {}, 
+  "test/__init__.py": {}
+}

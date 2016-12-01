@@ -1,0 +1,53 @@
+# {# pkglts, travis
+# Config file for automatic testing at travis-ci.org
+
+language: python
+
+python:
+  - "2.7"
+
+# #}
+
+addons:
+  apt:
+    packages:
+# {# pkglts, travis.addons
+
+ #}
+
+install:
+# {# pkglts, travis.install
+  # We do this conditionally because it saves us some downloading if the
+  # version is the same.
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  # Useful for debugging any issues with conda
+  - conda info -a
+
+  - conda create -q -n myenv python=$TRAVIS_PYTHON_VERSION
+  - source activate myenv
+
+
+  - conda install mock
+  - conda install nose
+
+  - python setup.py install
+# #}
+
+script:
+# {# pkglts, travis.script
+  - nosetests
+# #}
+
+after_success:
+# {# pkglts, travis.after
+
+# #}

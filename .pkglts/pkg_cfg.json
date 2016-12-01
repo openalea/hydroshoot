@@ -1,0 +1,61 @@
+{
+  "_pkglts": {
+    "auto_install": true, 
+    "install_front_end": "stdout", 
+    "use_prompts": false, 
+    "version": 3
+  }, 
+  "base": {
+    "authors": [
+      [
+        "Rami Albasha", 
+        "rami albasha at inra dot fr"
+      ], 
+      [
+        "Christian Fournier", 
+        "@fournier-ch"
+      ], 
+      [
+        "Christophe Pradal", 
+        "@pradal"
+      ], 
+      [
+        "Eric Lebon", 
+        "eric dot lebon at inra dot fr"
+      ]
+    ], 
+    "namespace": null, 
+    "pkgname": "hydroshoot", 
+    "url": null
+  }, 
+  "conda": {}, 
+  "data": {}, 
+  "doc": {
+    "description": "HydroShoot is an FSPM model to simulate gas-exchange on vine", 
+    "keywords": []
+  }, 
+  "github": {
+    "owner": "{{ base.authors[0][0] }}", 
+    "project": "{{ base.pkgname }}", 
+    "url": "https://github.com/{{ github.owner }}/{{ github.project }}"
+  }, 
+  "license": {
+    "name": "cecill-c", 
+    "organization": "INRA, CIRAD", 
+    "project": "{{ base.pkgname }}", 
+    "year": 2015
+  }, 
+  "pysetup": {
+    "intended_versions": [
+      "27"
+    ], 
+    "require": []
+  }, 
+  "test": {}, 
+  "travis": {}, 
+  "version": {
+    "major": 1, 
+    "minor": 0, 
+    "post": 0
+  }
+}

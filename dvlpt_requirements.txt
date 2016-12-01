@@ -1,0 +1,5 @@
+# {# pkglts, pysetup
+mock
+nose
+
+# #}

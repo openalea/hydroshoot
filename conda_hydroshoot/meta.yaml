@@ -1,0 +1,19 @@
+package:
+  name: hydroshoot
+  version: "1.0.0"
+
+source:
+  git_url: ../
+
+requirements:
+  build:
+    - python
+    - setuptools
+
+  run:
+    - python
+
+about:
+  summary: "HydroShoot is an FSPM model to simulate gas-exchange on vine"
+  license: "cecill-c"
+  license_file: LICENSE
