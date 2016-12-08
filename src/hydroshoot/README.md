@@ -2,16 +2,16 @@
 
 
 # Dependencies
-- numpy
-- scipy
-- pandas
-- vplants.plantgl
-- openalea.mtg
-- alniea.topvine
-- alinea.caribu
-- pytz
-- pvlib
-- sympy
+    - numpy
+    - scipy
+    - pandas
+    - vplants.plantgl
+    - openalea.mtg
+    - alniea.topvine
+    - alinea.caribu
+    - pytz
+    - pvlib
+    - sympy
 
 ## Installation
 
