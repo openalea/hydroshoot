@@ -19,16 +19,12 @@ import openalea.mtg.traversal as traversal
 from openalea.plantgl.all import Scene, surface
 from openalea.mtg.plantframe import color
 
-wd = r'/home/albashar/Documents/Christophe_exemple/HydroShoot'
-import sys
-sys.path.insert(0, wd)
-
-import HSArc
-import HSCaribu
-import HSExchange
-import HSHyd
-import HSEnergy
-import HSVisu
+import hydroshoot.architecture as HSArc
+import hydroshoot.irradiance as HSCaribu
+import hydroshoot.exchange as HSExchange
+import hydroshoot.hydraulic as HSHyd
+import hydroshoot.energy as HSEnergy
+import hydroshoot.display as HSVisu
 
 mpl.style.use('ggplot')
 

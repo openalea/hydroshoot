@@ -13,10 +13,6 @@ from scipy import exp, arccos, sqrt, cos
 import topvine.farquhar.meteo_utils as mutils
 import topvine.farquhar.BWB_gs as BWB_gs
 
-wd = r'/home/albashar/Documents/Python/devel_topvine'
-import sys
-sys.path.insert(0, wd)
-
 # Constants
 O = 210 # Oxygen partial pressure [mmol mol-1]
 R = 0.0083144598 # Ideal gaz constant [kJ K-1 mol-1]

@@ -15,10 +15,8 @@ from openalea.mtg.plantframe import color as pglcolor
 import openalea.plantgl.all as pgl
 
 mpl.style.use('ggplot')
-wd = r'/home/albashar/Documents/Python/devel_topvine'
-import sys
-sys.path.insert(0, wd)
-from HSArc import MTGbase
+
+from hydroshoot.architecture import MTGbase
 
 
 def default_labels():

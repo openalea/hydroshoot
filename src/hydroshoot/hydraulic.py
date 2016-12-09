@@ -16,11 +16,7 @@ import warnings
 from openalea.plantgl.all import surface as surf
 import openalea.mtg.traversal as traversal
 
-wd = r'/home/albashar/Documents/Python/devel_topvine'
-import sys
-sys.path.insert(0, wd)
-
-from HSArc import MTGbase
+from hydroshoot.architecture import MTGbase
 
 # Constants
 rho=997.0479    # Density of liquid water at 25 degreC temperature [kg m-3]

@@ -22,11 +22,7 @@ from alinea.caribu.sky_tools.spitters_horaire import RdRsH
 from alinea.caribu.sky_tools import turtle, Gensun, GetLightsSun
 from alinea.caribu.CaribuScene import CaribuScene
 
-wd = r'/home/albashar/Documents/Python/devel_topvine'
-import sys
-sys.path.insert(0, wd)
-
-from HSArc import vector_rotation
+from hydroshoot.architecture import vector_rotation
 
 
 def local2solar(local_time, latitude, longitude, tzone, temperature=25.):
