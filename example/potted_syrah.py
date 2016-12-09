@@ -25,6 +25,7 @@ import hydroshoot.exchange as HSExchange
 import hydroshoot.hydraulic as HSHyd
 import hydroshoot.energy as HSEnergy
 import hydroshoot.display as HSVisu
+from hydroshoot.data_access import get_path
 
 mpl.style.use('ggplot')
 
@@ -33,7 +34,7 @@ mpl.style.use('ggplot')
 #==============================================================================
 
 # Path for plant digitalization data.
-csv_file_path = r'/home/albashar/Documents/Christophe_exemple/HydroShoot/grapevine_pot.csv'
+csv_file_path = get_path(r'grapevine_pot.csv')
 
 g=HSArc.VineMTG(csv_file_path)
 
