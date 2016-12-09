@@ -89,7 +89,7 @@ for vid in g.properties()['geometry']:
 g.properties()['geometry'] = geom_prop
 
 # Climate data
-meteo_file = get_path('meteo.csv')
+meteo_file = get_path('grapevine_pot_meteo.csv')
 meteo_tab = read_csv(meteo_file, sep=';', decimal='.', header=0)
 meteo_tab.time = DatetimeIndex(meteo_tab.time)
 meteo_tab = meteo_tab.set_index(meteo_tab.time)
