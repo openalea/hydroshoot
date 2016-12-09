@@ -34,7 +34,7 @@ mpl.style.use('ggplot')
 #==============================================================================
 
 # Path for plant digitalization data.
-csv_file_path = get_path(r'grapevine_pot.csv')
+csv_file_path = get_path('grapevine_pot.csv')
 
 g=HSArc.VineMTG(csv_file_path)
 
@@ -55,7 +55,7 @@ for v in traversal.iter_mtg2(g,g.root):
     HSArc.VineTransform(g,v)
 
 # Display of the plant mock-up (result in 'fig_01_plant_mock_up.png')
-MyScene = HSVisu.visu(g,def_elmnt_color_dict=True,scene=Scene())
+#MyScene = HSVisu.visu(g,def_elmnt_color_dict=True,scene=Scene())
 
 #==============================================================================
 # Divers initialisations
@@ -89,7 +89,7 @@ for vid in g.properties()['geometry']:
 g.properties()['geometry'] = geom_prop
 
 # Climate data
-meteo_file = r'/home/albashar/Documents/Christophe_exemple/HydroShoot/meteo.csv'
+meteo_file = get_path('meteo.csv')
 meteo_tab = read_csv(meteo_file, sep=';', decimal='.', header=0)
 meteo_tab.time = DatetimeIndex(meteo_tab.time)
 meteo_tab = meteo_tab.set_index(meteo_tab.time)
@@ -286,17 +286,17 @@ for date in meteo.time:
 # Mock-ups
 # --------
 
-# Intercepted light (results in 'fig_02_light_interception.png' and 'fig_02_light_interception_colorbar.png')
-light_scene = HSVisu.visu(g,plot_prop='Ei',scene=Scene())
-
-# Net photosynthesis (results in 'fig_03_An.png' and 'fig_03_An_colorbar.png')
-An_scene = HSVisu.visu(g,plot_prop='An',scene=Scene())
-
-# Stomatal conductance (results in 'fig_04_gs.png' and 'fig_04_gs_colorbar.png')
-gs_scene = HSVisu.visu(g,plot_prop='gs',scene=Scene(), fmt='%0.6f')
-
-# Water potential (results in 'fig_05_Tlc.png' and 'fig_05_Tlc_colorbar.png')
-Tlc_scene = HSVisu.visu(g,plot_prop='Tlc',scene=Scene(), fmt='%6.4f')
+## Intercepted light (results in 'fig_02_light_interception.png' and 'fig_02_light_interception_colorbar.png')
+#light_scene = HSVisu.visu(g,plot_prop='Ei',scene=Scene())
+#
+## Net photosynthesis (results in 'fig_03_An.png' and 'fig_03_An_colorbar.png')
+#An_scene = HSVisu.visu(g,plot_prop='An',scene=Scene())
+#
+## Stomatal conductance (results in 'fig_04_gs.png' and 'fig_04_gs_colorbar.png')
+#gs_scene = HSVisu.visu(g,plot_prop='gs',scene=Scene(), fmt='%0.6f')
+#
+## Water potential (results in 'fig_05_Tlc.png' and 'fig_05_Tlc_colorbar.png')
+#Tlc_scene = HSVisu.visu(g,plot_prop='Tlc',scene=Scene(), fmt='%6.4f')
 
 
 # Plots
