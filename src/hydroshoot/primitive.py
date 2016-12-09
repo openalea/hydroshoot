@@ -1,4 +1,5 @@
-##### Primitives 3D (PlantGL) pour Topvine
+##### Primitives 3D (PlantGL)
+##### A modified module from the TopVine Package (G. Louarn)
 
 import IOtable
 from openalea.plantgl.all import *

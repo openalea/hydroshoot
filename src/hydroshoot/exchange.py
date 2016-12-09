@@ -11,7 +11,6 @@ from copy import deepcopy
 from scipy import exp, arccos, sqrt, cos
 
 import topvine.farquhar.meteo_utils as mutils
-import topvine.farquhar.BWB_gs as BWB_gs
 
 # Constants
 O = 210 # Oxygen partial pressure [mmol mol-1]
@@ -290,6 +289,18 @@ def compute_an_2par(par_photo, PPFD, Tlc):
 #==============================================================================
 # Analytical solution of the An - gs - ci processes
 #==============================================================================
+def fvpd_3(model, vpd, psi, psi_crit=-0.37, c1=5.278, c2=1.85, D0=30):
+    """
+    """
+    if model =='misson':
+        m = 1. / (1. + (psi/psi_crit)** c2)
+    elif model == 'tuzet':
+        m = (1. + exp(c2 * psi_crit)) / (1. + exp(float(c2 * (psi_crit - psi))))
+    elif model == 'linear':
+        m = 1 - min(1,float(psi/psi_crit))
+    else:
+        raise ValueError ("The 'model' argument must be one of the following ('misson','tuzet', 'linear').")
+    return c1 * m
 
 def gm(temp, gm25=0.1025, EA_gm=49600., DEA_gm=437400., Sgm=1400.):
     """
@@ -333,7 +344,7 @@ def compute_amono_analytic(x1, x2, temp, vpd, gammax, Rd, psi, model='misson',
     - **D0** and **n**: float, shape parameters
     """
 
-    f_VPD = BWB_gs.fvpd_3(model, vpd, psi, psi_crit=psi0, c1=m0, c2=n, D0=30)
+    f_VPD = fvpd_3(model, vpd, psi, psi_crit=psi0, c1=m0, c2=n, D0=30)
 #    if psi < -1.5: f_VPD = 0
 
     cube_a = g0*(x2+gammax)+(g0/gm(temp)+f_VPD)*(x1-Rd)
@@ -381,7 +392,7 @@ def compute_an_analytic(temp, vpd, x1c, x2c, x1j, x2j, x1t, x2t, Rd, psi,
     - **gsw**: stomatal conductance for water [mol m-2 s-1]
     """
 
-    f_VPD = BWB_gs.fvpd_3(model, vpd, psi, psi_crit=psi0, c1=m0, c2=n, D0=30)
+    f_VPD = fvpd_3(model, vpd, psi, psi_crit=psi0, c1=m0, c2=n, D0=30)
 
     gammax = x2j/2.
     ci_asterisk = gammax-Rd/gm(temp)
