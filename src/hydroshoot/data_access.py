@@ -22,6 +22,9 @@ def get_data_dir():
     return pkg_data_dir
 
 
+def get_path(file_name):
+    return pj(pkg_data_dir, file_name)
+
 def get(file_name, mode='r'):
     """ Retrieve the content of a given filename
     located in the data part of this package.
