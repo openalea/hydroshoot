@@ -24,8 +24,6 @@ from openalea.mtg import mtg, traversal, io
 from openalea.plantgl.all import Point3Array
 import openalea.plantgl.all as pgl
 
-from hydroshoot import primitive
-
 #==============================================================================
 # Functions from TopVine package
 #==============================================================================
@@ -62,6 +60,42 @@ def PolToXyz (coordpol) :
     y = l * scipy.sin (azi)
 
     return scipy.array([x, y, z])
+
+
+def transformation(obj, sx, sy, sz, rx, ry, rz, tx, ty, tz ): 
+    """
+    Returns a scaled, rotated and translated 3D object - Similar to 'transformation' in PovRay
+    """
+
+    s_obj = pgl.Scaled (pgl.Vector3(sx,sy,sz), obj)
+    r_obj = pgl.EulerRotated (rx, ry, rz, s_obj)
+    t_obj = pgl.Translated (pgl.Vector3(tx,ty,tz), r_obj)
+
+    return t_obj
+
+
+def leaf0(l=1.):
+    points= Point3Array([ pgl.Vector3(0,9.8,0),pgl.Vector3(3.7,6.3,0),pgl.Vector3(2.3,3.9,0), 
+                          pgl.Vector3(5.4,6.2,0), pgl.Vector3(5.9,3.2,0),pgl.Vector3(4.6,0.1,0),
+                          pgl.Vector3(6.4,-1.6,0), pgl.Vector3(1,-3.7,0), pgl.Vector3(0,0,0),                     
+                          pgl.Vector3(-1,-3.7,0),pgl.Vector3(-6.4,-1.6,0), 
+                          pgl.Vector3(-4.6,0.1,0), pgl.Vector3(-5.9,3.2,0),                        
+                          pgl.Vector3(-5.4,6.2,0), pgl.Vector3(-2.3,3.9,0),pgl.Vector3(-3.7,6.3,0)]) 
+    
+    indices= pgl.Index3Array([ pgl.Index3(0,1,8), pgl.Index3(15,0,8), pgl.Index3(8,11,14), 
+                           pgl.Index3(11,12,14), pgl.Index3(12,13,14),pgl.Index3(10,11,8),                      
+                           pgl.Index3(8,9,10), pgl.Index3(2,3,4),pgl.Index3(2,4,5), 
+                           pgl.Index3(2,5,8), pgl.Index3(8,5,6),pgl.Index3(8,6,7)])
+    
+    f= pgl.TriangleSet(points, indices)
+    return pgl.Scaled (pgl.Vector3(0.01*l,0.01*l,0.01*l), f)
+
+
+def soil0(l=1.):
+    points= Point3Array([pgl.Vector3(0.,0.,0.),pgl.Vector3(1.,0.,0.),pgl.Vector3(1.,1.,0.),pgl.Vector3(0.,1.,0.)])
+    indices= pgl.Index3Array([pgl.Index3(0,1,2), pgl.Index3(0,2,3)])
+    f= pgl.TriangleSet(points, indices)
+    return pgl.Scaled (pgl.Vector3(l,l,l), f)
 
 #==============================================================================
 # MTG topology construction
@@ -865,12 +899,12 @@ def VineLobesTips(pPet, lobes_tips):
     - **lobes_tips**: a list containing the cartesian coordinates of the five lobes tips `p1`, `p2`, `p3`, `p4` and `p5`, respectively in the clockwise direction of a vertically schematized grapevine leaf (petiole downwards)
     """
 
-#    points= Point3Array([ Vector3(0,9.8,0),Vector3(3.7,6.3,0),Vector3(2.3,3.9,0),
-#                          Vector3(5.4,6.2,0), Vector3(5.9,3.2,0),Vector3(4.6,0.1,0),
-#                          Vector3(6.4,-1.6,0), Vector3(1,-3.7,0), Vector3(0,0,0),
-#                          Vector3(-1,-3.7,0),Vector3(-6.4,-1.6,0),
-#                          Vector3(-4.6,0.1,0), Vector3(-5.9,3.2,0),
-#                          Vector3(-5.4,6.2,0), Vector3(-2.3,3.9,0),Vector3(-3.7,6.3,0)])
+#    points= Point3Array([ pgl.Vector3(0,9.8,0),pgl.Vector3(3.7,6.3,0),pgl.Vector3(2.3,3.9,0),
+#                          pgl.Vector3(5.4,6.2,0), pgl.Vector3(5.9,3.2,0),pgl.Vector3(4.6,0.1,0),
+#                          pgl.Vector3(6.4,-1.6,0), pgl.Vector3(1,-3.7,0), pgl.Vector3(0,0,0),
+#                          pgl.Vector3(-1,-3.7,0),pgl.Vector3(-6.4,-1.6,0),
+#                          pgl.Vector3(-4.6,0.1,0), pgl.Vector3(-5.9,3.2,0),
+#                          pgl.Vector3(-5.4,6.2,0), pgl.Vector3(-2.3,3.9,0),pgl.Vector3(-3.7,6.3,0)])
 
     #p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15 = [points[i] for i in range(16)]
 
@@ -1001,7 +1035,7 @@ def AddSoil(g, side_length=10.):
     pos=zip(xu,yu)
     for i, ipos in enumerate(pos):
         isoil = g.add_component(Soil, label=('other'+str(i)), Position=list(ipos) + [0])
-        g.node(isoil).geometry = primitive.transformation(primitive.soil0(side_length),
+        g.node(isoil).geometry = transformation(soil0(side_length),
                  1., 1., 1., 0., 0.,0.,-side_length/2.,-side_length/2.,0.)
 
     return
@@ -1076,7 +1110,7 @@ def StemElement_mesh(length, diameter_base, diameter_top, classic = True):
 
 def leaf_obs(points):
     """
-    Builds a grapevine leaf mesh, based on :func:`primitive.leaf0` function.
+    Builds a grapevine leaf mesh, based on :func:`leaf0` function.
 
     :Parameters:
     **points**: a set of 15 :func:`Point3Array` points indicating leaf blade limits
@@ -1218,15 +1252,15 @@ def VineMTGGeom(g, vid):
                 points = VineLobesTips(pPet, n.TopPositionPoints)
                 mesh = leaf_obs(points)
             else:
-                leaf_mesh = primitive.transformation(primitive.leaf0(1), 1., 1., 1., -scipy.pi/2.,0.,0.,0.,0.,0.)
+                leaf_mesh = transformation(leaf0(1), 1., 1., 1., -scipy.pi/2.,0.,0.,0.,0.,0.)
 
                 length = n.properties()['Length']
                 leaf_vec = scipy.subtract(n.TopPosition, n.parent().TopPosition)
                 leaf_len, leaf_azi, leaf_incli = XyzToPol(leaf_vec)
 #                theta_1 = -scipy.pi/2.
 #                theta_2 = 0. #scipy.pi*(1.+(theta_2_cv/100.)*min(1,max(-1,scipy.randn()/2.96)))
-                mesh = primitive.transformation(leaf_mesh, length, length, 1., 0., 0.,0.,0.,0.,0.)
-                #mesh = primitive.leaf0(length)
+                mesh = transformation(leaf_mesh, length, length, 1., 0., 0.,0.,0.,0.,0.)
+                #mesh = leaf0(length)
             g.node(vid).geometry = mesh
 
     except AttributeError:
@@ -1271,7 +1305,7 @@ def VineTransform(g, vid):
                 mesh = n.geometry
                 vec_lim = scipy.subtract(n.TopPosition, n.BotPosition)
                 len_lim, azi_lim, incli_lim = XyzToPol(vec_lim)
-                mesh = primitive.transformation(mesh, len_lim, len_lim, 1., azi_lim, -1*incli_lim,0.,x_bot,y_bot,z_bot)
+                mesh = transformation(mesh, len_lim, len_lim, 1., azi_lim, -1*incli_lim,0.,x_bot,y_bot,z_bot)
                 g.node(vid).geometry = mesh
 
     return g
