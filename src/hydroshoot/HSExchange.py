@@ -27,17 +27,16 @@ R = 0.0083144598 # Ideal gaz constant [kJ K-1 mol-1]
 # Farquhar Parameters
 #==============================================================================
 def par_photo_default(Vcm25= 89.0, Jm25 = 143.0, cRd = 0.008, TPU25 = 10.0,
-                      Kc25 = 404.9, Ko25 = 278.4, Tx25 = 42.75,
-                      alpha =  [0.2, 0.2, 0.2, 0.2, 0.2, 0.2],
-                      alpha_T_limit = [15, 20, 25, 30, 34, 50],
-                      a1 = 0.98, a2 = 0.98, a3 = 0.98,
-                      RespT_Kc ={'model':'Ahrenius','c':38.05,'deltaHa':79.43},
-                      RespT_Ko ={'model':'Ahrenius','c':20.30,'deltaHa':36.38},
-                      RespT_Vcm ={'model':'Ahrenius','c':26.35,'deltaHa':65.33},
-                      RespT_Jm ={'model':'Ahrenius','c':17.57,'deltaHa':43.54},
-                      RespT_TPU ={'model':'Ahrenius','c':21.46,'deltaHa':53.1},
-                      RespT_Rd ={'model':'Ahrenius','c':18.72,'deltaHa':46.39},
-                      RespT_Tx ={'model':'Ahrenius','c':19.02,'deltaHa':37.83}):
+       Kc25 = 404.9, Ko25 = 278.4, Tx25 = 42.75,
+       alpha =  [0.2, 0.2, 0.2, 0.2, 0.2, 0.2], alpha_T_limit = [15, 20, 25, 30, 34, 50],
+       a1 = 0.98, a2 = 0.98, a3 = 0.98, ds = 0.635, dHd = 200,
+       RespT_Kc = {'model':'Ahrenius', 'c':38.05, 'deltaHa':79.43},
+       RespT_Ko = {'model':'Ahrenius', 'c':20.30, 'deltaHa':36.38},
+       RespT_Vcm = {'model':'Ahrenius', 'c':26.35, 'deltaHa':65.33},
+       RespT_Jm = {'model':'Ahrenius', 'c':17.57, 'deltaHa':43.54},
+       RespT_TPU = {'model':'Ahrenius', 'c':21.46, 'deltaHa':53.1},
+       RespT_Rd = {'model':'Ahrenius', 'c':18.72, 'deltaHa':46.39},
+       RespT_Tx = {'model':'Ahrenius', 'c':19.02, 'deltaHa':37.83}):
     """
     Generates a dictionary containing default **25 degrees** paramter values of the Farquhar's model for Vitis vinifera cv. Syrah.
 
@@ -66,6 +65,8 @@ def par_photo_default(Vcm25= 89.0, Jm25 = 143.0, cRd = 0.008, TPU25 = 10.0,
     par_photodef['a1'] = a1
     par_photodef['a2'] = a2
     par_photodef['a3'] = a3
+    par_photodef['ds'] = ds
+    par_photodef['dHd'] = dHd
     par_photodef['RespT_Kc'] = RespT_Kc
     par_photodef['RespT_Ko'] = RespT_Ko
     par_photodef['RespT_Vcm'] = RespT_Vcm
@@ -115,7 +116,10 @@ def Arrhenius_2(param,Tlc,par_photo):
     - **Tlc**: float, leaf temperature [degreeC]
     - **par_photo**: a dictionart containing paramter values of the Farquhar's model
     """
-
+    
+    ds = par_photo['ds']
+    dHd = par_photo['dHd']
+    
     param_list = {
     'Vcmax':('Vcm25','RespT_Vcm'),
     'Jmax':('Jm25','RespT_Jm'),
@@ -127,7 +131,7 @@ def Arrhenius_2(param,Tlc,par_photo):
     indice2 = param_list[param][1]
     p25 = par_photo[indice1]
     c, deltaHa = [par_photo[indice2][x] for x in ('c','deltaHa')]
-    p = p25*(exp(c - (deltaHa /(R*Tak))))
+    p = p25*(exp(c - (deltaHa /(R*Tak)))) / (1. + exp((ds*Tak-dHd)/(R*Tak)))
 
     return p
 
@@ -288,7 +292,7 @@ def compute_an_2par(par_photo, PPFD, Tlc):
 
 
 #==============================================================================
-# analytical solution of the An - gs - ci processes
+# Analytical solution of the An - gs - ci processes
 #==============================================================================
 
 def gm(temp, gm25=0.1025, EA_gm=49600., DEA_gm=437400., Sgm=1400.):
@@ -510,13 +514,13 @@ def VineExchange(g, par_photo, meteo, psi_soil, E_type2, leaf_lbl_prefix='L',
                 Tac = meteo_leaf.Tac
                 hs = meteo_leaf.hs
                 u = meteo_leaf.u
-                Ca = meteo_leaf.Rg
+                Ca = meteo_leaf.Ca
                 Pa = meteo_leaf.Pa
 
                 psi = node.properties()['psi_head'] #leaf water potential [MPa] (assumed equal to that of the petiole)
                 Tlc = node.properties()['Tlc']
                 PPFD_leaf = node.properties()[E_type2]
-                w = node.Length / 100. # leaf lenght in m                
+                w = node.Length / 100. # leaf length in m                
 
                 meteo_leaf['PPFD'] = PPFD_leaf
                 meteo_leaf['Rg'] = PPFD_leaf/(0.48*4.6)

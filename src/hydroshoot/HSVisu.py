@@ -7,11 +7,12 @@ Visualization module for HydroShoot
 
 from pandas import DataFrame
 import numpy as np
+from scipy.spatial import distance
 import matplotlib as mpl
+import mpl_toolkits.mplot3d as m3d
 
 from openalea.mtg.plantframe import color as pglcolor
 import openalea.plantgl.all as pgl
-
 
 mpl.style.use('ggplot')
 wd = r'/home/albashar/Documents/Python/devel_topvine'
@@ -107,7 +108,7 @@ def default_element_list(*args):
     return elmnt_list
 
 
-def visu(g, plot_prop=None,tt=1001,cmap='jet',fmt='%6.0f',elmnt_labels=None,
+def visu(g, plot_prop=None,min_value=None, max_value=None,tt=1001,cmap='jet',fmt='%6.0f',elmnt_labels=None,
          elmnt_color_dict=None,def_elmnt_color_dict=False, use_mtg_color=False,
          snap_shot_path=None, scene=None,sub_mtg_root=None):
     """
@@ -116,6 +117,8 @@ def visu(g, plot_prop=None,tt=1001,cmap='jet',fmt='%6.0f',elmnt_labels=None,
     :Parameters:
     - **g**: an MTG object
     - **plot_prop**: string, an MTG property to plot
+    - **min_value**: float, minimum property value for the color scale
+    - **max_value**: float, maximum property value for the color scale
     - **cmap**: string, def('jet'), the colormap to use; only active when `plot_prop` is given or `use_mtg_color` is True
     - **fmt**: string, a legal text format, def('%6.0f'), the string format of matplotlib colorbar
     - **elmnt_labels**: a list of strings refering to the desired mtg elemnts to be displayed
@@ -132,13 +135,16 @@ def visu(g, plot_prop=None,tt=1001,cmap='jet',fmt='%6.0f',elmnt_labels=None,
     if plot_prop is not None:
         prop = [g.node(vid).properties()[plot_prop] for vid in g.property(plot_prop) \
                 if not g.node(vid).label.startswith('soil')]
+        if min_value is None: min_value = min(prop)
+        if max_value is None: max_value = max(prop)
+
         g, cb = pglcolor.colorbar(g, property_name=plot_prop, cmap=cmap,
                                  lognorm=False, N=6, fmt=fmt,
-                                 min_value=min(prop),max_value=max(prop))
+                                 min_value=min_value,max_value=max_value)
 #        cb.patch.set_facecolor((0.2, 0.2, 0.2, 1.0))
         g = pglcolor.colormap(g, property_name=plot_prop, cmap=cmap,\
-                                lognorm=False,min_value=min(prop),\
-                                max_value=max(prop))
+                                lognorm=False,min_value=min_value,\
+                                max_value=max_value)
 
         for vid in g.property(plot_prop).keys():
             n = g.node(vid)

@@ -11,16 +11,22 @@ absorption of incident irradiance.
 given plant shoot.
 """
 
-from numpy import array
+from numpy import array, deg2rad
 from pandas import date_range
 from copy import deepcopy
 from pytz import timezone, utc
 from pvlib.solarposition import ephemeris
 
-from openalea.plantgl.all import Translated, Sphere, Shape, Material, Color3
+from openalea.plantgl.all import Translated,Sphere,Shape,Material,Color3,Viewer
 from alinea.caribu.sky_tools.spitters_horaire import RdRsH
 from alinea.caribu.sky_tools import turtle, Gensun, GetLightsSun
 from alinea.caribu.CaribuScene import CaribuScene
+
+wd = r'/home/albashar/Documents/Python/devel_topvine'
+import sys
+sys.path.insert(0, wd)
+
+from HSArc import vector_rotation
 
 
 def local2solar(local_time, latitude, longitude, tzone, temperature=25.):
@@ -79,7 +85,8 @@ def opticals(mtg,leaf_lbl_prefix='L', stem_lbl_prefix=('in', 'Pet', 'cx'),
 
 
 def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
-                     turtle_sectors='46', turtle_format='soc', sun2scene=None):
+                     turtle_sectors='46', turtle_format='soc', sun2scene=None,
+                     rotation_angle=0.):
     """
     Calculates energy distribution over a semi-hemisphere surrounding the plant [umol m-2 s-1].
 
@@ -97,6 +104,7 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
     - **tzone**= a `pytz.timezone` object
     - **turtle_sectors**, **turtle_format**: string, see :func:`turtle` from `sky_tools` package
     - **sun2scene**: takes None as default, otherwise, if a pgl.scene is provided, a sun object (sphere) is added to it
+    - **rotation_angle**: float, counter clockwise azimuth between the default X-axis direction (South) and real direction of X-axis [degrees]
 
     :Returns:
     - **source_cum** a tuple of tuples, giving energy unit and sky coordinates
@@ -172,13 +180,20 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
                 for line in range(int(turtle_sectors)):
                     source_cum[line] = tuple(source_cum[line])
 
+#           Rotate irradiance sources to cope with plant row orientation
+            if rotation_angle != 0.:
+                v_energy = [vec[0] for vec in source_cum]
+                v_coord = [tuple(vector_rotation(vec[1],(0.,0.,1.), deg2rad(rotation_angle))) for vec in source_cum]
+                source_cum = zip(v_energy, v_coord)
+
 #           Add Sun to an existing pgl.scene
             if sun2scene != None:
-                xSun,ySun,zSun = -500.*array([sun_data[0][1][i] for i in range(3)])
+                xSun,ySun,zSun = -500.*array([source_cum[-1][1][i] for i in range(3)])
                 if zSun >= 0:
                     ss = Translated(xSun,ySun,zSun, Sphere(20))
                     sun = Shape(ss, Material('yellow', Color3(255,255,0)))
                     sun2scene.add(sun)
+                Viewer.display(sun2scene)
 
     return source_cum
 
@@ -189,7 +204,8 @@ def hsCaribu(mtg, meteo, local_date, geo_location, E_type, unit_scene_length,
                nz=50, dz=5, ds=50, pattern=False, turtle_sectors='46',
                turtle_format='soc',leaf_lbl_prefix='L', stem_lbl_prefix=('in', 'Pet', 'cx'),
                opt_prop={'SW':{'leaf':(0.06,0.07),'stem':(0.13,),'other':(0.06,0.07)},
-                'LW':{'leaf':(0.04,0.07),'stem':(0.13,),'other':(0.06,0.07)}}):
+                'LW':{'leaf':(0.04,0.07),'stem':(0.13,),'other':(0.06,0.07)}},
+                rotation_angle = 0.):
     """
     Estimates intercepted energy by the plant canopy.
 
@@ -213,7 +229,8 @@ def hsCaribu(mtg, meteo, local_date, geo_location, E_type, unit_scene_length,
     - **direct**, **nz**, **dz**, **ds**, **pattern**: See :func:`runCaribu` from `CaribuScene` package
     - **turtle_sectors**, **turtle_format**: string, see :func:`turtle` from `sky_tools` package
     - **leaf_lbl_prefix**, **stem_lbl_prefix**: the prefices of the leaf label and stem label, resp.
-    - **opt_prop**: the optical properties of mtg elements, given as a {band_name: material} dictionary of tuples (See :func:`CaribuScene.__init__` for more information).
+    - **opt_prop**: the optical properties of mtg elements, given as a {band_name: material} dictionary of tuples (See :func:`CaribuScene.__init__` for more information)
+    - **rotation_angle**: float, counter clockwise azimuth between the default X-axis direction (South) and real direction of X-axis [degrees]
 
     :Returns:
     - the mtg object, with the incident radiation (`Ei`) and absorbed radiation (`Eabs`), both in [umol m-2 s-1], attached to mtg vertices as properties.
@@ -277,6 +294,13 @@ def hsCaribu(mtg, meteo, local_date, geo_location, E_type, unit_scene_length,
 
 #       diffuse radiation (distributed over a dome) + direct radiation (localized as a supplemental source)
         source=sky.__add__(sun_data)
+
+#       Rotate irradiance sources to cope with plant row orientation
+        if rotation_angle != 0.:
+            v_energy = [vec[0] for vec in source]
+            v_coord = [tuple(vector_rotation(vec[1],(0.,0.,1.), deg2rad(rotation_angle))) for vec in source]
+            source = zip(v_energy, v_coord)
+
 
 #   Run caribu only if irradiance is greater that 0
     if sum([x[0] for x in source]) == 0.:

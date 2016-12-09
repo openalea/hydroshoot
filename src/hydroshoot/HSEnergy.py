@@ -103,7 +103,7 @@ def MTG_vis_a_vis(g, limit=-0.01):
                         if ff < 0 and not g.node(col[ivid]).label.startswith(('soil','other'))]))
 
                 # hacks while awaiting for a complete debug of teh form factors
-                k_soil = 1. #min(1,max(2. - k_sky - k_leaves, 0.))
+                k_soil = min(1,max(2. - k_sky - k_leaves, 0.))
 
                 g.node(vid).k_sky = k_sky
                 g.node(vid).k_leaves = k_leaves
