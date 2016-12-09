@@ -10,7 +10,7 @@ This module computes net photosynthesis and stomatal conductance rates.
 from copy import deepcopy
 from scipy import exp, arccos, sqrt, cos
 
-import topvine.farquhar.meteo_utils as mutils
+from hydroshoot import meteo_utils as mutils
 
 # Constants
 O = 210 # Oxygen partial pressure [mmol mol-1]
