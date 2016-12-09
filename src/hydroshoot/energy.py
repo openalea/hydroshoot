@@ -16,7 +16,7 @@ from sympy import Symbol
 import time
 
 from alinea.caribu.CaribuScene import CaribuScene
-import alinea.topvine.farquhar.meteo_utils as mutils
+from hydroshoot import meteo_utils as mutils
 
 
 # Global variables
