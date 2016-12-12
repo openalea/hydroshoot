@@ -133,7 +133,7 @@ if len(g.property('Flux'))==0:
 
 # Computation of the form factor matrix
 tt = time.time()
-HSEnergy.MTG_vis_a_vis(g, -0.000001)
+HSEnergy.form_factors_matrix(g, -0.000001)
 print ("---%s minutes ---" % ((time.time()-tt)/60.))
 
 #==============================================================================
@@ -193,7 +193,7 @@ for date in meteo.time:
                    'T_air':imeteo.Tac[0]+273.15,'Pa':imeteo.Pa[0]}
 
 # The t loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    t_error_list = []
+    t_error_list = []; t_iter_list = []
     for it in range(max_iter):
         t_prev = deepcopy(g.property('Tlc'))
 
@@ -249,7 +249,9 @@ for date in meteo.time:
 # End psi loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 #       Compute leaf temperature
-        HSEnergy.leaf_temperature(g, macro_meteo,solo=True,leaf_lbl_prefix='L')
+        t_iter=HSEnergy.leaf_temperature(g, macro_meteo,solo=True,leaf_lbl_prefix='L',
+                                  max_iter=100, t_error_crit=t_error_crit)
+        t_iter_list.append(t_iter)
 
         t_new = deepcopy(g.property('Tlc'))
 
@@ -257,7 +259,7 @@ for date in meteo.time:
         error_dict={vtx:abs(t_prev[vtx]-t_new[vtx]) for vtx in g.property('Tlc').keys()}
 
         t_error = round(max(error_dict.values()),3)
-        print '********** t_error = ', t_error
+        print '********** t_error = %d'%t_error, 'max(iter) = %d'%max(t_iter_list)
 #        t_error_list.append(t_error)
         if max(error_dict.values()) < t_error_crit:
             break

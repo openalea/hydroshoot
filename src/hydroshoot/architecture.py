@@ -1368,11 +1368,11 @@ def VineOrient(g, vid, theta, v_axis=[0.,0.,1.], local_rotation=False):
 # Write output
 #==============================================================================
 
-def VineOutput(g, output_path):
+def mtg_output(g, output_path):
     """
     Writes an MTG object (**g**) to an external file given its **output_path**.
     """
-    properties = [(p, 'REAL') for p in g.property_names() if p not in ['edge_type', 'index', 'label']]
+    properties = [(p, 'REAL') for p in g.property_names() if p not in ['edge_type', 'index', 'label', 'geometry']]
     mtg_lines = io.write_mtg(g, properties)
     mtg_file_path = output_path
     f = open(mtg_file_path, 'w')

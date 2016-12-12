@@ -7,41 +7,19 @@ Energy balance module of HydroShoot.
 This module computes leaf (and eventually other elements) tempertaure of a
 given plant shoot.
 """
-#import numpy as np
-#import openalea.mtg.traversal as traversal
 
 from scipy import optimize, mean
 from sympy.solvers import nsolve
 from sympy import Symbol
+from copy import deepcopy
 import time
+
 
 from alinea.caribu.CaribuScene import CaribuScene
 from hydroshoot import meteo_utils as mutils
 
 
-# Global variables
-##global a_PAR
-##global a_NIR
-##global a_glob
-##global e_sky
-##global e_leaf
-##global e_soil
-##global sigma
-##global lambda_
-##global Cpn
-#global E_glob
-#global k_sky
-#global k_leaves
-#global k_soil
-#global gbH
-#global E
-#global T_sky
-#global T_air
-#global T_soil
-#global Pa
-
-
-def MTG_Energy_Prop(a_PAR=0.87, a_NIR=0.35, a_glob=0.6, e_sky=1.0, e_leaf=0.96,
+def energy_params(a_PAR=0.87, a_NIR=0.35, a_glob=0.6, e_sky=1.0, e_leaf=0.96,
                     sigma=5.670373e-8, e_soil = 0.95, lambda_=40.66e3, Cp = 29.07):
     """
     Returns a dictionary of spectrometric and energy balance-related properties.
@@ -73,7 +51,7 @@ def MTG_Energy_Prop(a_PAR=0.87, a_NIR=0.35, a_glob=0.6, e_sky=1.0, e_leaf=0.96,
     return energy_prop_dict
 
 
-def MTG_vis_a_vis(g, limit=-0.01):
+def form_factors_matrix(g, limit=-0.01):
     """
     Associates form factor values to leaves and soil elements.
 
@@ -103,7 +81,7 @@ def MTG_vis_a_vis(g, limit=-0.01):
                         if ff < 0 and not g.node(col[ivid]).label.startswith(('soil','other'))]))
 
                 # hacks while awaiting for a complete debug of teh form factors
-                k_soil = min(1,max(2. - k_sky - k_leaves, 0.))
+                k_soil = 1. #min(1,max(2. - k_sky - k_leaves, 0.))
 
                 g.node(vid).k_sky = k_sky
                 g.node(vid).k_leaves = k_leaves
@@ -116,56 +94,13 @@ def MTG_vis_a_vis(g, limit=-0.01):
     return
 
 
-#def VineEnergyX(T_leaf):
-#    """
-#    """
-##    E_SW = a_PAR*E_PAR + a_NIR*E_NIR
-#    E_SW = a_glob*E_glob
-#    delta_E_LW = e_leaf*(k_sky*e_sky*sigma*(T_sky)**4+k_leaves*e_leaf*sigma*(T_leaf)**4+k_soil*e_soil*sigma*(T_soil)**4) - 2*e_leaf*sigma*(T_leaf)**4
-#    E_Y = -lambda_*E #(1./(2/(1.37*gb)+1/gs))*VPD/Pa
-#    E_H = -1.37*gbH*Cp*(T_leaf-T_air)
-#    E_error = E_SW + delta_E_LW + E_Y + E_H
-#
-#    return E_error
-
-
-Energy_Prop = MTG_Energy_Prop()
+Energy_Prop = energy_params()
 nrj_Prop_tuple = ('a_PAR','a_NIR','a_glob','e_sky','e_leaf','e_soil','sigma','lambda_','Cp')
 a_PAR,a_NIR,a_glob,e_sky,e_leaf,e_soil,sigma,lambda_,Cp = [Energy_Prop[ikey] for ikey in nrj_Prop_tuple]
 
 
-#def leaf_temperature_solo(mtg, macro_meteo, leaf_lbl_prefix='L'):
-#    """
-#    """
-#    global E_glob
-#    global k_sky
-#    global k_leaves
-#    global k_soil
-#    global gbH
-#    global E
-#    global T_sky
-#    global T_air
-#    global T_soil
-#    global Pa
-#
-#    for vid in traversal.pre_order2(mtg,mtg.node(mtg.root).vid_base):
-#        if mtg.node(vid).label.startswith(leaf_lbl_prefix):
-#            node = mtg.node(vid)
-#            E_glob = node.Eabs/(0.48*4.6)
-#            k_sky, k_leaves, k_soil = [node.vis_a_vis[ikey] for ikey in ('k_sky','k_leaves','k_soil')]
-#            gbH = node.gbH
-#            E = node.E
-#            T_sky, T_air, T_soil, Pa = [macro_meteo[ikey] for ikey in ('T_sky', 'T_air', 'T_soil', 'Pa')]
-#
-#            t_leaf = node.Tlc if 'Tlc' in node.properties() else T_air - 273.15
-#
-#            t_leaf0 = optimize.newton_krylov(VineEnergyX, t_leaf+273.15) - 273.15
-#            node.Tlc = t_leaf0
-#
-#    return mtg
-
-
-def leaf_temperature(g, macro_meteo, solo=True, leaf_lbl_prefix='L'):
+def leaf_temperature(g, macro_meteo, solo=True, leaf_lbl_prefix='L',
+                     max_iter=100, t_error_crit=0.01):
     """
     Returns the "thermal structure", temperatures [degreeC] of each individual leaf and soil elements.
 
@@ -176,54 +111,62 @@ def leaf_temperature(g, macro_meteo, solo=True, leaf_lbl_prefix='L'):
         - True (default), calculates energy budget for each element, assuming the temperatures of surrounding leaves constant (from previous calculation step)
         - False, computes simultaneously all temperatures using `sympy.solvers.nsolve` (**very costly!!!**)
     - **leaf_lbl_prefix**: string, the prefix of the label of the leaves
+    - **max_iter**: integer, the allowable number of itrations (for solo=True)
+    - **t_error_crit**: float, the allowable error in leaf temperature (for solo=True)
     """
-#    labels = g.property('label')
-#    leaves_ids = [vid for vid, label in labels.iteritems() if label.startswith(leaf_lbl_prefix)]
-#    symbols = {(vid, Symbol('t%d'%vid)) for lid in leaves_id}
-    # equations = {(vid,equation(vid, symbols) for vid in leaves_id}
-    # nsolve([equations[vid] for vid in leaves_id], [symbols[vid] for vid in leaves_id], verify=False)
 
-    # Calculates leaf's temperature
+#   Iterative calculation of leaves temperature
     if solo:
-        for vid in g.property('geometry').keys():
-            if g.node(vid).label.startswith(leaf_lbl_prefix):
-                node = g.node(vid)
-                E_glob = node.Ei/(0.48*4.6) # Ei not Eabs
-                k_sky = node.k_sky
-                k_leaves = node.k_leaves
-                k_soil = node.k_soil
-                gbH = node.gbH
-                E = node.E
-                T_sky, T_air, T_soil, Pa = [macro_meteo[ikey] for ikey in ('T_sky', 'T_air', 'T_soil', 'Pa')]
-                t_leaf = node.Tlc if 'Tlc' in node.properties() else T_air - 273.15
+        for it in range(max_iter):
+            t_prev = deepcopy(g.property('Tlc'))
+#           +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            t_dict = {}
+            for vid in g.property('geometry').keys():
+                if g.node(vid).label.startswith(leaf_lbl_prefix):
+                    node = g.node(vid)
+                    E_glob = node.Ei/(0.48*4.6) # Ei not Eabs
+                    k_sky = node.k_sky
+                    k_leaves = node.k_leaves
+                    k_soil = node.k_soil
+                    gbH = node.gbH
+                    E = node.E
+                    T_sky, T_air, T_soil, Pa = [macro_meteo[ikey] for ikey in ('T_sky', 'T_air', 'T_soil', 'Pa')]
+                    t_leaf = node.Tlc if 'Tlc' in node.properties() else T_air - 273.15
 
-                E_leaves = -sigma*sum([node.vis_a_vis[ivid]*(g.node(ivid).Tlc+273.15)**4 \
-                            for ivid in node.vis_a_vis.keys()])
+                    E_leaves = -sigma*sum([node.vis_a_vis[ivid]*(g.node(ivid).Tlc+273.15)**4 \
+                                for ivid in node.vis_a_vis.keys()])
 
-                def _VineEnergyX(T_leaf):
-                    E_SW = a_glob*E_glob
-                    delta_E_LW = e_leaf*(k_sky*e_sky*sigma*(T_sky)**4+\
-                                         e_leaf*E_leaves+\
-#                                         k_leaves*e_leaf*sigma*(T_leaf)**4+\
-                                         k_soil*e_soil*sigma*(T_soil)**4)\
-                                 - 2*e_leaf*sigma*(T_leaf)**4
-                    E_Y = -lambda_*E
-                    E_H = -gbH*Cp*(T_leaf-T_air)
-                    E_error = E_SW + delta_E_LW + E_Y + E_H
-                    return E_error
+                    def _VineEnergyX(T_leaf):
+                        E_SW = a_glob*E_glob
+                        delta_E_LW = e_leaf*(k_sky*e_sky*sigma*(T_sky)**4+\
+                                             e_leaf*E_leaves+\
+#                                           k_leaves*e_leaf*sigma*(T_leaf)**4+\
+                                             k_soil*e_soil*sigma*(T_soil)**4)\
+                                     - 2*e_leaf*sigma*(T_leaf)**4
+                        E_Y = -lambda_*E
+                        E_H = -gbH*Cp*(T_leaf-T_air)
+                        E_error = E_SW + delta_E_LW + E_Y + E_H
+                        return E_error
 
-                t_leaf0 = optimize.newton_krylov(_VineEnergyX, t_leaf+273.15) - 273.15
-#                print t_leaf,t_leaf0
-                node.Tlc = t_leaf0
-                node.SW = a_glob*E_glob
-                node.LW_in = e_leaf*(k_sky*e_sky*sigma*(T_sky)**4+\
-#                                         e_leaf*E_leaves+\
-                                         k_leaves*e_leaf*sigma*(t_leaf0+273.15)**4+\
-                                         k_soil*e_soil*sigma*(T_soil)**4)
-                node.LW_out = - 2*e_leaf*sigma*(t_leaf0+273.15)**4
-                node.E_Y = -lambda_*E
-                node.E_H = -gbH*Cp*(t_leaf0+273.15-T_air)
+                    t_leaf0 = optimize.newton_krylov(_VineEnergyX, t_leaf+273.15) - 273.15
+                    t_dict[vid] = t_leaf0
 
+            for vid in t_dict.keys():
+                g.node(vid).Tlc = t_dict[vid]
+#           +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            t_new = deepcopy(g.property('Tlc'))
+
+#           Evaluation of leaf temperature conversion creterion
+            error_dict={vtx:abs(t_prev[vtx]-t_new[vtx]) for vtx in g.property('Tlc').keys()}
+
+            if max(error_dict.values()) < t_error_crit:
+                break
+            else:
+                for vtx_id in t_new.keys():
+                    g.node(vtx_id).Tlc = (t_prev[vtx_id]+t_new[vtx_id])*0.5
+
+
+#   Matrix iterative calculation of leaves temperature
     else:
         t_lst = []
         t_dict = {}
@@ -278,7 +221,10 @@ def leaf_temperature(g, macro_meteo, solo=True, leaf_lbl_prefix='L'):
             g.node(vid).Tlc = float(t_leaf0_lst[ivid])
             ivid += 1
 
-    return
+        it = 1
+
+    return it
+
 
 def soil_temperature(g, meteo, T_sky, soil_lbl_prefix='other'):
     """
