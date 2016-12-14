@@ -487,28 +487,32 @@ def Transpiration_rate(Tlc, ea, gs, gb, Pa = 101.3):
     return E
 
 
-def VineExchange(g, par_photo, meteo, psi_soil, E_type2, leaf_lbl_prefix='L',
-                 model='misson', g0=0.019, rbt=2./3., ca=360., m0=5.278,
-                 psi0=-0.1, D0=30., n=1.85):
+def VineExchange(g, par_photo, par_gs, meteo, psi_soil, E_type2, leaf_lbl_prefix='L',
+                 rbt=2./3., ca=360.):
     """
-    Calculates gaz exchange fluxes at the leaf scale according to the numerical scheme described by Prieto et al. (2012).
-    
+    Calculates gas exchange fluxes at the leaf scale according to the analytical scheme described by Evers et al. (JxBot 2010, 2203–2216).
+
     :Parameters:
     - **g**: a multiscale tree graph object
-    - **par_photo**: dictionary, the parameters of the Farquhar model for net CO2 assimilation
+    - **par_photo**: dictionary, the parameters of the Farquhar model for net CO2 assimilation (cd :func:`par_photo_default`)
+    - **par_gs**: dictionary, the parameters of the stomatal conductance model (model, g0, m0, psi0, D0, n)
     - **meteo**: a `pandas.DataFrame`-like object
     - **psi_soil**: soil water potential [MPa]
-    - **leaf_lbl_prefix**: string, the prefix of the label of the leaves
     - **E_type2**: string, one of two 'Ei' or 'Eabs'
-    - **LPI**, **alb**, **w**, **iterCi**, **delta_Tc**, **deltaci**: See :func:`coupling_Angsci` from :pkg:`alinea.farquhar`.
+    - **leaf_lbl_prefix**: string, the prefix of the label of the leaves
+    - **rbt**: float, the combined turbulance and boundary layer resistance for CO2 transport [m2 s ubar umol-1]
+    - **ca**: float, CO2 partial pressure of the air [ubar]
     
-    :Returns:
+    
+    :Attaches to each leaf:
     - **An**: the net CO2 assimilation [umol m-2 s-1]
     - **Ci**: intercellular CO2 concentration [umol mol]
     - **gs**, **gb**: respectively stomatal and boundary layer conductances to water flow [mol m-2 s-1]
-    - **Tlc**: leaf temperature [degreeC]
+    - **gbH**, boundary layer conductances to heat [mol m-2 s-1] #TODO revise definition
     - **E** leaf transpiration [mol m-2 s-1].
     """
+    
+    model,g0,m0,psi0,D0,n = [par_gs[ikey] for ikey in ('model','g0','m0','psi0','D0','n')]
     
     meteo_leaf = deepcopy(meteo)
     meteo_leaf = meteo_leaf.iloc[0]
