@@ -10,6 +10,6 @@ hydroshoot
     :target: https://travis-ci.org/Rami Albasha/hydroshoot
 
 .. #}
-
-belle petite description
+**tempo**
+HydroShoot is a functional-structural plant modelling package.
 
