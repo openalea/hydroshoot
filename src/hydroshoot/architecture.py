@@ -1316,7 +1316,6 @@ def VineOrient(g, vid, theta, v_axis=[0.,0.,1.], local_rotation=False):
     Rotates an MTG around an axis by a given angle.
 
     :Parameters:
-    :Parameters:
     - **g**: mtg object
     - **vid**: integer, mtg vertex ID
     - **theta**: float, rotation angle [degrees]

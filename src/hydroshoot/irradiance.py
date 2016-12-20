@@ -219,7 +219,7 @@ def hsCaribu(mtg, meteo, local_date, geo_location, E_type, unit_scene_length,
     - **geo_location**: a tuple of (latitude, longitude, elevation) given in degrees
     - **E_type**: string, one of the following 'Rg_Watt/m2', 'RgPAR_Watt/m2' or 'PPFD_umol/m2/s'
     - **unit_scene_length**: the unit of length used for scene coordinate and for pattern (should be one of `CaribuScene.units` default)
-    - **tzone**= a `pytz.timezone` object
+    - **tzone**: a `pytz.timezone` object
     - **wave_band**: either 'SW' for *short wave band* or 'LS' for *long wave band*
     - **source**: a tuple of tuples, giving energy unit and sky coordinates, if None, this function calculates energy for a single given `date`
     - **direct**, **nz**, **dz**, **ds**, **pattern**: See :func:`runCaribu` from `CaribuScene` package
@@ -235,7 +235,7 @@ def hsCaribu(mtg, meteo, local_date, geo_location, E_type, unit_scene_length,
     **Ei** and **Eabs** units are returned in [umol m-2 s-1] **REGARDLESS** of the `unit_scence_length` type.
 
     :Notice 2:
-    The meteo data can consiste of only one line (single event) or multiple lines.
+    The meteo data can consiste either of only one line (single event) or of multiple lines.
     In the latter case, this function returns accumulated irradiance throughtout the entire periode with sun positions corresponding to each time step.
     """
 

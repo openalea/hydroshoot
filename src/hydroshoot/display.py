@@ -40,6 +40,9 @@ def default_labels():
     - **'E'**: [mol m-2 s-1]
     - **'Ci'**: [umol umol-1]
     - **'Cc'**: [umol mol-1]
+    - **'k_sky'**: [-]
+    - **'k_soil'**: [-]
+    - **'k_leaves'**: [-]
     """
 
     lbl_dict = {
@@ -58,7 +61,10 @@ def default_labels():
     'gb': '$\mathregular{g_b\/[mol\/m^{-2}\/s^{-1}]}$',
     'E': '$\mathregular{E\/[mol\/m^{-2}\/s^{-1}]}$',
     'Ci': '$\mathregular{C_i\/[\mu mol_{CO_2}\/\mu mol]}$',
-    'Cc': '$\mathregular{C_c\/[\mu mol_{CO_2}\/\mu mol]}$'
+    'Cc': '$\mathregular{C_c\/[\mu mol_{CO_2}\/\mu mol]}$',
+    'k_sky': '$\mathregular{k_{sky}\/[-]}$',
+    'k_soil': '$\mathregular{k_{soil}\/[-]}$',
+    'k_leaves': '$\mathregular{k_{leaves}\/[-]}$',
     }
     return lbl_dict
 

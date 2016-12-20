@@ -475,8 +475,7 @@ def Transpiration_rate(Tlc, ea, gs, gb, Pa = 101.3):
     - **Pa**: float, atmospheric pressure [kPa].
     
     :Worning:
-    gb is implicitely considered being derived from empirical equations established for leaves with stomata on both sides.
-    Its value is devided by 2 for grapevine leaves.
+    gb is calculated for both sides of a flat leaf.
     """
 
     gva = gb*1.37 # boundary layer conductance for water vapour transport [mol m2 s-1] # R: ancienne formule : gb*1.4
@@ -550,8 +549,6 @@ def VineExchange(g, par_photo, par_gs, meteo, psi_soil, E_type2, leaf_lbl_prefix
                 node.Ci = Ci
                 node.gs = gs
                 node.gb = gb
-                node.gbH = 2*gb*1.37*0.9184 # Boundary layer conductance for heat [mol m2 s-1. The 0.9184 see Campbell and Norman (1998) in Gutschick (2016)
-#                node.Tlc = Tleaf
                 node.E = max(0.,E)
 
     return
