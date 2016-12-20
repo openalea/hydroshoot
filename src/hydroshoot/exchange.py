@@ -506,8 +506,8 @@ def VineExchange(g, par_photo, par_gs, meteo, psi_soil, E_type2, leaf_lbl_prefix
     :Attaches to each leaf:
     - **An**: the net CO2 assimilation [umol m-2 s-1]
     - **Ci**: intercellular CO2 concentration [umol mol]
-    - **gs**, **gb**: respectively stomatal and boundary layer conductances to water flow [mol m-2 s-1]
-    - **gbH**, boundary layer conductances to heat [mol m-2 s-1] #TODO revise definition
+    - **gs**: stomatal conductance to water vapor [mol m-2 s-1]
+    - **gb**: boundary layer conductance to water vapor [mol m-2 s-1]
     - **E** leaf transpiration [mol m-2 s-1].
     """
     
