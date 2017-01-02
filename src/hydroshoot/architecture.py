@@ -608,7 +608,7 @@ def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
         if fatherI.label.startswith('inI'):
             order = g.Class(vid).split('in')[1]
             if order == 'I':
-                in_order = int(fatherI.index())
+                in_order = int(fatherI.index()) if not fatherI.label[-1].isalpha() else int(findall('\d+',str(fatherI.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
                 NFII = VineNFII(in_order, pruning_type,N_init,N_max,N_max_order,in_order_max,slope_nfii,phyto_type)
                 tot_len = 0.1*VineLII(NFII, pruning_type, a_L, b_L, a_P, b_P, c_P)
                 length = VineInL(NFII, tot_len)
@@ -772,7 +772,7 @@ def VinePetiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
             father = n
             grandpa = n.parent()
             grandgrandpa = grandpa.parent() if grandpa.parent() != None else grandpa
-            in_order = int(father.index())
+            in_order = int(father.index()) if not father.label[-1].isalpha() else int(findall('\d+',str(father.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
 
             len_max = len_max_I if g.Class(vid).split('in')[1] == 'I' else len_max_II
             len_max = VineLeafLen(in_order, len_max, len_max/10.) # TODO: insert parameters
@@ -863,7 +863,7 @@ def VineLeaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
     if vid > 0:
         n = g.node(vid)
         if n.label.startswith('Pet'):
-            in_order = int(n.index())
+            in_order = int(n.index()) if not n.label[-1].isalpha() else int(findall('\d+',str(n.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
             order = (g.Class(vid)).split('Pet')[1]
             #if order != 'I': lim_min = lim_max*0.8 # TODO: to be written more properly
 
@@ -873,7 +873,7 @@ def VineLeaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
             limbe_len = VineLeafLen(in_order, lim_max, lim_min, order_lim_max, max_order)
             limbe_vec = scipy.array([0.,0.,1.])*limbe_len
 
-            if cordon_vector == None:
+            if cordon_vector is None:
                 vec_pet = scipy.subtract(n.TopPosition, n.parent().TopPosition)
                 rotation_axis = scipy.cross([0.,0.,1.],vec_pet)
             else:
@@ -1131,7 +1131,7 @@ def leaf_obs(points):
 def VineDiam(g, vid, D_trunk=5.06, D_arm=3.77, D_Cx=2.91, D_3y=1.75,
              D_spur=1.15, D_cane=0.99, Fifty_cent=5.,sig_slope=10.,D_pet=0.35):
     """
-    Returns the diameter [mm] of an internode or a structural element.
+    Returns the diameter [cm] of an internode or a structural element.
 
     :Parameters:
     - **g**: mtg object
@@ -1166,11 +1166,11 @@ def VineDiam(g, vid, D_trunk=5.06, D_arm=3.77, D_Cx=2.91, D_3y=1.75,
     if n.label.startswith('cx'):
         Diam = D_Cx
     if n.label.startswith(('inT3y','inT2y')):
-        in_order = int(n.index())
+        in_order = int(n.index()) if not n.label[-1].isalpha() else int(findall('\d+',str(n.label))[-1]) # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
         Diam = D_spur*(1-1/(1+scipy.exp(-(in_order-Fifty_cent)/sig_slope)))
     if n.label.startswith('inI'):
         init_diam = g.node(g.Complex(vid)).InitDiam
-        in_order = int(n.index())
+        in_order = int(n.index()) if not n.label[-1].isalpha() else int(findall('\d+',str(n.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
         Diam = init_diam*(1-1/(1+scipy.exp(-(in_order-Fifty_cent)/sig_slope)))
     if n.label.startswith('Pet'):
         Diam = D_pet*max(0,(scipy.rand()+1)/2)
@@ -1180,7 +1180,7 @@ def VineDiam(g, vid, D_trunk=5.06, D_arm=3.77, D_Cx=2.91, D_3y=1.75,
 
 def VineMTGProp(g, vid):
     """
-    Attaches coordinates to MTG vertices.
+    Attaches geometric properties to MTG vertices.
 
     :Parameters:
     - **g**: mtg object
@@ -1194,7 +1194,7 @@ def VineMTGProp(g, vid):
 #       Setting the properties of internodes, pruning complices and petioles
         if n.label.startswith(('in','cx','Pet')):
             TopPosition = n.TopPosition
-            TopDiameter = n.TopDiameter if n.TopDiameter != None else VineDiam(g,vid)
+            TopDiameter = n.TopDiameter if n.TopDiameter != None else max(0.05,VineDiam(g,vid))
             p = n.parent()
             try:
                 p == None # First phytomere at the basis of the trunk

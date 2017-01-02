@@ -114,7 +114,7 @@ def default_element_list(*args):
 
 def visu(g, plot_prop=None,min_value=None, max_value=None,tt=1001,cmap='jet',fmt='%6.0f',elmnt_labels=None,
          elmnt_color_dict=None,def_elmnt_color_dict=False, use_mtg_color=False,
-         snap_shot_path=None, scene=None,sub_mtg_root=None):
+         snap_shot_path=None, scene=None):
     """
     Displays 3D moke-up using `plantgl` package.
 
@@ -131,7 +131,6 @@ def visu(g, plot_prop=None,min_value=None, max_value=None,tt=1001,cmap='jet',fmt
     - **use_mtg_color**: logical, if `True`, . If `False` uses the 'color' property from mtg nodes
     - **snap_shot_path**: string, if given, saves scene snapshot to the defined path and file name
     - **scene**: def None,if given, adds scene shapes to it
-    - **sub_mtg_root**: integer, def `g.root`, an MTG node, if given, displays only its descendants
     """
 
     MyScene = pgl.Scene() if scene == None else scene
@@ -151,11 +150,13 @@ def visu(g, plot_prop=None,min_value=None, max_value=None,tt=1001,cmap='jet',fmt
                                 max_value=max_value)
 
         for vid in g.property(plot_prop).keys():
-            n = g.node(vid)
-            mesh = n.geometry
-            label = n.label
-            Scene_shape=pgl.Shape(mesh, pgl.Material(pgl.Color3(n.color)))
-            MyScene.add(Scene_shape)
+            try:
+                n = g.node(vid)
+                mesh = n.geometry
+                Scene_shape=pgl.Shape(mesh, pgl.Material(pgl.Color3(n.color)))
+                MyScene.add(Scene_shape)
+            except:
+                pass
 
     else:
 
