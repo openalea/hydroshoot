@@ -159,12 +159,15 @@ def hydraulic_prop(mtg, vtx_label='inT', MassConv=18.01528, LengthConv=1.e-2,
                 n.leaf_area = leaf_area
 # Note: The surface of the leaf mesh is overestimated compared to allometry results
             n.Flux = ((n.E)*MassConv*1.e-3)*leaf_area
-            n.FluxC = ((n.An)*44.0095*1.e-9)*leaf_area # [kgCO2 s-1]
+#            n.FluxC = ((n.An)*44.0095*1.e-9)*leaf_area # [kgCO2 s-1]
+            n.FluxC = (n.An)*leaf_area # [umol s-1]
 
         elif n.label.startswith(('in','cx','Pet')):
             n.Flux = sum([vtx.Flux for vtx in n.children()])
             Diam = 0.5*(n.TopDiameter + n.BotDiameter)*LengthConv
             n.Kmax = k_max(Diam,a,b)
+
+            n.FluxC = sum([vtx.FluxC for vtx in n.children()])
 
     return mtg
 

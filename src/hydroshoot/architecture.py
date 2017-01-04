@@ -988,7 +988,9 @@ def Cordon_vector(g):
     uu, dd, vv = scipy.linalg.svd(data - datamean)
 
     data_dist = distance.cdist(data,data,'euclidean')
-    extr_pair = scipy.where(data_dist == data_dist.max())[0]
+    extr_pair0 = scipy.where(data_dist == data_dist.max())
+    extr_pair = extr_pair0[0] if len(extr_pair0[0])==2 else scipy.concatenate((extr_pair0[0],extr_pair0[1]), axis=0)
+
     extr_pos = scipy.array([data[index_] for index_ in extr_pair])
     linepts = vv[0] * extr_pos
     # shift by the mean to get the line in the right place
