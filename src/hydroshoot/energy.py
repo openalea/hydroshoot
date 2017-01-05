@@ -8,7 +8,7 @@ This module computes leaf (and eventually other elements) tempertaure of a
 given plant shoot.
 """
 
-from scipy import optimize, mean, spatial
+from scipy import optimize, mean#, spatial
 from sympy.solvers import nsolve
 from sympy import Symbol
 from copy import deepcopy
@@ -16,7 +16,7 @@ import time
 
 
 import openalea.mtg.traversal as traversal
-from alinea.caribu.CaribuScene import CaribuScene
+#from alinea.caribu.CaribuScene import CaribuScene
 from alinea.caribu.sky_tools import turtle
 
 
@@ -25,36 +25,36 @@ from hydroshoot import irradiance as HSCaribu
 from hydroshoot.architecture import VineOrient, VineMTGProp, VineMTGGeom, VineTransform
 
 
-def energy_params(a_PAR=0.87, a_NIR=0.35, a_glob=0.6, e_sky=1.0, e_leaf=0.96,
-                    sigma=5.670373e-8, e_soil = 0.95, lambda_=40.66e3, Cp = 29.07):
-    """
-    Returns a dictionary of spectrometric and energy balance-related properties.
-
-    Parameters:
-    - **a_PAR**: Leaf absorptance to the PAR [-]
-    - **a_NIR** : Leaf absorptance to the NIR radiation [-]
-    - **a_glob**: Leaf absorptance to the global radiation [-]
-    - **e_sky**: sky emissivity [-]
-    - **e_leaf**: leaf emissivity [-]
-    - **e_soil**: soil emissivity [-]
-    - **sigma**: Stefan-Boltzmann constant [W m-2 K-4]
-    - **lambda_**: Latent heat for evaporization [J mol-1], [W s mol-1]
-    - **Cp**: Isobaric heat capacity of the air [J mol-1 K-1]
-    """
-
-    energy_prop_dict = {
-    'a_PAR' : a_PAR,
-    'a_NIR' : a_NIR,
-    'a_glob' : a_glob,
-    'e_sky' : e_sky,
-    'e_leaf' : e_leaf,
-    'e_soil' : e_soil,
-    'sigma' : sigma,
-    'lambda_' : lambda_,
-    'Cp' : Cp
-    }
-
-    return energy_prop_dict
+#def energy_params(a_PAR=0.87, a_NIR=0.35, a_glob=0.6, e_sky=1.0, e_leaf=0.96,
+#                    sigma=5.670373e-8, e_soil = 0.95, lambda_=40.66e3, Cp = 29.07):
+#    """
+#    Returns a dictionary of spectrometric and energy balance-related properties.
+#
+#    Parameters:
+#    - **a_PAR**: Leaf absorptance to the PAR [-]
+#    - **a_NIR** : Leaf absorptance to the NIR radiation [-]
+#    - **a_glob**: Leaf absorptance to the global radiation [-]
+#    - **e_sky**: sky emissivity [-]
+#    - **e_leaf**: leaf emissivity [-]
+#    - **e_soil**: soil emissivity [-]
+#    - **sigma**: Stefan-Boltzmann constant [W m-2 K-4]
+#    - **lambda_**: Latent heat for evaporization [J mol-1], [W s mol-1]
+#    - **Cp**: Isobaric heat capacity of the air [J mol-1 K-1]
+#    """
+#
+#    energy_prop_dict = {
+#    'a_PAR' : a_PAR,
+#    'a_NIR' : a_NIR,
+#    'a_glob' : a_glob,
+#    'e_sky' : e_sky,
+#    'e_leaf' : e_leaf,
+#    'e_soil' : e_soil,
+#    'sigma' : sigma,
+#    'lambda_' : lambda_,
+#    'Cp' : Cp
+#    }
+#
+#    return energy_prop_dict
 
 
 #def form_factors_matrix(g, pattern, LengthConv, limit=-0.01):
@@ -150,7 +150,7 @@ def form_factors_simplified(g, pattern, leaf_lbl_prefix='L',
             VineTransform(g,v)
         
         
-        #       Compute irradiance interception and absorbtion
+        # Compute irradiance interception and absorbtion
         g, caribu_scene = HSCaribu.hsCaribu(mtg=g,meteo=None,local_date=None,
                            geo_location=None, E_type=None,
                            unit_scene_length=unit_scene_length, tzone=None,
@@ -174,9 +174,19 @@ def form_factors_simplified(g, pattern, leaf_lbl_prefix='L',
     return
 
 
-Energy_Prop = energy_params()
-nrj_Prop_tuple = ('a_PAR','a_NIR','a_glob','e_sky','e_leaf','e_soil','sigma','lambda_','Cp')
-a_PAR,a_NIR,a_glob,e_sky,e_leaf,e_soil,sigma,lambda_,Cp = [Energy_Prop[ikey] for ikey in nrj_Prop_tuple]
+#Energy_Prop = energy_params()
+#nrj_Prop_tuple = ('a_PAR','a_NIR','a_glob','e_sky','e_leaf','e_soil','sigma','lambda_','Cp')
+#a_PAR,a_NIR,a_glob,e_sky,e_leaf,e_soil,sigma,lambda_,Cp = [Energy_Prop[ikey] for ikey in nrj_Prop_tuple]
+
+a_PAR=0.87
+a_NIR=0.35
+a_glob=0.6
+e_sky=1.0
+e_leaf=0.96
+e_soil = 0.95
+sigma=5.670373e-8
+lambda_=40.66e3
+Cp = 29.07
 
 
 def leaf_temperature(g, macro_meteo, solo=True, simple_ff=True,
@@ -199,47 +209,48 @@ def leaf_temperature(g, macro_meteo, solo=True, simple_ff=True,
     if solo:
         for it in range(max_iter):
             t_prev = deepcopy(g.property('Tlc'))
-            T_leaves = mean([g.node(vid).Tlc for vid in g.property('Tlc').keys() if g.node(vid).label.startswith(leaf_lbl_prefix)]) + 273.15
+#            T_leaves = mean([g.node(vid).Tlc for vid in g.property('Tlc').keys() if g.node(vid).label.startswith(leaf_lbl_prefix)]) + 273.15
+            T_leaves = mean([g.node(vid).Tlc for vid in g.property('Tlc').keys()]) + 273.15
             t_dict = {}
 #           +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            for vid in g.property('geometry').keys():
-                if g.node(vid).label.startswith(leaf_lbl_prefix):
-                    node = g.node(vid)
-                    E_glob = node.Ei/(0.48*4.6) # Ei not Eabs
-                    k_sky = node.k_sky
-                    k_leaves = node.k_leaves
-                    k_soil = node.k_soil
+            for vid in g.property('Tlc').keys():
+#                if g.node(vid).label.startswith(leaf_lbl_prefix):
+                node = g.node(vid)
+                E_glob = node.Ei/(0.48*4.6) # Ei not Eabs
+                k_sky = node.k_sky
+                k_leaves = node.k_leaves
+                k_soil = node.k_soil
 #                    gbH = node.gb*1.37*0.9184 * Cp # Boundary layer conductance for heat [mol m2 s-1. The 0.9184 see Campbell and Norman (1998) in Gutschick (2016)
-                    l_w = node.Length/100.*0.72 # leaf length in the downwind direction [m]
-                    d_bl = 4.*(l_w/macro_meteo['u'])**0.5 /1000. # Boundary layer thikness in [m] (Nobel, 2009 pp.337)
-                    gbH = 2.*0.026 / d_bl # Boundary layer conductance to heat [W m-2 K-1]
+                l_w = node.Length/100.*0.72 # leaf length in the downwind direction [m]
+                d_bl = 4.*(l_w/max(1.e-3,macro_meteo['u']))**0.5 /1000. # Boundary layer thikness in [m] (Nobel, 2009 pp.337)
+                gbH = 2.*0.026 / d_bl # Boundary layer conductance to heat [W m-2 K-1]
 # TODO: Replace the constant thermal conductivity coefficient of the air (0.026 W m-1 C-1) by a model accounting for air temperature, humidity and pressure (cf. Nobel, 2009 Appendix I)
-                    E = node.E
-                    T_sky, T_air, T_soil, Pa = [macro_meteo[ikey] for ikey in ('T_sky', 'T_air', 'T_soil', 'Pa')]
-                    t_leaf = node.Tlc if 'Tlc' in node.properties() else T_air - 273.15
+                E = node.E
+                T_sky, T_air, T_soil, Pa = [macro_meteo[ikey] for ikey in ('T_sky', 'T_air', 'T_soil', 'Pa')]
+                t_leaf = node.Tlc if 'Tlc' in node.properties() else T_air - 273.15
 
-                    if not simple_ff:
-                        E_leaves = -sigma*sum([node.vis_a_vis[ivid]*(g.node(ivid).Tlc+273.15)**4 \
-                                for ivid in node.vis_a_vis.keys()])
-                    else:
-                        E_leaves = k_leaves*sigma*(T_leaves)**4
+                if not simple_ff:
+                    E_leaves = -sigma*sum([node.vis_a_vis[ivid]*(g.node(ivid).Tlc+273.15)**4 \
+                            for ivid in node.vis_a_vis.keys()])
+                else:
+                    E_leaves = k_leaves*sigma*(T_leaves)**4
 
-                    def _VineEnergyX(T_leaf):
-                        E_SW = a_glob*E_glob
-                        delta_E_LW = e_leaf*(k_sky*e_sky*sigma*(T_sky)**4+\
-                                             e_leaf*E_leaves+\
-                                             k_soil*e_soil*sigma*(T_soil)**4)\
-                                     - 2*e_leaf*sigma*(T_leaf)**4
-                        E_Y = -lambda_*E
-                        E_H = -gbH*(T_leaf-T_air)
-                        E_error = E_SW + delta_E_LW + E_Y + E_H
-                        return E_error
+                def _VineEnergyX(T_leaf):
+                    E_SW = a_glob*E_glob
+                    delta_E_LW = e_leaf*(k_sky*e_sky*sigma*(T_sky)**4+\
+                                         e_leaf*E_leaves+\
+                                         k_soil*e_soil*sigma*(T_soil)**4)\
+                                 - 2*e_leaf*sigma*(T_leaf)**4
+                    E_Y = -lambda_*E
+                    E_H = -gbH*(T_leaf-T_air)
+                    E_error = E_SW + delta_E_LW + E_Y + E_H
+                    return E_error
 
-                    t_leaf0 = optimize.newton_krylov(_VineEnergyX, t_leaf+273.15) - 273.15
-                    t_dict[vid] = t_leaf0
+                t_leaf0 = optimize.newton_krylov(_VineEnergyX, t_leaf+273.15) - 273.15
+                t_dict[vid] = t_leaf0
 
-            for vid in t_dict.keys():
-                g.node(vid).Tlc = t_dict[vid]
+            g.properties()['Tlc'] = t_dict
+
 #           +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             t_new = deepcopy(g.property('Tlc'))
 
@@ -249,8 +260,7 @@ def leaf_temperature(g, macro_meteo, solo=True, simple_ff=True,
             if max(error_dict.values()) < t_error_crit:
                 break
             else:
-                for vtx_id in t_new.keys():
-                    g.node(vtx_id).Tlc = (t_prev[vtx_id]+t_new[vtx_id])*0.5
+                g.properties()['Tlc'] = {vtx_id:0.5*(t_prev[vtx_id]+t_new[vtx_id]) for vtx_id in t_new.keys()}
 
 
 #   Matrix iterative calculation of leaves temperature
