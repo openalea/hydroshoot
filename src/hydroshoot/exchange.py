@@ -471,15 +471,15 @@ def Transpiration_rate(Tlc, ea, gs, gb, Pa = 101.3):
     - **Tlc**: float, leaf temperature [degreeC]
     - **ea**: float, air vapor pressure [kPa]
     - **gs**: stomatal conductance for water [mol m-2 s-1]
-    - **gb**: float, boundary layer conductance for CO2 [mol m-2 s-1]
+    - **gb**: float, boundary layer conductance for H2O [mol m-2 s-1]
     - **Pa**: float, atmospheric pressure [kPa].
     
     :Worning:
     gb is calculated for both sides of a flat leaf.
     """
 
-    gva = gb*1.37 # boundary layer conductance for water vapour transport [mol m2 s-1] # R: ancienne formule : gb*1.4
-    gv = 1./((2./gva)+(1./gs)) # Formulation by Pearcy 1989
+#    gva = gb*1.37 # boundary layer conductance for water vapour transport [mol m2 s-1] # R: ancienne formule : gb*1.4
+    gv = 1./((2./gb)+(1./gs)) # Formulation by Pearcy 1989
     es_l = mutils.s_avpd(Tlc)  # Saturated vapor pressure at leaf surface [kPa]
     E = gv*((es_l-ea)/Pa) # Transpiration rate [mol m-2 s-1]
 
@@ -526,21 +526,34 @@ def VineExchange(g, par_photo, par_gs, meteo, psi_soil, E_type2, leaf_lbl_prefix
                 u = meteo_leaf.u
                 Ca = meteo_leaf.Ca
                 Pa = meteo_leaf.Pa
+                
+                try:
+                    u *= node.u_coef
+                    node.u = u
+                except:
+                    pass
 
                 psi = node.properties()['psi_head'] #leaf water potential [MPa] (assumed equal to that of the petiole)
                 Tlc = node.properties()['Tlc']
                 PPFD_leaf = node.properties()[E_type2]
-                w = node.Length / 100. # leaf length in m                
+#                w = node.Length / 100. # leaf length in m                
 
                 meteo_leaf['PPFD'] = PPFD_leaf
                 meteo_leaf['Rg'] = PPFD_leaf/(0.48*4.6)
 #                meteo_leaf['u'] = min(1., meteo_leaf['u']) # Hack: see Nobel p.338
-                
+
                 An, Cc, Ci, gs = AnGsCi(par_photo, meteo_leaf, psi, Tlc,
                                            model, g0, rbt, Ca, m0, psi0, D0, n)
 
-                gb = mutils.computeBoundaryLayerConductance(u, w)
+                # Boundary layer conductance
+#                gb = mutils.computeBoundaryLayerConductance(u, w)
+                l_w = node.Length/100.*0.72 # leaf length in the downwind direction [m]
+                d_bl = 4.*(l_w/max(1.e-3,u))**0.5 /1000. # Boundary layer thikness in [m] (Nobel, 2009 pp.337)
+                Dj0 = 2.13*1.e-5 #[m2 s-1] at P=1. atm and t=0. °C (Nobel, pp.545)
+                Dj = Dj0*(101.3/Pa)*((Tac+273.15)/273.15)**1.8 #(Nobel, eq.8.8, pp.379)
+                gb = Dj*(Pa * 1.e-3) / ((R*1.e-3) * (Tac+273.15) * d_bl) # [mol m-2 s-1] (Nobel, 2009 pp.337)
 
+                # Transpiration
                 es_a = mutils.s_avpd(Tac)
                 ea = es_a*hs/100.
                 E = Transpiration_rate(Tlc, ea, gs, gb, Pa)

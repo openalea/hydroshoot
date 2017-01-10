@@ -10,6 +10,8 @@ import numpy as np
 from scipy.spatial import distance
 import matplotlib as mpl
 import mpl_toolkits.mplot3d as m3d
+from collections import OrderedDict
+
 
 from openalea.mtg.plantframe import color as pglcolor
 import openalea.plantgl.all as pgl
@@ -222,7 +224,7 @@ def hydraulic_map(g, prop='psi_head', fig=None,style=None):
     return fig, ax
 
 
-def property_map(g, prop='psi_head', fig=None, style=None, ylabel=None,
+def property_map(g, prop='psi_head', ax=None, style=None, xlabel=None,
             add_head_loss=False, color=None):
     """
     Plots values of a given MTG property vs hight.
@@ -232,36 +234,45 @@ def property_map(g, prop='psi_head', fig=None, style=None, ylabel=None,
     - **prop**: string, name of an MTG property to plot
     - **fig**: a matplotlib figure object, default None, if given adds the hydraulic cart to it
     - **style**: string, a legal matplotlib style
-    - **ylabel**: string, label of y axis, if None, tries to get a label from :func:`default_labels` based on **prop** string
+    - **xlabel**: string, label of y axis, if None, tries to get a label from :func:`default_labels` based on **prop** string
     - **add_head_loss**: logical, if True, adds a dashed line representing water head loss due to elevation [-0.01 MPa m-1]
     - **color**: string, a legal matplotlib color name
     """
 
-    if not fig:
-        fig = mpl.pyplot.figure()
-        ax=fig.add_subplot(111)
-    else:
-        ax=fig.axes[0]
+    if not ax:
+        fig, ax = mpl.pyplot.subplots()
 
-    if ylabel is None:
+    if xlabel is None:
         try:
-            ylabel = default_labels()[prop]
+            xlabel = default_labels()[prop]
         except:
             pass
-    if color is None: color = (0,0,.5)
+    if color is None: color=mpl.pyplot.rcParams['axes.color_cycle'][0]
     vid_base = MTGbase(g)
-    for vid in g.Extremities(vid_base):
-        x=[g.node(ivid).TopPosition[2] for ivid in g.Ancestors(vid) if not g.node(ivid).label.startswith(('L'))]
-        y=[g.node(ivid).properties()[prop] for ivid in g.Ancestors(vid) if not g.node(ivid).label.startswith(('L'))]
-        ax.plot(x,y,'.-',color=color)
-        ax.set(xlabel='z [cm]', ylabel=ylabel)
-    #    ax.plot(x,y,'-',color=mpl.pyplot.rcParams['axes.color_cycle'][2])
+    
+    if prop in g.node(vid_base).properties() and not prop.startswith('k_'):
+        for vid in g.Extremities(vid_base):
+            y=[g.node(ivid).TopPosition[2] for ivid in g.Ancestors(vid)]
+            x=[g.node(ivid).properties()[prop] for ivid in g.Ancestors(vid)]
+            ax.plot(x,y,'.-',color=color, label=xlabel)
+            ax.set(ylabel='z [cm]', xlabel=xlabel)
+        #    ax.plot(x,y,'-',color=mpl.pyplot.rcParams['axes.color_cycle'][2])
+    else:
+        x=[g.node(ivid).properties()[prop] for ivid in g.VtxList(Scale=3) if g.node(ivid).label.startswith(('L'))]
+        y=[g.node(ivid).TopPosition[2] for ivid in g.VtxList(Scale=3) if g.node(ivid).label.startswith(('L'))]
+        ax.plot(x,y,'.',color=color, label=xlabel)
+        ax.set(ylabel='z [cm]', xlabel=xlabel)
+        
     if add_head_loss:
-        xlim = ax.get_xlim()
-        ls = np.arange(xlim[0],xlim[1])
-        ax.plot(ls,0.01*ls*(-0.01)+g.node(vid_base).psi_head, '--')
+        ylim = ax.get_ylim()
+        ls = np.arange(ylim[0],ylim[1])
+        ax.plot(0.01*ls*(-0.01)+g.node(vid_base).psi_head,ls, '--', label='Hydrostatic slope')
+    
+    handles, labels=ax.get_legend_handles_labels()
+    by_label = OrderedDict(zip(labels, handles))
+    ax.legend(by_label.values(), by_label.keys())
 
-    return fig, ax
+    return ax
 
 
 def prop_fun_prop(g, prop1='gs', prop2='psi_head', fig=None,style=None,

@@ -191,7 +191,7 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
                     sun2scene.add(sun)
                 Viewer.display(sun2scene)
 
-    return source_cum
+    return source_cum, RdRsH_ratio
 
 
 def hsCaribu(mtg, meteo, local_date, geo_location, E_type, unit_scene_length,

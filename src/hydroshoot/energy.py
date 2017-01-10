@@ -18,6 +18,7 @@ import time
 import openalea.mtg.traversal as traversal
 #from alinea.caribu.CaribuScene import CaribuScene
 from alinea.caribu.sky_tools import turtle
+import alinea.astk.icosphere as ico
 
 
 from hydroshoot import meteo_utils as mutils
@@ -26,7 +27,7 @@ from hydroshoot.architecture import VineOrient, VineMTGProp, VineMTGGeom, VineTr
 
 
 #def energy_params(a_PAR=0.87, a_NIR=0.35, a_glob=0.6, e_sky=1.0, e_leaf=0.96,
-#                    sigma=5.670373e-8, e_soil = 0.95, lambda_=40.66e3, Cp = 29.07):
+#                    sigma=5.670373e-8, e_soil = 0.95, lambda_=44.00e3, Cp = 29.07):
 #    """
 #    Returns a dictionary of spectrometric and energy balance-related properties.
 #
@@ -104,43 +105,46 @@ from hydroshoot.architecture import VineOrient, VineMTGProp, VineMTGGeom, VineTr
 
 def form_factors_simplified(g, pattern, leaf_lbl_prefix='L',
                             stem_lbl_prefix=('in','Pet','cx'),
-                            turtle_sectors='46',unit_scene_length='cm'):
+                            turtle_sectors='46', icosphere_level=3,
+                            unit_scene_length='cm'):
     """
     Returns sky and soil contribution factors (resp. k_sky and k_soil) to the energy budget equation.
     Both factors are calculated and attributed to each element of the scene.
 
-    :Note:
+    :Note 1:
     This function is a simplified approximation of the form factors matrix which is calculated by the function :func:**form_factors_matrix**.
     The canopy is turned upside-down and light is projected in each case to estimate the respective contribution of the sky ({z}>=0) and soil ({z}<=0) to energy budget calculations.
-    
+
+    :Note 2:
+    When **icosphere_level** is defined, **turtle_sectors** is ignored.
+
     :Parameters:
     - **g**: an MTG object
-    - **caribu_source**: light source tuple, in `None` (default) the light source is calculated assuming a uniform, only diffuse, light distribution over the turtle coordinates
-    - **opt_prop_ff**: a {band_name: {primitive_id: material}} dict of dict or a {band_name: material} dict of tuples. In the second form the material is used for all primitives.
-        - A material is a 1-, 2- or 4-tuple depending on its optical behavior.
-        - A 1-tuple encode an opaque material characterised by its reflectance
-        - A 2-tuple encode a symmetric translucent material defined
-        - by a reflectance and a transmittance
-        - A 4-tuple encode an asymmetric translucent material defined the reflectance and transmittance of the upper and lower side respectively
-        - Alternatively, a list of band_name.opt files (require scene to be given as a *.can file)
-        - If None (default), all primitive are associated to the default material of the class.
-    - **leaf_lbl_prefix**, **stem_lbl_prefix**: string, the prefices of the leaf label and stem label, resp.
-    - **turtle_sectors**: string, see :func:`turtle` from `sky_tools` package
-    - **unit_scene_length**: the unit of length used for scene coordinate and for pattern (should be one of `CaribuScene.units` default)
     - **pattern**: tuple, 2D Coordinates of the domain bounding the scene for its replication.
                      (xmin, ymin, xmax, ymax) scene is not bounded along z axis.
                      Alternatively a *.8 file.
                      if `None` (default), scene is not repeated
+    - **leaf_lbl_prefix**, **stem_lbl_prefix**: string, the prefices of the leaf label and stem label, resp.
+    - **turtle_sectors**: string, see :func:`turtle` from `sky_tools` package
+    - **icosphere_level**: integer, the level of refinement of the dual icosphere. By default 46 ^polygons are returned (level=3). See :func:`alinea.astk.icosphere.turtle_dome` for details
+    - **unit_scene_length**: the unit of length used for both scene coordinates and pattern (should be one of `CaribuScene.units` default)
     """
+
     opt_prop_ff={'SW':{'leaf':(0.001,0.0),'stem':(0.001,),'other':(0.001,0.0)},
                  'SW':{'leaf':(0.001,0.0),'stem':(0.001,),'other':(0.001,0.0)}}
 
     g = HSCaribu.opticals(g,leaf_lbl_prefix, stem_lbl_prefix,'SW',opt_prop_ff)
 
-    energy, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format='uoc',energy=1.)
-    caribu_source = zip(len(energy)*[1./46.],direction)
-    
+    if not icosphere_level:
+        energy, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format='uoc',energy=1.)
+    else:
+        direction = ico.turtle_dome(icosphere_level)[0]
+#        direction = map(lambda x: list(x[:2])+[-x[2]],direction)
+    caribu_source = zip(len(direction)*[1./len(direction)],direction)        
+
+
     for s in ('Pirouette', 'Cacahuete'):
+        print s
         for v in traversal.pre_order2(g,3):
             VineOrient(g,v,180., v_axis=[1.,0.,0.], local_rotation = False)
         
@@ -164,9 +168,14 @@ def form_factors_simplified(g, pattern, leaf_lbl_prefix='L',
         
     #    caribu_scene.getIncidentEnergy()
         if s == 'Pirouette':
-            g.properties()['k_soil'] = g.properties()['Ei']
+            k_soil_dict = g.properties()['Ei']
+            max_k_soil = float(max(k_soil_dict.values()))
+            g.properties()['k_soil'] = {vid:k_soil_dict[vid]/max_k_soil for vid in k_soil_dict}
         elif s == 'Cacahuete':
-            g.properties()['k_sky'] = g.properties()['Ei']
+            k_sky_dict = g.properties()['Ei']
+            max_k_sky = float(max(k_sky_dict.values()))
+            g.properties()['k_sky'] = {vid:k_sky_dict[vid]/max_k_sky for vid in k_soil_dict}
+
 
     for vid in g.properties()['Ei']:
         g.node(vid).k_leaves = max(0., 2.-(g.node(vid).k_soil+g.node(vid).k_sky))
@@ -185,7 +194,7 @@ e_sky=1.0
 e_leaf=0.96
 e_soil = 0.95
 sigma=5.670373e-8
-lambda_=40.66e3
+lambda_=44.0e3
 Cp = 29.07
 
 
@@ -216,18 +225,25 @@ def leaf_temperature(g, macro_meteo, solo=True, simple_ff=True,
             for vid in g.property('Tlc').keys():
 #                if g.node(vid).label.startswith(leaf_lbl_prefix):
                 node = g.node(vid)
-                E_glob = node.Ei/(0.48*4.6) # Ei not Eabs
+                E_glob = 1.2*node.Ei/(0.48*4.6) # Ei not Eabs
+#               Attention, 20% increase in Rg (Nobel, Eq. 7.8b) is performed to account for reflected irradiance.
+#               This increase must be deleted in nest/pure radiosity is used to simulate Ei.
                 k_sky = node.k_sky
                 k_leaves = node.k_leaves
                 k_soil = node.k_soil
-#                    gbH = node.gb*1.37*0.9184 * Cp # Boundary layer conductance for heat [mol m2 s-1. The 0.9184 see Campbell and Norman (1998) in Gutschick (2016)
+                u = node.u
+
+#                gbH = node.gb*1.37*0.9184 * Cp # Boundary layer conductance for heat [mol m2 s-1. The 0.9184 see Campbell and Norman (1998) in Gutschick (2016)
+#                gbH = 3.9 * (macro_meteo['u']/l_w)**0.5
                 l_w = node.Length/100.*0.72 # leaf length in the downwind direction [m]
-                d_bl = 4.*(l_w/max(1.e-3,macro_meteo['u']))**0.5 /1000. # Boundary layer thikness in [m] (Nobel, 2009 pp.337)
+                d_bl = 4.*(l_w/max(1.e-3,u))**0.5 /1000. # Boundary layer thikness in [m] (Nobel, 2009 pp.337)
                 gbH = 2.*0.026 / d_bl # Boundary layer conductance to heat [W m-2 K-1]
+
 # TODO: Replace the constant thermal conductivity coefficient of the air (0.026 W m-1 C-1) by a model accounting for air temperature, humidity and pressure (cf. Nobel, 2009 Appendix I)
                 E = node.E
                 T_sky, T_air, T_soil, Pa = [macro_meteo[ikey] for ikey in ('T_sky', 'T_air', 'T_soil', 'Pa')]
                 t_leaf = node.Tlc if 'Tlc' in node.properties() else T_air - 273.15
+                
 
                 if not simple_ff:
                     E_leaves = -sigma*sum([node.vis_a_vis[ivid]*(g.node(ivid).Tlc+273.15)**4 \
@@ -247,7 +263,10 @@ def leaf_temperature(g, macro_meteo, solo=True, simple_ff=True,
                     return E_error
 
                 t_leaf0 = optimize.newton_krylov(_VineEnergyX, t_leaf+273.15) - 273.15
+                t_leaf0
                 t_dict[vid] = t_leaf0
+                
+                node.gbH = gbH
 
             g.properties()['Tlc'] = t_dict
 
