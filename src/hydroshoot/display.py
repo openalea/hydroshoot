@@ -116,7 +116,7 @@ def default_element_list(*args):
 
 def visu(g, plot_prop=None,min_value=None, max_value=None,tt=1001,cmap='jet',fmt='%6.0f',elmnt_labels=None,
          elmnt_color_dict=None,def_elmnt_color_dict=False, use_mtg_color=False,
-         snap_shot_path=None, scene=None):
+         snap_shot_path=None, scene=None, view_result = True):
     """
     Displays 3D moke-up using `plantgl` package.
 
@@ -186,7 +186,8 @@ def visu(g, plot_prop=None,min_value=None, max_value=None,tt=1001,cmap='jet',fmt
                 Scene_shape=pgl.Shape(mesh, pgl.Material(pgl.Color3(color)))
                 MyScene.add(Scene_shape)
 
-    pgl.Viewer.display(MyScene)
+    if view_result:
+        pgl.Viewer.display(MyScene)
 
     if snap_shot_path:
         pgl.Viewer.saveSnapshot(snap_shot_path)
