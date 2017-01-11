@@ -22,6 +22,7 @@ from itertools import product
 from pickle import dump, load
 from os import path, mkdir
 
+
 from openalea.mtg import mtg, traversal, io
 from openalea.plantgl.all import Point3Array
 import openalea.plantgl.all as pgl
@@ -1386,7 +1387,8 @@ def mtg_output(g, wd):
     return
 
 def mtg_save(g, scene, wd):
-    geom = {sh.id:sh.geometry for sh in scene}
+#    geom = {sh.id:sh.geometry for sh in scene}
+    geom = {vid:g.node(vid).geometry for vid in g.property('geometry')}
     g.remove_property('geometry')
     fgeom = wd + 'mtg/%s.bgeom'%(g.date)
     fg = wd + 'mtg/%s.pckl'%(g.date)
@@ -1409,10 +1411,10 @@ def mtg_load(wd, index):
     geom = {sh.id:sh.geometry for sh in scene}
 
     f = open(fg)
-    g, TT = load(f)
+    g2, TT = load(f)
     f.close()
     
-    g.add_property('geometry')
-    g.property('geometry').update(geom)
+    g2.add_property('geometry')
+    g2.property('geometry').update(geom)
     
-    return g, TT
+    return g2, TT
