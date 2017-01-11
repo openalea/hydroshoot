@@ -21,6 +21,7 @@ from openalea.plantgl.all import Translated,Sphere,Shape,Material,Color3,Viewer
 from alinea.caribu.sky_tools.spitters_horaire import RdRsH
 from alinea.caribu.sky_tools import turtle, Gensun, GetLightsSun
 from alinea.caribu.CaribuScene import CaribuScene
+import alinea.astk.icosphere as ico
 
 from hydroshoot.architecture import vector_rotation
 
@@ -82,7 +83,7 @@ def opticals(mtg,leaf_lbl_prefix='L', stem_lbl_prefix=('in', 'Pet', 'cx'),
 
 def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
                      turtle_sectors='46', turtle_format='soc', sun2scene=None,
-                     rotation_angle=0.):
+                     rotation_angle=0., icosphere_level = None):
     """
     Calculates energy distribution over a semi-hemisphere surrounding the plant [umol m-2 s-1].
 
@@ -101,6 +102,7 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
     - **turtle_sectors**, **turtle_format**: string, see :func:`turtle` from `sky_tools` package
     - **sun2scene**: takes None as default, otherwise, if a pgl.scene is provided, a sun object (sphere) is added to it
     - **rotation_angle**: float, counter clockwise azimuth between the default X-axis direction (South) and real direction of X-axis [degrees]
+    - **icosphere_level**: integer, the level of refinement of the dual icosphere. See :func:`alinea.astk.icosphere.turtle_dome` for details
 
     :Returns:
     - **source_cum** a tuple of tuples, giving energy unit and sky coordinates
@@ -150,9 +152,19 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
             R_diff = RdRsH_ratio*energy
             R_direct = (1-RdRsH_ratio)*energy
 
-#           diffuse radiation
-            energy, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format=turtle_format,energy=R_diff)
-            sky=zip(energy,direction)
+    #       diffuse radiation
+            if not icosphere_level:
+                energy2, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format='uoc',energy=R_diff)
+            else:
+                vert,fac = ico.turtle_dome(icosphere_level)
+                direction = ico.sample_faces(vert, fac, iter=None, spheric=False).values()
+                direction = [idirect[0] for idirect in direction]
+                direction = map(lambda x: tuple(list(x[:2])+[-x[2]]),direction)
+            
+            sky = zip(len(direction)*[R_diff/len(direction)],direction)
+    
+    #        energy, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format=turtle_format,energy=R_diff)
+    #        sky=zip(energy,direction)
 
 #           direct radiation
             sun=Gensun.Gensun()(Rsun=R_direct,DOY=DOYUTC,heureTU=hUTC,lat=latitude)
@@ -197,11 +209,11 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
 def hsCaribu(mtg, meteo, local_date, geo_location, E_type, unit_scene_length,
                tzone='Europe/Paris', wave_band='SW', source = None, direct=True,
                infinite=False,
-               nz=50, dz=5, ds=50, pattern=False, turtle_sectors='46',
+               nz=50, dz=5, ds=0.5, pattern=False, turtle_sectors='46',
                turtle_format='soc',leaf_lbl_prefix='L', stem_lbl_prefix=('in', 'Pet', 'cx'),
                opt_prop={'SW':{'leaf':(0.06,0.07),'stem':(0.13,),'other':(0.06,0.07)},
                 'LW':{'leaf':(0.04,0.07),'stem':(0.13,),'other':(0.06,0.07)}},
-                rotation_angle = 0.):
+                rotation_angle = 0., icosphere_level=None):
     """
     Estimates intercepted energy by the plant canopy.
 
@@ -227,6 +239,7 @@ def hsCaribu(mtg, meteo, local_date, geo_location, E_type, unit_scene_length,
     - **leaf_lbl_prefix**, **stem_lbl_prefix**: the prefices of the leaf label and stem label, resp.
     - **opt_prop**: the optical properties of mtg elements, given as a {band_name: material} dictionary of tuples (See :func:`CaribuScene.__init__` for more information)
     - **rotation_angle**: float, counter clockwise azimuth between the default X-axis direction (South) and real direction of X-axis [degrees]
+    - **icosphere_level**: integer, the level of refinement of the dual icosphere. See :func:`alinea.astk.icosphere.turtle_dome` for details
 
     :Returns:
     - the mtg object, with the incident radiation (`Ei`) and absorbed radiation (`Eabs`), both in [umol m-2 s-1], attached to mtg vertices as properties.
@@ -280,8 +293,17 @@ def hsCaribu(mtg, meteo, local_date, geo_location, E_type, unit_scene_length,
         R_direct = (1-RdRsH_ratio)*energy
 
 #       diffuse radiation
-        energy, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format=turtle_format,energy=R_diff)
-        sky=zip(energy,direction)
+        if not icosphere_level:
+            energy2, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format='uoc',energy=R_diff)
+        else:
+            vert,fac = ico.turtle_dome(icosphere_level)
+            direction = ico.sample_faces(vert, fac, iter=None, spheric=False).values()
+            direction = [idirect[0] for idirect in direction]
+            direction = map(lambda x: tuple(list(x[:2])+[-x[2]]),direction)
+        
+        sky = zip(len(direction)*[R_diff/len(direction)],direction)
+#        energy, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format=turtle_format,energy=R_diff)
+#        sky=zip(energy,direction)
 
 #       direct radiation
         sun=Gensun.Gensun()(Rsun=R_direct,DOY=DOYUTC,heureTU=hUTC,lat=latitude)

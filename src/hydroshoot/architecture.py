@@ -19,6 +19,8 @@ from roman import toRoman
 from pandas import read_csv
 from re import search, findall
 from itertools import product
+from pickle import dump, load
+from os import path, mkdir
 
 from openalea.mtg import mtg, traversal, io
 from openalea.plantgl.all import Point3Array
@@ -1036,7 +1038,7 @@ def AddSoil(g, side_length=10.):
 
     pos=zip(xu,yu)
     for i, ipos in enumerate(pos):
-        isoil = g.add_component(Soil, label=('other'+str(i)), Position=list(ipos) + [0])
+        isoil = g.add_component(Soil, label=('other'+str(i)), TopPosition=list(ipos) + [0])
         g.node(isoil).geometry = transformation(soil0(side_length),
                  1., 1., 1., 0., 0.,0.,-side_length/2.,-side_length/2.,0.)
 
@@ -1369,14 +1371,50 @@ def VineOrient(g, vid, theta, v_axis=[0.,0.,1.], local_rotation=False):
 # Write output
 #==============================================================================
 
-def mtg_output(g, output_path):
+def mtg_output(g, wd):
     """
     Writes an MTG object (**g**) to an external file given its **output_path**.
     """
-    properties = [(p, 'REAL') for p in g.property_names() if p not in ['edge_type', 'index', 'label', 'geometry']]
+    properties = [(p, 'REAL') for p in g.property_names() if p not in ['edge_type', 'index', 'label']]
     mtg_lines = io.write_mtg(g, properties)
-    mtg_file_path = output_path
+    if not path.exists(wd+'mtg/'):
+        mkdir(wd+'mtg/')
+    mtg_file_path = wd + 'mtg/%s.mtg'%g.date
     f = open(mtg_file_path, 'w')
     f.write(mtg_lines)
     f.close()
     return
+
+def mtg_save(g, scene, wd, index = 0):
+    geom = {sh.id:sh.geometry for sh in scene}
+    g.remove_property('geometry')
+    fgeom = wd + 'mtg/scene%04d.bgeom'%(index)
+    fg = wd+'mtg/adel%04d.pckl'%(index)
+    scene.save(fgeom, 'BGEOM')
+    f = open(fg, 'w')
+    dump([g,scene], f)
+    f.close()
+    #restore geometry
+    g.add_property('geometry')
+    g.property('geometry').update(geom)
+    return fgeom,fg
+    
+def mtg_load(scene, wd, index=0):
+    
+    fgeom = wd + 'scene%04d.bgeom'%(index)
+    fg = wd + 'adel%04d.pckl'%(index)
+    
+    scene = pgl.Scene()
+    scene.read(fgeom, 'BGEOM')
+    geom = {sh.id:sh.geometry for sh in scene}
+
+    f = open(fg)
+    g, TT = load(f)
+    f.close()
+    
+#    scene.canopy_age = TT
+    
+    g.add_property('geometry')
+    g.property('geometry').update(geom)
+    
+    return g, TT

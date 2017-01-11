@@ -138,8 +138,11 @@ def form_factors_simplified(g, pattern, leaf_lbl_prefix='L',
     if not icosphere_level:
         energy, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format='uoc',energy=1.)
     else:
-        direction = ico.turtle_dome(icosphere_level)[0]
-#        direction = map(lambda x: list(x[:2])+[-x[2]],direction)
+        vert,fac = ico.turtle_dome(icosphere_level)
+        direction = ico.sample_faces(vert, fac, iter=None, spheric=False).values()
+        direction = [i[0] for i in direction]
+        direction = map(lambda x: tuple(list(x[:2])+[-x[2]]),direction)
+
     caribu_source = zip(len(direction)*[1./len(direction)],direction)        
 
 
@@ -159,7 +162,7 @@ def form_factors_simplified(g, pattern, leaf_lbl_prefix='L',
                            geo_location=None, E_type=None,
                            unit_scene_length=unit_scene_length, tzone=None,
                            wave_band='SW', source = caribu_source, direct=True,
-                           infinite=True, nz=50, dz=5, ds=50,
+                           infinite=True, nz=50, dz=5, ds=0.5,
                            pattern=pattern, turtle_sectors=None,
                            turtle_format=None,
                            leaf_lbl_prefix=leaf_lbl_prefix,
@@ -225,9 +228,7 @@ def leaf_temperature(g, macro_meteo, solo=True, simple_ff=True,
             for vid in g.property('Tlc').keys():
 #                if g.node(vid).label.startswith(leaf_lbl_prefix):
                 node = g.node(vid)
-                E_glob = 1.2*node.Ei/(0.48*4.6) # Ei not Eabs
-#               Attention, 20% increase in Rg (Nobel, Eq. 7.8b) is performed to account for reflected irradiance.
-#               This increase must be deleted in nest/pure radiosity is used to simulate Ei.
+                E_glob = node.Ei/(0.48*4.6) # Ei not Eabs
                 k_sky = node.k_sky
                 k_leaves = node.k_leaves
                 k_soil = node.k_soil

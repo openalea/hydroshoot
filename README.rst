@@ -10,7 +10,7 @@ hydroshoot
     :target: https://travis-ci.org/Rami Albasha/hydroshoot
 
 .. #}
-**Overview**
+**Tempo**
 HydroShoot is a functional-structural plant modelling package. It is built using the MTG (Multiscale Tree Graph) central data structure (Pradal et al., 2008).
 Hydroshoot is composed of 4 generic modules used to simulate:
 	irradiance interception (*irradiance*)
