@@ -1385,11 +1385,11 @@ def mtg_output(g, wd):
     f.close()
     return
 
-def mtg_save(g, scene, wd, index = 0):
+def mtg_save(g, scene, wd):
     geom = {sh.id:sh.geometry for sh in scene}
     g.remove_property('geometry')
-    fgeom = wd + 'mtg/scene%04d.bgeom'%(index)
-    fg = wd+'mtg/adel%04d.pckl'%(index)
+    fgeom = wd + 'mtg/%s.bgeom'%(g.date)
+    fg = wd + 'mtg/%s.pckl'%(g.date)
     scene.save(fgeom, 'BGEOM')
     f = open(fg, 'w')
     dump([g,scene], f)
@@ -1399,10 +1399,10 @@ def mtg_save(g, scene, wd, index = 0):
     g.property('geometry').update(geom)
     return fgeom,fg
     
-def mtg_load(scene, wd, index=0):
+def mtg_load(wd, index):
     
-    fgeom = wd + 'scene%04d.bgeom'%(index)
-    fg = wd + 'adel%04d.pckl'%(index)
+    fgeom = wd + 'mtg/%s.bgeom'%(index)
+    fg = wd + 'mtg/%s.pckl'%(index)
     
     scene = pgl.Scene()
     scene.read(fgeom, 'BGEOM')
@@ -1411,8 +1411,6 @@ def mtg_load(scene, wd, index=0):
     f = open(fg)
     g, TT = load(f)
     f.close()
-    
-#    scene.canopy_age = TT
     
     g.add_property('geometry')
     g.property('geometry').update(geom)
