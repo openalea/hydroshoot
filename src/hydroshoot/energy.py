@@ -133,7 +133,7 @@ def form_factors_simplified(g, pattern, leaf_lbl_prefix='L',
     opt_prop_ff={'SW':{'leaf':(0.001,0.0),'stem':(0.001,),'other':(0.001,0.0)},
                  'SW':{'leaf':(0.001,0.0),'stem':(0.001,),'other':(0.001,0.0)}}
 
-    g = HSCaribu.opticals(g,leaf_lbl_prefix, stem_lbl_prefix,'SW',opt_prop_ff)
+    g = HSCaribu.optical_prop(g,leaf_lbl_prefix, stem_lbl_prefix,'SW',opt_prop_ff)
 
     if not icosphere_level:
         energy, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format='uoc',energy=1.)

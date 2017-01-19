@@ -8,7 +8,7 @@ This module computes net photosynthesis and stomatal conductance rates.
 
 """
 from copy import deepcopy
-from scipy import exp, arccos, sqrt, cos
+from scipy import exp, arccos, sqrt, cos, log
 
 from hydroshoot import meteo_utils as mutils
 
@@ -21,6 +21,8 @@ R = 0.0083144598 # Ideal gaz constant [kJ K-1 mol-1]
 #==============================================================================
 # Farquhar Parameters
 #==============================================================================
+
+# Initial values (before accountinf for Na)
 def par_photo_default(Vcm25= 89.0, Jm25 = 143.0, cRd = 0.008, TPU25 = 10.0,
        Kc25 = 404.9, Ko25 = 278.4, Tx25 = 42.75,
        alpha =  [0.2, 0.2, 0.2, 0.2, 0.2, 0.2], alpha_T_limit = [15, 20, 25, 30, 34, 50],
@@ -71,6 +73,65 @@ def par_photo_default(Vcm25= 89.0, Jm25 = 143.0, cRd = 0.008, TPU25 = 10.0,
     par_photodef['RespT_Tx'] = RespT_Tx
 
     return par_photodef
+
+def par_25_N_dict(Vcm25_N = (34.02, -3.13), Jm25_N = (78.27, -17.3),
+             Rd_N = (0.42, -0.01), TPU25_N = (6.24, -1.92)):
+    """
+    Generates a dictionary containing the (slope, intercept) values of
+    the linear relationship between photosynthetic capacity parameters
+    (Vcmax, Jmax, TPU, Rd) and surface-based leaf Nitrogen content,
+    according to Prieto et al. (2012, doi: 10.1111/j.1365-3040.2012.02491.x)
+
+    :Parameters:
+    - **The first value of each tuple**: float, the **slope** (parameter/Na) [umol g-1 s-1]
+    - **The second value of each tuple**: float, the **intercept** [umol m-2 s-1]
+    """
+    par_dict = {
+    'Vcm25_N' : Vcm25_N,
+    'Jm25_N' : Jm25_N,
+    'Rd_N' : Rd_N,
+    'TPU25_N' : TPU25_N}
+
+    return par_dict
+
+
+def leaf_Na(ageTT, PPFD10, aN=-0.0008, bN=3.3, aM=6.471, bM=56.635):
+    """
+    Rerturns Nitrogen content per area (Na) [g m-2] according to Prieto et al. 2012 (doi: 10.1111/j.1365-3040.2012.02491.x).
+    Deflaut parameter values are given for Montpellier Experiments on Syrah.
+
+   :Parameters:
+   - **ageTT**: float, cumulative degree-day temperature from budburst
+   - **PPFD10**: float, cumulative intercepted irradiance (PPFD) over the past 10 days prior to simulation period
+   - **aN** and **bN**: float, shape parameters for the linear relationship Nm=f(TT), (cf. Eq.5 in Prieto et al. 2012)
+   - **aM** and **bM**: float, shape parameters for the linear relationship LMA=f(PPFD10), (cf. Eq.6 in Prieto et al. 2012)
+    """
+
+    LMA = aM * log(max(1.e-3,PPFD10)) + bM
+    Nmass = aN*ageTT + bN
+    Na = LMA*Nmass/100. #a cause d'erreur d'unite ds le papier
+
+    return max(Na, 0.)
+    # petit difference d'arrondi sur aN et bN?
+
+
+#def par_25_Na(param,Na):
+#    """
+#    Retrurns Nitrogen-affected values of Vcmax,Jmax,TPU and cRd at 25 °C.
+#    
+#    :Parameters:
+#    
+#    a l'azote - param[0]: pente; param[1]:ordo origine
+#    """
+#    return param[0]*Na+param[1]
+
+
+
+
+
+
+
+
 
 
 #==============================================================================
@@ -486,7 +547,7 @@ def Transpiration_rate(Tlc, ea, gs, gb, Pa = 101.3):
     return E
 
 
-def VineExchange(g, par_photo, par_gs, meteo, psi_soil, E_type2, leaf_lbl_prefix='L',
+def VineExchange(g, par_photo, par_photo_N, par_gs, meteo, psi_soil, E_type2, leaf_lbl_prefix='L',
                  rbt=2./3., ca=360.):
     """
     Calculates gas exchange fluxes at the leaf scale according to the analytical scheme described by Evers et al. (JxBot 2010, 2203–2216).
@@ -516,7 +577,6 @@ def VineExchange(g, par_photo, par_gs, meteo, psi_soil, E_type2, leaf_lbl_prefix
     meteo_leaf = deepcopy(meteo)
     meteo_leaf = meteo_leaf.iloc[0]
     
-    
     for vid in g:
         if vid>0:
             node=g.node(vid)
@@ -541,8 +601,16 @@ def VineExchange(g, par_photo, par_gs, meteo, psi_soil, E_type2, leaf_lbl_prefix
                 meteo_leaf['PPFD'] = PPFD_leaf
                 meteo_leaf['Rg'] = PPFD_leaf/(0.48*4.6)
 #                meteo_leaf['u'] = min(1., meteo_leaf['u']) # Hack: see Nobel p.338
+                
+                if not 'par_photo' in node.properties():
+                    leaf_par_photo = deepcopy(par_photo)
+                    leaf_par_photo['Vcm25'] = par_photo_N['Vcm25_N'][0]*node.Na+par_photo_N['Vcm25_N'][1]
+                    leaf_par_photo['Jm25'] = par_photo_N['Jm25_N'][0]*node.Na+par_photo_N['Jm25_N'][1]
+                    leaf_par_photo['TPU25'] = par_photo_N['TPU25_N'][0]*node.Na+par_photo_N['TPU25_N'][1]
+                    leaf_par_photo['Rd'] = par_photo_N['Rd_N'][0]*node.Na+par_photo_N['Rd_N'][1]
+                    node.par_photo = leaf_par_photo
 
-                An, Cc, Ci, gs = AnGsCi(par_photo, meteo_leaf, psi, Tlc,
+                An, Cc, Ci, gs = AnGsCi(node.par_photo, meteo_leaf, psi, Tlc,
                                            model, g0, rbt, Ca, m0, psi0, D0, n)
 
                 # Boundary layer conductance

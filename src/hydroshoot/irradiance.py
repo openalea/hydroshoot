@@ -48,7 +48,7 @@ def local2solar(local_time, latitude, longitude, tzone, temperature=25.):
     return dateUTC, LST
 
 
-def opticals(mtg,leaf_lbl_prefix='L', stem_lbl_prefix=('in', 'Pet', 'cx'),
+def optical_prop(mtg,leaf_lbl_prefix='L', stem_lbl_prefix=('in', 'Pet', 'cx'),
          wave_band='SW',
          opt_prop={'SW':{'leaf':(0.06,0.07),'stem':(0.13,),'other':(0.65,0.0)},
                 'LW':{'leaf':(0.04,0.07),'stem':(0.13,),'other':(0.65,0.0)}}):
@@ -114,17 +114,17 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
     TODO: replace by the icosphere procedure
     """
 
-    for i, date in enumerate(meteo.time):
+    for idate, date in enumerate(meteo.index):
 
         if E_type.split('_')[0] == 'PPFD':
-            energy = meteo['PPFD'][date]
+            energy = meteo.ix[date].PPFD
         else:
             try:
-                energy = meteo['Rg'][date]
+                energy = meteo.ix[date].Rg
             except:
                 raise TypeError ("E_type must be one of the following 'Rg_Watt/m2', 'RgPAR_Watt/m2' or'PPFD_umol/m2/s'.")
 
-        if len(meteo.time)==1 or energy !=0:
+        if len(meteo.index)==1 or energy !=0:
 
 #           Convert irradiance to W m-2 (Spitters method always gets energy flux as Rg Watt m-2)
             if E_type == 'Rg_Watt/m2':
@@ -155,13 +155,14 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
     #       diffuse radiation
             if not icosphere_level:
                 energy2, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format='uoc',energy=R_diff)
+                sky=zip(energy2,direction)
             else:
                 vert,fac = ico.turtle_dome(icosphere_level)
                 direction = ico.sample_faces(vert, fac, iter=None, spheric=False).values()
                 direction = [idirect[0] for idirect in direction]
                 direction = map(lambda x: tuple(list(x[:2])+[-x[2]]),direction)
+                sky = zip(len(direction)*[R_diff/len(direction)],direction)
             
-            sky = zip(len(direction)*[R_diff/len(direction)],direction)
     
     #        energy, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format=turtle_format,energy=R_diff)
     #        sky=zip(energy,direction)
@@ -173,35 +174,35 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
 
 #           diffuse radiation (distributed over a dome) + direct radiation (localized as a supplemental source)
             source=sky.__add__(sun_data)
+            source = [list(isource) for isource in source]
 
-            if i == 0:
+            if idate == 0:
                 source_cum = []
-                for line in range(len(source)):
-                    source_cum.append([source[line][0], source[line][1]])
+                for isource in source:
+                    source_cum.append([isource[0], isource[1]])
 
             else:
                 for j in range(len(source)-1):
                     source_cum[j][0] += source[j][0]
                 source_cum.append(source[-1])
 
-            if i == len(meteo.time) - 1:
-                for line in range(int(turtle_sectors)):
-                    source_cum[line] = tuple(source_cum[line])
+            if date == meteo.index[-1]:
+                source_cum = [tuple(isource) for isource in source_cum]
 
-#           Rotate irradiance sources to cope with plant row orientation
-            if rotation_angle != 0.:
-                v_energy = [vec[0] for vec in source_cum]
-                v_coord = [tuple(vector_rotation(vec[1],(0.,0.,1.), deg2rad(rotation_angle))) for vec in source_cum]
-                source_cum = zip(v_energy, v_coord)
+#   Rotate irradiance sources to cope with plant row orientation
+    if rotation_angle != 0.:
+        v_energy = [vec[0] for vec in source_cum]
+        v_coord = [tuple(vector_rotation(vec[1],(0.,0.,1.), deg2rad(rotation_angle))) for vec in source_cum]
+        source_cum = zip(v_energy, v_coord)
 
 #           Add Sun to an existing pgl.scene
-            if sun2scene != None:
-                xSun,ySun,zSun = -500.*array([source_cum[-1][1][i] for i in range(3)])
-                if zSun >= 0:
-                    ss = Translated(xSun,ySun,zSun, Sphere(20))
-                    sun = Shape(ss, Material('yellow', Color3(255,255,0)))
-                    sun2scene.add(sun)
-                Viewer.display(sun2scene)
+    if sun2scene != None:
+        xSun,ySun,zSun = -500.*array([source_cum[-1][1][i] for i in range(3)])
+        if zSun >= 0:
+            ss = Translated(xSun,ySun,zSun, Sphere(20))
+            sun = Shape(ss, Material('yellow', Color3(255,255,0)))
+            sun2scene.add(sun)
+        Viewer.display(sun2scene)
 
     return source_cum, RdRsH_ratio
 

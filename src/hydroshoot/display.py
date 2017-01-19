@@ -28,6 +28,7 @@ def default_labels():
     :This dictionary currently includes:
     - **'Eabs'**: [umol m-2 s-1]
     - **'Ei'**: [umol m-2 s-1]
+    - **'Ei10'**: [mol m-2 d-1]
     - **'Flux'**: [kg s-1]
     - **'KL'**: [kg s-1 m Mpa-1]
     - **'Kmax'**: [kg s-1 m Mpa-1]
@@ -45,11 +46,13 @@ def default_labels():
     - **'k_sky'**: [-]
     - **'k_soil'**: [-]
     - **'k_leaves'**: [-]
+    - **'Na'**: [g m-2]
     """
 
     lbl_dict = {
     'Eabs': '$\mathregular{E_{abs}\/[\mu mol\/m^{-2}\/s^{-1}]}$',
     'Ei': '$\mathregular{E_i\/[\mu mol\/m^{-2}\/s^{-1}]}$',
+    'Ei10': '$\mathregular{PPFD_{10}\/[mol\/m^{-2}\/d^{-1}]}$',
     'Flux': '$\mathregular{F\/[kg\/s^{-1}]}$',
     'KL': '$\mathregular{K_L\/[kg\/s^{-1}\/m\/MPa^{-1}]}$',
     'Kmax': '$\mathregular{K_{max}\/[kg\/s^{-1}\/m\/MPa^{-1}]}$',
@@ -67,6 +70,7 @@ def default_labels():
     'k_sky': '$\mathregular{k_{sky}\/[-]}$',
     'k_soil': '$\mathregular{k_{soil}\/[-]}$',
     'k_leaves': '$\mathregular{k_{leaves}\/[-]}$',
+    'Na': '$\mathregular{N_a\/[g\/m^{-2}]}$'
     }
     return lbl_dict
 
