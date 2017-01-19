@@ -124,70 +124,69 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
             except:
                 raise TypeError ("E_type must be one of the following 'Rg_Watt/m2', 'RgPAR_Watt/m2' or'PPFD_umol/m2/s'.")
 
-        if len(meteo.index)==1 or energy !=0:
 
-#           Convert irradiance to W m-2 (Spitters method always gets energy flux as Rg Watt m-2)
-            if E_type == 'Rg_Watt/m2':
-                corr = 1.
-            elif E_type == 'RgPAR_Watt/m2':
-                corr = 1./0.48
-            elif E_type == 'PPFD_umol/m2/s':
-                corr = 1./(0.48 * 4.6)
-            else:
-                raise TypeError ("E_type must be one of the following 'Rg_Watt/m2', 'RgPAR_Watt/m2' or'PPFD_umol/m2/s'.")
+#       Convert irradiance to W m-2 (Spitters method always gets energy flux as Rg Watt m-2)
+        if E_type == 'Rg_Watt/m2':
+            corr = 1.
+        elif E_type == 'RgPAR_Watt/m2':
+            corr = 1./0.48
+        elif E_type == 'PPFD_umol/m2/s':
+            corr = 1./(0.48 * 4.6)
+        else:
+            raise TypeError ("E_type must be one of the following 'Rg_Watt/m2', 'RgPAR_Watt/m2' or'PPFD_umol/m2/s'.")
 
-            energy = energy*corr
+        energy = energy*corr
 
 #           Convert to UTC datetime
-            latitude, longitude, elevation = [geo_location[x] for x in range(3)]
-            temperature = meteo.Tac.values[0]
-            dateUTC, LST = local2solar(date, latitude, longitude, tzone, temperature)
-            DOYUTC = dateUTC.timetuple().tm_yday
-            hUTC = dateUTC.hour + dateUTC.minute/60.
-            RdRsH_ratio = RdRsH(energy, DOYUTC, hUTC, latitude) # R: Attention, ne renvoie pas exactement le même RdRsH que celui du noeud 'spitters_horaire' dans topvine.
+        latitude, longitude, elevation = [geo_location[x] for x in range(3)]
+        temperature = meteo.Tac.values[0]
+        dateUTC, LST = local2solar(date, latitude, longitude, tzone, temperature)
+        DOYUTC = dateUTC.timetuple().tm_yday
+        hUTC = dateUTC.hour + dateUTC.minute/60.
+        RdRsH_ratio = RdRsH(energy, DOYUTC, hUTC, latitude) # R: Attention, ne renvoie pas exactement le même RdRsH que celui du noeud 'spitters_horaire' dans topvine.
 
 #           Third and final correction: it is always desirable to get energy as PPFD
-            energy = energy*(0.48 * 4.6)
+        energy = energy*(0.48 * 4.6)
 
-            R_diff = RdRsH_ratio*energy
-            R_direct = (1-RdRsH_ratio)*energy
+        R_diff = RdRsH_ratio*energy
+        R_direct = (1-RdRsH_ratio)*energy
 
-    #       diffuse radiation
-            if not icosphere_level:
-                energy2, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format='uoc',energy=R_diff)
-                sky=zip(energy2,direction)
-            else:
-                vert,fac = ico.turtle_dome(icosphere_level)
-                direction = ico.sample_faces(vert, fac, iter=None, spheric=False).values()
-                direction = [idirect[0] for idirect in direction]
-                direction = map(lambda x: tuple(list(x[:2])+[-x[2]]),direction)
-                sky = zip(len(direction)*[R_diff/len(direction)],direction)
-            
-    
-    #        energy, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format=turtle_format,energy=R_diff)
-    #        sky=zip(energy,direction)
+#       diffuse radiation
+        if not icosphere_level:
+            energy2, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format='uoc',energy=R_diff)
+            sky=zip(energy2,direction)
+        else:
+            vert,fac = ico.turtle_dome(icosphere_level)
+            direction = ico.sample_faces(vert, fac, iter=None, spheric=False).values()
+            direction = [idirect[0] for idirect in direction]
+            direction = map(lambda x: tuple(list(x[:2])+[-x[2]]),direction)
+            sky = zip(len(direction)*[R_diff/len(direction)],direction)
+        
+
+#        energy, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format=turtle_format,energy=R_diff)
+#        sky=zip(energy,direction)
 
 #           direct radiation
-            sun=Gensun.Gensun()(Rsun=R_direct,DOY=DOYUTC,heureTU=hUTC,lat=latitude)
-            sun=GetLightsSun.GetLightsSun(sun)
-            sun_data=[(float(sun.split()[0]),(float(sun.split()[1]),float(sun.split()[2]),float(sun.split()[3])))]
+        sun=Gensun.Gensun()(Rsun=R_direct,DOY=DOYUTC,heureTU=hUTC,lat=latitude)
+        sun=GetLightsSun.GetLightsSun(sun)
+        sun_data=[(float(sun.split()[0]),(float(sun.split()[1]),float(sun.split()[2]),float(sun.split()[3])))]
 
 #           diffuse radiation (distributed over a dome) + direct radiation (localized as a supplemental source)
-            source=sky.__add__(sun_data)
-            source = [list(isource) for isource in source]
+        source=sky.__add__(sun_data)
+        source = [list(isource) for isource in source]
 
-            if idate == 0:
-                source_cum = []
-                for isource in source:
-                    source_cum.append([isource[0], isource[1]])
+        try:
+            for j in range(len(source)-1):
+                source_cum[j][0] += source[j][0]
+            source_cum.append(source[-1])
+        except NameError:
+            source_cum = []
+            for isource in source:
+                source_cum.append([isource[0], isource[1]])
+            
 
-            else:
-                for j in range(len(source)-1):
-                    source_cum[j][0] += source[j][0]
-                source_cum.append(source[-1])
-
-            if date == meteo.index[-1]:
-                source_cum = [tuple(isource) for isource in source_cum]
+        if date == meteo.index[-1]:
+            source_cum = [tuple(isource) for isource in source_cum]
 
 #   Rotate irradiance sources to cope with plant row orientation
     if rotation_angle != 0.:
