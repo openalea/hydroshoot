@@ -23,7 +23,7 @@ from pickle import dump, load
 from os import path, mkdir
 
 
-from openalea.mtg import mtg, traversal, io
+from openalea.mtg import mtg, io
 from openalea.plantgl.all import Point3Array
 import openalea.plantgl.all as pgl
 

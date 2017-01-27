@@ -213,7 +213,7 @@ def hydraulic_prop(mtg, vtx_label='inT', MassConv=18.01528, LengthConv=1.e-2,
 def transient_xylem_water_potential(g, model='tuzet', vtx_label='inT',
                                     LengthConv=1.e-2,psi_soil=-0.6,psi_min=-3.,
                                     fifty_cent=-0.51, sig_slope=0.1,
-                                    dist_roots=0.005, rad_roots=.0001):
+                                    dist_roots=0.013, rad_roots=.0001):
     """
     Returns a transient hydraulic structure of a plant shoot based on constant values of stem conductivities.
     Stems are assumed isotropic, linear, element.
@@ -294,7 +294,8 @@ def transient_xylem_water_potential(g, model='tuzet', vtx_label='inT',
 
 def xylem_water_potential(g, psi_soil=-0.8, model='tuzet', psi_min=-3.0,
                           psi_error_crit=0.001, max_iter=100, vtx_label='inT',
-                          LengthConv=1.E-2, fifty_cent=-0.51,sig_slope=0.1):
+                          LengthConv=1.E-2, fifty_cent=-0.51,sig_slope=0.1,
+                          dist_roots=0.013, rad_roots=.0001):
     """
     Returns the hydraulic structure of a plant shoot. Stems are assumed isotropic, linear, element.
 
@@ -317,7 +318,8 @@ def xylem_water_potential(g, psi_soil=-0.8, model='tuzet', psi_min=-3.0,
         psi_error = 0.
         psi_prev = deepcopy(g.property('psi_head'))
         transient_xylem_water_potential(g, model, vtx_label, LengthConv,
-                                        psi_soil, psi_min,fifty_cent,sig_slope)
+                                        psi_soil, psi_min,fifty_cent,sig_slope,
+                                        dist_roots, rad_roots)
         psi_new = deepcopy(g.property('psi_head'))
 
         psi_avg_dict = {}
@@ -336,116 +338,3 @@ def xylem_water_potential(g, psi_soil=-0.8, model='tuzet', psi_min=-3.0,
             break
 
     return counter
-
-
-
-#
-
-#
-#
-#def psi_collar(psi_init, soil_class, F):
-#    psi_init = array(psi_init)
-#    for ipsi in psi_init:
-#        psi_init
-#        psi_1 = (mean(psi_init[1:3]))
-#        psi_outer = psi_init - F/k_soil(psi_1, soil_classe)
-#        psi_2 = (mean(psi_init[0:2]))
-#        psi_inner = psi_outer - F/k_soil(psi_2, soil_classe)
-#        psi_3 = (mean(psi_init[0:2]))
-#        psi_root = psi_inner - F/k_soil_root
-#    
-#    new_psi = array([psi_outer, psi_inner, psi_root])
-#    if max(abs(psi_init - new_psi)) <= psi_crit:
-#        brea
-#
-#    
-#    
-#    
-#    return
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#def soil_water_potential2(psi_soil_init, flux, soil_class,
-#          intra_dist=1., inter_dist=3.6, depth=2.):
-#    """
-#    Estimates soil water potential based on Brooks and Corey (1964) van Genuchten water retention curves.
-#
-#    :Parameters:
-#    - **psi_soil_init**: Initial soil warer potential [MPa]
-#    - **flux**: transpired flux [Kg T-1]
-#    - **soil_class**: one of the following 'Sand','Loamy Sand','Sandy Loam','Loam','Silt','Silty_Loam','Sandy_Clay_Loam','Clay_Loam','Silty_Clay_Loam','Sandy_Clay','Silty_Clay','Clay'
-#    - **intra_dist**,**inter_dist**,**depth**: intra-row spacing, inter-row spacing, roots depth, all in [m]
-#
-##    TODO: implement a true Richards solution
-#    """
-#
-#    param = def_param_soil()[soil_class]
-#    theta_r,theta_s,alpha,n,k_sat = [param[i] for i in range(5)]
-#    m = 1. - 1./n
-#
-#    psi = psi_soil_init*1.e6/(rho*g_p)*100. # conversion MPa to cm_H20
-#    theta_init = theta_r + (theta_s-theta_r)/((1+absolute(alpha*psi))**n)**m
-#
-#    F = flux*1.e-3 # kg T-1 to m3 T-1
-#    
-#    
-#    d_rhyzo = 0.5 # [m]
-#    k_soil = k_sat * (1./(1.+(alpha*psi_soil_init)**n))**(p-p/n) * (1-(1./(1.+(alpha*psi_soil_init)**n))**(m))**2
-#    k_soil_root = 4.*pi*k_soil / log(d**2/r**2)
-#    
-#    F_rhyzo = pi * d_rhyzo * depth
-#    
-#    psi_root = psi_soil_inner - F_rhyzo / k_soil_root
-#    
-#
-#
-#psi_outer = psi_init - F/k1_soil_soil
-#psi_inner = psi_outer - F/k2_soil_soil
-#psi_root = psi_inner - F/k_soil_root
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#    k_soil_root * (psi_root - psi_soil2) = F
-#   
-#    d_theta = F / (intra_dist * inter_dist * depth)
-#
-#    theta = max(theta_r,theta_init - d_theta)
-#    if theta == theta_r:
-#        psi_soil = -15.
-#    else:
-#        psiX = Symbol('psi')
-#        eq = 1./((1+absolute(alpha*psiX))**n)**m - (theta-theta_r)/(theta_s-theta_r)
-#        psi_soil = (solveset_real(eq, psiX).inf)/(1.e6/(rho*g_p)*100)
-#        if not psi_soil.is_Float: psi_soil.removeO()
-#
-#    return float(psi_soil)
