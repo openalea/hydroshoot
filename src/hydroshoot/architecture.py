@@ -961,10 +961,10 @@ def MTGbase(g, vtx_label='inT'):
     - **vtx_label**: string, the label prefix of the basal highest-scale vertex
     """
 
-    for vid in traversal.iter_mtg2(g,g.root):
+    for vid in g.VtxList(Scale=3):
         n = g.node(vid)
         try:
-            if n.label.startswith(vtx_label) and n.parent() == None:
+            if n.label.startswith((vtx_label, 'rhyzo')) and n.parent() == None:
                 vid_base = vid
                 break
         except:
@@ -1044,6 +1044,33 @@ def AddSoil(g, side_length=10.):
                  1., 1., 1., 0., 0.,0.,-side_length/2.,-side_length/2.,0.)
 
     return
+
+def add_soil_components(g, cylinders_number, cylinders_radii, soil_dimensions,
+                        soil_class, vtx_label):
+    """
+    """
+    max_radius = 0.5 * min(soil_dimensions[:2])*100 #[cm]
+    assert (max(cylinders_radii) <= max_radius), 'Maximum soil radius must not exceed %d cm'%max_radius
+    assert (len(cylinders_radii) == cylinders_number), 'Soil cylinders number (%d) and radii elements (%d) do not match.'%(len(cylinders_radii),cylinders_number)
+
+    depth = soil_dimensions[2]*100. #[m]
+    child = g.node(MTGbase(g,vtx_label=vtx_label))
+    Length = 0.
+    radius_prev = 0.
+
+    for ivid in range(cylinders_number):
+        radius = cylinders_radii[ivid]
+        Length = radius - radius_prev
+        label = 'rhyzo%d'%ivid
+#        print radius, Length, label
+        child = g.node(child._vid).insert_parent(label=label, depth=depth, Length=Length,
+                       TopDiameter = radius*2., BotDiameter = radius*2.,
+                       TopPosition = 3*[0], BotPosition = 3*[0],
+                       soil_class = soil_class)
+        radius_prev = radius
+        
+
+    return child._vid
 
 
 #==============================================================================

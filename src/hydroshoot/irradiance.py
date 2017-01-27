@@ -136,6 +136,7 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
             raise TypeError ("E_type must be one of the following 'Rg_Watt/m2', 'RgPAR_Watt/m2' or'PPFD_umol/m2/s'.")
 
         energy = energy*corr
+#        print 'energy = ', energy
 
 #           Convert to UTC datetime
         latitude, longitude, elevation = [geo_location[x] for x in range(3)]
@@ -154,13 +155,13 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
 #       diffuse radiation
         if not icosphere_level:
             energy2, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format='uoc',energy=R_diff)
-            sky=zip(energy2,direction)
+#            sky=zip(energy2,direction)
         else:
             vert,fac = ico.turtle_dome(icosphere_level)
             direction = ico.sample_faces(vert, fac, iter=None, spheric=False).values()
             direction = [idirect[0] for idirect in direction]
             direction = map(lambda x: tuple(list(x[:2])+[-x[2]]),direction)
-            sky = zip(len(direction)*[R_diff/len(direction)],direction)
+        sky = zip(len(direction)*[R_diff/len(direction)],direction)
         
 
 #        energy, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format=turtle_format,energy=R_diff)

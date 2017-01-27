@@ -115,25 +115,6 @@ def leaf_Na(ageTT, PPFD10, aN=-0.0008, bN=3.3, aM=6.471, bM=56.635):
     # petit difference d'arrondi sur aN et bN?
 
 
-#def par_25_Na(param,Na):
-#    """
-#    Retrurns Nitrogen-affected values of Vcmax,Jmax,TPU and cRd at 25 °C.
-#    
-#    :Parameters:
-#    
-#    a l'azote - param[0]: pente; param[1]:ordo origine
-#    """
-#    return param[0]*Na+param[1]
-
-
-
-
-
-
-
-
-
-
 #==============================================================================
 # compute An
 #==============================================================================
@@ -547,7 +528,7 @@ def Transpiration_rate(Tlc, ea, gs, gb, Pa = 101.3):
     return E
 
 
-def VineExchange(g, par_photo, par_photo_N, par_gs, meteo, psi_soil, E_type2, leaf_lbl_prefix='L',
+def VineExchange(g, par_photo, par_photo_N, par_gs, meteo, E_type2, leaf_lbl_prefix='L',
                  rbt=2./3., ca=360.):
     """
     Calculates gas exchange fluxes at the leaf scale according to the analytical scheme described by Evers et al. (JxBot 2010, 2203–2216).
@@ -557,7 +538,6 @@ def VineExchange(g, par_photo, par_photo_N, par_gs, meteo, psi_soil, E_type2, le
     - **par_photo**: dictionary, the parameters of the Farquhar model for net CO2 assimilation (cd :func:`par_photo_default`)
     - **par_gs**: dictionary, the parameters of the stomatal conductance model (model, g0, m0, psi0, D0, n)
     - **meteo**: a `pandas.DataFrame`-like object
-    - **psi_soil**: soil water potential [MPa]
     - **E_type2**: string, one of two 'Ei' or 'Eabs'
     - **leaf_lbl_prefix**: string, the prefix of the label of the leaves
     - **rbt**: float, the combined turbulance and boundary layer resistance for CO2 transport [m2 s ubar umol-1]

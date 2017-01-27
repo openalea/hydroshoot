@@ -146,8 +146,8 @@ def form_factors_simplified(g, pattern, leaf_lbl_prefix='L',
     caribu_source = zip(len(direction)*[1./len(direction)],direction)        
 
 
-    for s in ('Pirouette', 'Cacahuete'):
-        print s
+    for s in ('pirouette', 'cacahuete'):
+        print '... %s'%s
         for v in traversal.pre_order2(g,3):
             VineOrient(g,v,180., v_axis=[1.,0.,0.], local_rotation = False)
         
@@ -170,14 +170,14 @@ def form_factors_simplified(g, pattern, leaf_lbl_prefix='L',
                            opt_prop=opt_prop_ff, rotation_angle = 0.)
         
     #    caribu_scene.getIncidentEnergy()
-        if s == 'Pirouette':
+        if s == 'pirouette':
             k_soil_dict = g.properties()['Ei']
             max_k_soil = float(max(k_soil_dict.values()))
             g.properties()['k_soil'] = {vid:k_soil_dict[vid]/max_k_soil for vid in k_soil_dict}
-        elif s == 'Cacahuete':
+        elif s == 'cacahuete':
             k_sky_dict = g.properties()['Ei']
             max_k_sky = float(max(k_sky_dict.values()))
-            g.properties()['k_sky'] = {vid:k_sky_dict[vid]/max_k_sky for vid in k_soil_dict}
+            g.properties()['k_sky'] = {vid:k_sky_dict[vid]/max_k_sky for vid in k_sky_dict}
 
 
     for vid in g.properties()['Ei']:
@@ -374,51 +374,3 @@ def soil_temperature(g, meteo, T_sky, soil_lbl_prefix='other'):
 
 
     return t_soil0
-
-#******************************************************************************
-# To be deleted later (debugging stuff)
-#******************************************************************************
-#mtg_dict = {}
-#for vid in mtg.property('geometry').keys():
-#    node = mtg.node(vid)
-#    E_glob = node.Eabs/(0.48*4.6)
-#    k_dict = node.vis_a_vis
-#    k_sky = k_dict['k_sky']
-#    k_veg_soil = {ivid:k_dict[ivid] for ivid in k_dict.keys() if ivid!='k_sky'}
-#    gbH = node.gbH
-#    E = node.E
-#    T_sky, T_air, T_soil, Pa = [macro_meteo[ikey] for ikey in ('T_sky', 'T_air', 'T_soil', 'Pa')]
-#    t_leaf = node.Tlc if 'Tlc' in node.properties() else T_air - 273.15
-#
-#    mtg_dict[vid] = {'E_glob':E_glob, 'k_dict':k_dict, 'k_sky':k_sky,
-# 'k_veg_soil':k_veg_soil, 'gbH':gbH, 'E':E, 'T_sky':T_sky, 'T_air':T_air,
-# 'T_soil':T_soil, 'Pa':Pa,'t_leaf':t_leaf}
-#
-#from csv import writer, reader
-#import ast
-#
-#w = writer(open("/home/albashar/Documents/Christophe_exemple/mtg2.csv", "w"))
-#for vid in g2.VtxList():
-#    if vid > 0:
-#        if g2.node(vid).label.startswith('L'):
-#            w.writerow([vid, g2.node(vid).properties()])
-#
-#g_dict = {}
-#for key, val in csv.reader(open("/home/albashar/Documents/Christophe_exemple/mtg.csv")):
-#    g_dict[key] = ast.literal_eval(val)
-#
-#
-#    for ikey, ival in val.:
-#        print ikey, ival
-#        i_dict[ikey] = ival
-#    g_dict[key] = i_dict
-#
-#import ast
-#ast.literal_eval(val)
-#{'muffin': 'lolz', 'foo': 'kitty'}
-#
-#vis_dict = {col[ivid]:ff for ivid, ff in enumerate(form_factor_array[vid]) if ff < limit}
-#T_leaves = mean([g.node(col[ivid]).Tlc for ivid, ff in enumerate(form_factor_array[vid]) \
-#                if ff < 0 and not g.node(col[ivid]).label.startswith('soil')]) + 273.15
-#k_soil = sum([-ff for ivid, ff in enumerate(form_factor_array[vid]) if ff < 0 and g.node(col[ivid]).label.startswith('soil')])
-#e_leaf*(k_sky*e_sky*sigma*(T_sky)**4+k_leaves*e_leaf*sigma*(T_leaves)**4+k_soil*e_soil*sigma*(T_soil)**4) - 2*e_leaf*sigma*(T_leaf)**4
