@@ -278,21 +278,21 @@ def VineMTG(file_path):
 
                 if inT_cx == False and float(inT3y_id) == 0.0 and bool(search('[gG]+',str(shoot_id))):
                     connect_inI = inT       # Shoot>inT
-                    label_shI = 'G'
+                    label_shI = 'GI'
 
                 elif inT_cx == False and float(inT3y_id) == 0.0 and bool(search('[gG]+',str(shoot_id))) == False:
                     connect_inT2y = inT       # Shoot>spur>inT
 
                 elif float(inT3y_id) != 0.0 and bool(search('[gG]+',str(shoot_id))):
                     connect_inI = inT3y        # Shoot>sarement
-                    label_shI = 'G'
+                    label_shI = 'GI'
 
                 elif float(inT3y_id) != 0.0 and bool(search('[gG]+',str(shoot_id))) == False:
                     connect_inT2y = inT3y        # Shoot>Spur>sarement
 
                 elif inT_cx == True and float(inT3y_id) == 0.0:
                     connect_inI = complexe    # Shoot>complex
-                    label_shI = 'G'
+                    label_shI = 'GI'
 
                 shoot_id2 = float(findall('\d+',str(shoot_id))[0])
 
@@ -1178,7 +1178,7 @@ def VineDiam(g, vid, D_trunk=5.06, D_arm=3.77, D_Cx=2.91, D_3y=1.75,
 
     n = g.node(vid)
 
-    if n.label.startswith('sh'):
+    if n.label.startswith(('sh','G')):
 #       Setting the axisI initial diameter randomly
         if n.label.count('I') == 1:
             init_diam = D_cane*(1+0.1*(min(1,max(-1,scipy.randn()/2.96))))
@@ -1199,13 +1199,13 @@ def VineDiam(g, vid, D_trunk=5.06, D_arm=3.77, D_Cx=2.91, D_3y=1.75,
         Diam = D_Cx
     if n.label.startswith(('inT3y','inT2y')):
         in_order = int(n.index()) if not n.label[-1].isalpha() else int(findall('\d+',str(n.label))[-1]) # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
-        Diam = D_spur*(1-1/(1+scipy.exp(-(in_order-Fifty_cent)/sig_slope)))
+        Diam = D_spur #*(1-1/(1+scipy.exp(-(in_order-Fifty_cent)/sig_slope)))
     if n.label.startswith('inI'):
         init_diam = g.node(g.Complex(vid)).InitDiam
         in_order = int(n.index()) if not n.label[-1].isalpha() else int(findall('\d+',str(n.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
-        Diam = init_diam*(1-1/(1+scipy.exp(-(in_order-Fifty_cent)/sig_slope)))
+        Diam = init_diam #*(1-1/(1+scipy.exp(-(in_order-Fifty_cent)/sig_slope)))
     if n.label.startswith('Pet'):
-        Diam = D_pet*max(0,(scipy.rand()+1)/2)
+        Diam = D_pet #*max(0,(scipy.rand()+1)/2)
 
     return Diam
 
@@ -1221,7 +1221,7 @@ def VineMTGProp(g, vid):
 
     n = g.node(vid)
     if vid>0:
-        if n.label.startswith('sh'): VineDiam(g,vid) # Sets the initial diameters of the primary and secondary axes.
+        if n.label.startswith(('sh','G')): VineDiam(g,vid) # Sets the initial diameters of the primary and secondary axes.
 
 #       Setting the properties of internodes, pruning complices and petioles
         if n.label.startswith(('in','cx','Pet')):

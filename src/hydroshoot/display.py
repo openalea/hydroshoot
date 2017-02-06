@@ -58,7 +58,7 @@ def default_labels():
     'Kmax': '$\mathregular{K_{max}\/[kg\/s^{-1}\/m\/MPa^{-1}]}$',
     'Length': '$\mathregular{Diam_{bot}\/[cm]}$',
     'Tlc': '$\mathregular{T_{leaf}\/[^\circ\/C]}$',
-    'TopDiameter': '$\mathregular{Diam_{bot}\/[cm]}$',
+    'TopDiameter': '$\mathregular{Diam_{top}\/[cm]}$',
     'BotDiameter': '$\mathregular{Diam_{bot}\/[cm]}$',
     'psi_head': '$\mathregular{\Psi\/[MPa]}$',
     'An': '$\mathregular{A_n\/[\mu mol\/m^{-2}\/s^{-1}]}$',
@@ -257,8 +257,12 @@ def property_map(g, prop='psi_head', ax=None, style=None, xlabel=None,
     
     if prop in g.node(vid_base).properties() and not prop.startswith('k_'):
         for vid in g.Extremities(vid_base):
-            y=[g.node(ivid).TopPosition[2] for ivid in g.Ancestors(vid)]
-            x=[g.node(ivid).properties()[prop] for ivid in g.Ancestors(vid)]
+            if prop in g.node(vid).properties():
+                index = 0
+            else:
+                index = 1
+            y=[g.node(ivid).TopPosition[2] for ivid in g.Ancestors(vid)[index:]]
+            x=[g.node(ivid).properties()[prop] for ivid in g.Ancestors(vid)[index:]]
             ax.plot(x,y,'.-',color=color, label=xlabel)
             ax.set(ylabel='z [cm]', xlabel=xlabel)
         #    ax.plot(x,y,'-',color=mpl.pyplot.rcParams['axes.color_cycle'][2])
