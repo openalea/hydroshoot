@@ -99,7 +99,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 
 # Determination of pernial structure arms (for grapevine)
     arm_vid={g.node(vid).label:g.node(vid).components()[0]._vid \
-    for vid in g.VtxList(Scale=2) if g.node(vid).label in('arm') }
+    for vid in g.VtxList(Scale=2) if g.node(vid).label.startswith('arm') }
 
     # Soil reservoir dimensions (inter row, intra row, depth) [m]
     soil_dimensions = (3.6, 1.0, 1.2) if 'soil_dimensions' not in kwargs else kwargs['soil_dimensions']
