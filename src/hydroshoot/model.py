@@ -40,6 +40,51 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     - **sdate**: datetime, start date of the simulation period
     - **edate**: datetime, end date of the simulation period
     - **emdate**: datetime, emeergence date (for the calculation of the cumulative degree-day temperature)
+    - **scene**: PlantGl scene
+    - **kwargs** can include:
+        - **'ca'**
+        - **'collar_label'**
+        - **'E_type'**
+        - **'E_type2'**
+        - **'elevation'**
+        - **'icosphere_level'**
+        - **'Kx_dict'**
+        - **'latitude'**
+        - **'leaf_lbl_prefix'**
+        - **'limit'**
+        - **'longitude'**
+        - **'max_iter'**
+        - **'MassConv'**
+        - **'Na_dict'**
+        - **'opt_prop'**
+        - **'par_gs'**
+        - **'par_K_vul'**
+        - **'par_photo'**
+        - **'par_photo_N'**
+        - **'psi_error_crit'**
+        - **'psi_error_threshold'**
+        - **'psi_min'**
+        - **'psi_soil'**
+        - **'rbt'**
+        - **'rhyzo_solution'**
+        - **'rhyzo_number'**
+        - **'rhyzo_radii'**
+        - **'roots'**
+        - **'scene_rotation'**
+        - **'simplified_form_factors'**
+        - **'soil_class'**
+        - **'soil_dimensions'**
+        - **'solo'**
+        - **'stem_lbl_prefix'**
+        - **'sun2scene'**
+        - **'t_base'**
+        - **'t_cloud'**
+        - **'t_error_crit'**
+        - **'t_sky'**
+        - **'tzone'**
+        - **'turtle_format'**
+        - **'turtle_sectors'**
+        - **'unit_scene_length'**
 
     TODO: replace by a class.
     """
@@ -134,7 +179,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     pattern = ((-xmax/2.,-ymax/2.),(xmax/2.,ymax/2.))
 
 #   Label prefix of the collar internode
-    vtx_label = 'inT' if 'inT' not in kwargs else kwargs['inT']
+    vtx_label = 'inT' if 'collar_label' not in kwargs else kwargs['collar_label']
 
 #   Label prefix of the leaves
     leaf_lbl_prefix = 'L' if 'leaf_lbl_prefix' not in kwargs else kwargs['leaf_lbl_prefix']
@@ -227,7 +272,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 
     if rhyzo_solution:
         rhyzo_number = 3 if not 'rhyzo_number' in kwargs else kwargs['rhyzo_number']
-        soil_class = 'Sandy_Loam' if not 'Sandy_Loam' in kwargs else kwargs['Sandy_Loam']
+        soil_class = 'Sandy_Loam' if not 'Soil_class' in kwargs else kwargs['Sandy_Loam']
         dist_roots, rad_roots = (0.013, .0001) if 'roots' not in kwargs else kwargs['roots']
         if not 'rhyzo_radii' in kwargs:
             max_radius = 0.5*min(soil_dimensions)/LengthConv
@@ -240,6 +285,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
                                         soil_dimensions, soil_class, vtx_label)
 
     else:
+        dist_roots, rad_roots = (None, None)
         # Identifying and attaching the base node of a single MTG
         vid_base = HSArc.MTGbase(g,vtx_label=vtx_label)
 
