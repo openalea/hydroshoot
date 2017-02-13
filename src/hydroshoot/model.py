@@ -273,7 +273,8 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     print 'rhyzo_solution is %s'%rhyzo_solution
     if rhyzo_solution:
         rhyzo_number = 3 if not 'rhyzo_number' in kwargs else kwargs['rhyzo_number']
-        soil_class = 'Sandy_Loam' if not 'Soil_class' in kwargs else kwargs['Sandy_Loam']
+        soil_class = 'Sandy_Loam' if not 'soil_class' in kwargs else kwargs['soil_class']
+        print 'Soil class: %s'%soil_class
         dist_roots, rad_roots = (0.013, .0001) if 'roots' not in kwargs else kwargs['roots']
         if not 'rhyzo_radii' in kwargs:
             max_radius = 0.5*min(soil_dimensions[:2])/LengthConv
@@ -285,6 +286,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
             vid_base = HSArc.add_soil_components(g, rhyzo_number, rhyzo_radii,
                                         soil_dimensions, soil_class, vtx_label)
         else:
+            g.properties()['soil_class'] = {vid:soil_class for vid in g.Ancestors(3)[1:]}
             vid_base = g.node(g.root).vid_base
 
     else:
