@@ -23,19 +23,20 @@ rho=997.0479    # Density of liquid water at 25 degreC temperature [kg m-3]
 g_p=9.81    #Gravity acceleration [m s-2]
 
 
-def k_max(diameter, a=2.8, b=0.1):
+def k_max(diameter, a=2.8, b=0.1, min_kmax=0.):
     """
     Returns maximim stem conductivity according to te allometric relationship (Kh=a*D^b) proposed by Tyree and Zimermmann (2002, p.147)
 
     :Parameters:
     - **diameter**: bulk diameter of the sapwood [m]
     - **a** and **b**: respectively the slope and power parameters for the Kh(D) relationship
+    - **min_kmax**: float, minimum value for the maximum conductivity [kg s-1 m MPa-1]
     
     :Notice:
     - Indicative values ranges are [2.5,2.8] for a and [2.0,5.0] for b according to Tyree and Zimermmann (2002, p.147)
     """
 
-    return float(a*(diameter**b))
+    return max(min_kmax, float(a*(diameter**b)))
 
 
 def k_vulnerability(psi, model='tuzet', fifty_cent=-0.51,sig_slope=3):
@@ -155,7 +156,7 @@ def soil_water_potential(psi_soil_init, flux, soil_class,
 
 
 def hydraulic_prop(mtg, vtx_label='inT', MassConv=18.01528, LengthConv=1.e-2,
-                   a=2.6, b=2.0):
+                   a=2.6, b=2.0, min_kmax=0.):
     """
     Returns water flux, `F` [kg s-1] and maximum stem conductivity [kg m s-1 Pa-1] of each internode.
     
@@ -173,6 +174,7 @@ def hydraulic_prop(mtg, vtx_label='inT', MassConv=18.01528, LengthConv=1.e-2,
     - **MassConv**: molar mass of H2O [gr mol-1]
     - **LengthConv**: conversion coefficient from the length unit of the mtg to that of 1 m
     - **a** and **b**: respectively the slope and power parameters for the Kh(D) relationship
+    - **min_kmax**: float, minimum value for the maximum conductivity [kg s-1 m MPa-1]
     """
 
     # Getting the basal vertex of the highest scale vertices
@@ -195,7 +197,7 @@ def hydraulic_prop(mtg, vtx_label='inT', MassConv=18.01528, LengthConv=1.e-2,
         elif n.label.startswith(('in','cx','Pet')):
             n.Flux = sum([vtx.Flux for vtx in n.children()])
             Diam = 0.5*(n.TopDiameter + n.BotDiameter)*LengthConv
-            n.Kmax = k_max(Diam,a,b)
+            n.Kmax = k_max(Diam,a,b,min_kmax)
 
             n.FluxC = sum([vtx.FluxC for vtx in n.children()])
 
@@ -203,8 +205,7 @@ def hydraulic_prop(mtg, vtx_label='inT', MassConv=18.01528, LengthConv=1.e-2,
             n.Flux = sum([vtx.Flux for vtx in n.children()])
             n.FluxC = sum([vtx.FluxC for vtx in n.children()])
             
-            #k_sat = def_param_soil()[n.soil_class][-1] # [cm d-1]
-            n.Kmax = None #(k_sat/100.) * (2.*pi*n.radius*n.depth * (LengthConv)**2)*1000.
+            n.Kmax = None
             
 
     return mtg
@@ -213,7 +214,8 @@ def hydraulic_prop(mtg, vtx_label='inT', MassConv=18.01528, LengthConv=1.e-2,
 def transient_xylem_water_potential(g, model='tuzet', vtx_label='inT',
                                     LengthConv=1.e-2,psi_soil=-0.6,psi_min=-3.,
                                     fifty_cent=-0.51, sig_slope=0.1,
-                                    dist_roots=0.013, rad_roots=.0001):
+                                    dist_roots=0.013, rad_roots=.0001,
+                                    negligible_shoot_resistance = False):
     """
     Returns a transient hydraulic structure of a plant shoot based on constant values of stem conductivities.
     Stems are assumed isotropic, linear, element.
@@ -230,7 +232,10 @@ def transient_xylem_water_potential(g, model='tuzet', vtx_label='inT',
     - **psi_soil**: soil water potential [MPa]
     - **psi_min**: minimum simulated xylem water potential [MPa]
     - **fifty_cent**: water potential at which the conductivity of the stem is reduced by 50% reltive to its maximum value
-    - **sig_slope**: a shape parameter controling the slope of the S-curve.
+    - **sig_slope**: a shape parameter controling the slope of the S-curve
+    - **dist_roots**: float, the average distance between roots [m]
+    - **rad_roots**: float, the average radius of individual roots [m]
+    - **negligible_shoot_resistance**: logical, defalut `False`, whether shoot resistance should be considered (False) or not (True)
     """
 
     try:
@@ -274,9 +279,11 @@ def transient_xylem_water_potential(g, model='tuzet', vtx_label='inT',
                 psi_head = psi_base - (L*F/KL) / 100.
             
             else:
-                KL = Kmax *k_vulnerability(psi, model, fifty_cent,sig_slope)
-                psi_head = max(psi_min, psi_base - L*F/KL - (rho*g_p*(Z_head-Z_base))*1.e-6)
-
+                if not negligible_shoot_resistance:
+                    KL = Kmax *k_vulnerability(psi, model, fifty_cent,sig_slope)
+                    psi_head = max(psi_min, psi_base - L*F/KL - (rho*g_p*(Z_head-Z_base))*1.e-6)
+                else:
+                    psi_head = max(psi_min, psi_base - (rho*g_p*(Z_head-Z_base))*1.e-6)
 #            def _psi_headX(_psi_head):
 #                psi = 0.5*(_psi_head+psi_base)
 #                _KL = Kmax*k_vulnerability(psi, model, fifty_cent,sig_slope)
@@ -295,7 +302,8 @@ def transient_xylem_water_potential(g, model='tuzet', vtx_label='inT',
 def xylem_water_potential(g, psi_soil=-0.8, model='tuzet', psi_min=-3.0,
                           psi_error_crit=0.001, max_iter=100, vtx_label='inT',
                           LengthConv=1.E-2, fifty_cent=-0.51,sig_slope=0.1,
-                          dist_roots=0.013, rad_roots=.0001):
+                          dist_roots=0.013, rad_roots=.0001,
+                          negligible_shoot_resistance = False):
     """
     Returns the hydraulic structure of a plant shoot. Stems are assumed isotropic, linear, element.
 
@@ -319,7 +327,8 @@ def xylem_water_potential(g, psi_soil=-0.8, model='tuzet', psi_min=-3.0,
         psi_prev = deepcopy(g.property('psi_head'))
         transient_xylem_water_potential(g, model, vtx_label, LengthConv,
                                         psi_soil, psi_min,fifty_cent,sig_slope,
-                                        dist_roots, rad_roots)
+                                        dist_roots, rad_roots,
+                                        negligible_shoot_resistance)
         psi_new = deepcopy(g.property('psi_head'))
 
         psi_avg_dict = {}
