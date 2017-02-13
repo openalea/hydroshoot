@@ -46,6 +46,8 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         - **E_type**
         - **E_type2**
         - **elevation**
+        - **energy_budget**
+        - **hydraulic_structure**
         - **icosphere_level**
         - **Kx_dict**
         - **latitude**
@@ -57,6 +59,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         - **Na_dict**
         - **negligible_shoot_resistance**
         - **opt_prop**
+        - **output_name**
         - **par_gs**
         - **par_K_vul**
         - **par_photo**
@@ -88,7 +91,8 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 
     TODO: replace by a class.
     """
-
+    total_time_ON = time.time()
+    output_name = 'results' if 'output_name' not in kwargs else kwargs['output_name']
 #==============================================================================
 # Initialisation
 #==============================================================================
@@ -200,8 +204,11 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     MassConv = 18.01528 if 'MassConv' not in kwargs else kwargs['MassConv']
     limit=-0.000000001 if 'limit' not in kwargs else kwargs['limit']
 
-    solo = True if 'solo' not in kwargs else kwargs['solo']
-    simplified_form_factors = True if 'simplified_form_factors' not in kwargs else kwargs['simplified_form_factors']
+    energy_budget = True if not 'energy_budget' in kwargs else kwargs['energy_budget']
+    print 'Energy_budget: %s'%energy_budget
+    if energy_budget:
+        solo = True if 'solo' not in kwargs else kwargs['solo']
+        simplified_form_factors = True if 'simplified_form_factors' not in kwargs else kwargs['simplified_form_factors']
     
 #   Optical properties
     if 'opt_prop' not in kwargs:
@@ -217,13 +224,21 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         par_photo = kwargs['par_photo']
 
 #   Stomatal conductance parameters
-    if 'par_gs' not in kwargs:
-        par_gs = {'model':'misson', 'g0':0.0, 'm0':5.278,
-                   'psi0':-1.,'D0':30.,'n':4.}
-    else:
-        par_gs = kwargs['par_gs']
+    hydraulic_structure = True if not 'hydraulic_structure' in kwargs else kwargs['hydraulic_structure']
+    print 'Hydraulic structure: %s'%hydraulic_structure
+    if hydraulic_structure:
+        if 'par_gs' not in kwargs:
+            par_gs = {'model':'misson', 'g0':0.0, 'm0':5.278,
+                       'psi0':-1.,'D0':30.,'n':4.}
+        else:
+            par_gs = kwargs['par_gs']
 
-#   Parameters of maximym stem conductivity allometric relationship
+        negligible_shoot_resistance = False if not 'negligible_shoot_resistance' in kwargs else kwargs['negligible_shoot_resistance']
+    else:
+        par_gs = {'model':'vpd', 'g0':0.0, 'm0':5.278,
+                       'psi0':None,'D0':None,'n':None}
+
+#   Parameters of maximum stem conductivity allometric relationship
     if 'Kx_dict' not in kwargs:
         Kx_dict = {'a':1.6,'b':2., 'min_kmax':0.}
     else:
@@ -255,22 +270,23 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     modelx, psi_critx, slopex = [par_K_vul[ikey] for ikey in ('model', 'fifty_cent', 'sig_slope')]
 
 #   Computation of the form factor matrix
-    if 'k_sky' not in g.property_names():
+    if energy_budget:
+        if 'k_sky' not in g.property_names():
 
-        print 'Computing form factors...'
-
-        if not simplified_form_factors:
-           tstart = time.time()
-           HSEnergy.form_factors_matrix(g, pattern, LengthConv, limit=limit)
-           print ("---%s minutes ---" % ((time.time()-tstart)/60.))
-        else:
-            HSEnergy.form_factors_simplified(g, pattern, leaf_lbl_prefix,
-                            stem_lbl_prefix, turtle_sectors, icosphere_level,
-                            unit_scene_length)
+            print 'Computing form factors...'
+    
+            if not simplified_form_factors:
+               tstart = time.time()
+               HSEnergy.form_factors_matrix(g, pattern, LengthConv, limit=limit)
+               print ("---%s minutes ---" % ((time.time()-tstart)/60.))
+            else:
+                HSEnergy.form_factors_simplified(g, pattern, leaf_lbl_prefix,
+                                stem_lbl_prefix, turtle_sectors, icosphere_level,
+                                unit_scene_length)
 
     # Rhyzosphere concentric radii
     rhyzo_solution = True if 'rhyzo_solution' not in kwargs else kwargs['rhyzo_solution']
-    print 'rhyzo_solution is %s'%rhyzo_solution
+    print 'rhyzo_solution: %s'%rhyzo_solution
     if rhyzo_solution:
         rhyzo_number = 3 if not 'rhyzo_number' in kwargs else kwargs['rhyzo_number']
         soil_class = 'Sandy_Loam' if not 'soil_class' in kwargs else kwargs['soil_class']
@@ -412,9 +428,6 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 #        psi_soil_ls.append(psi_soil)
         print 'psi_soil', round(psi_soil,3)
 
-#       Initialize leaf [and other elements] temperature equal to air temperature
-        if not 'Tlc' in g.property_names():
-            g.properties()['Tlc'] = {vid:imeteo.Tac[0] for vid in g.VtxList() if vid >0 and g.node(vid).label.startswith('L')}
 
         if 'sun2scene' not in kwargs or not kwargs['sun2scene']:
             sun2scene = None
@@ -463,13 +476,61 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         iter_xylem = []
         t_error_list = []
         t_iter_list = []
+
+#       Initialize leaf [and other elements] temperature to air temperature
+        g.properties()['Tlc'] = {vid:imeteo.Tac[0] for vid in g.VtxList() if vid >0 and g.node(vid).label.startswith('L')}
+
         for it in range(max_iter):
             t_prev = deepcopy(g.property('Tlc'))
     
 # The psi loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            for ipsi in range(max_iter):
-                psi_prev = deepcopy(g.property('psi_head'))
+            if hydraulic_structure:
+                for ipsi in range(max_iter):
+                    psi_prev = deepcopy(g.property('psi_head'))
+        
+    #               Computes gas-exchange fluxes. Leaf T and Psi are from prev calc loop
+                    HSExchange.VineExchange(g, par_photo, par_photo_N, par_gs,
+                                        imeteo, E_type2, leaf_lbl_prefix,rbt)
     
+    #               Computes sapflow and hydraulic properties
+                    HSHyd.hydraulic_prop(g, vtx_label=vtx_label, MassConv=MassConv,
+                                      LengthConv=LengthConv,
+                                      a=Kx_dict['a'],b=Kx_dict['b'],min_kmax=Kx_dict['min_kmax'])
+    
+    #               Computes xylem water potential
+                    N_iter_psi = HSHyd.xylem_water_potential(g, psi_soil,
+                                  psi_min=psi_min, model=modelx, max_iter=max_iter,
+                                  psi_error_crit=psi_error_crit,vtx_label=vtx_label,
+                                  LengthConv=LengthConv,fifty_cent=psi_critx,
+                                  sig_slope=slopex, dist_roots=dist_roots,
+                                  rad_roots=rad_roots,
+                                  negligible_shoot_resistance = negligible_shoot_resistance)
+    
+                    psi_new = g.property('psi_head')
+    
+    #               Evaluation of xylem conversion creterion
+                    psi_error_dict = {}
+                    for vtx_id in g.property('psi_head').keys():
+                        psi_error_dict[vtx_id] = abs(psi_prev[vtx_id]-psi_new[vtx_id])
+    
+                    psi_error = max(psi_error_dict.values())
+                    iter_xylem.append(N_iter_psi)
+    #                print '*******************************************************'
+    #                print 'psi_error = ',round(psi_error,3), ':: Nb_iter = %d'%N_iter_psi
+    #                print 'mean(Psi_x) = ', round(np.mean(g.property('psi_head').values()),3), ':: Flux = %e'%g.node(3).Flux
+    
+                    if psi_error < psi_error_threshold:
+                        break
+                    else:
+                        psi_new_dict = {vtx_id:0.5*(psi_prev[vtx_id]+psi_new[vtx_id]) for vtx_id in psi_new.keys()}
+                        g.properties()['psi_head'] = psi_new_dict
+    #                    for vtx_id in psi_new.keys():
+    #                        g.node(vtx_id).psi_head = 0.5*(psi_prev[vtx_id]+psi_new[vtx_id])
+    
+    #                HSVisu.property_map(g,prop='psi_head',style='r',add_head_loss=True, fig=fig_psi, color='blue')
+
+            else:
+                ipsi = 0
 #               Computes gas-exchange fluxes. Leaf T and Psi are from prev calc loop
                 HSExchange.VineExchange(g, par_photo, par_photo_N, par_gs,
                                     imeteo, E_type2, leaf_lbl_prefix,rbt)
@@ -479,71 +540,43 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
                                   LengthConv=LengthConv,
                                   a=Kx_dict['a'],b=Kx_dict['b'],min_kmax=Kx_dict['min_kmax'])
 
-#               Computes xylem water potential
-                N_iter_psi = HSHyd.xylem_water_potential(g, psi_soil,
-                              psi_min=psi_min, model=modelx, max_iter=max_iter,
-                              psi_error_crit=psi_error_crit,vtx_label=vtx_label,
-                              LengthConv=LengthConv,fifty_cent=psi_critx,
-                              sig_slope=slopex, dist_roots=dist_roots,
-                              rad_roots=rad_roots,
-                              negligible_shoot_resistance = negligible_shoot_resistance)
-
-                psi_new = g.property('psi_head')
-
-#               Evaluation of xylem conversion creterion
-                psi_error_dict = {}
-                for vtx_id in g.property('psi_head').keys():
-                    psi_error_dict[vtx_id] = abs(psi_prev[vtx_id]-psi_new[vtx_id])
-
-                psi_error = max(psi_error_dict.values())
-                iter_xylem.append(N_iter_psi)
-#                print '*******************************************************'
-#                print 'psi_error = ',round(psi_error,3), ':: Nb_iter = %d'%N_iter_psi
-#                print 'mean(Psi_x) = ', round(np.mean(g.property('psi_head').values()),3), ':: Flux = %e'%g.node(3).Flux
-
-                if psi_error < psi_error_threshold:
-                    break
-                else:
-                    psi_new_dict = {vtx_id:0.5*(psi_prev[vtx_id]+psi_new[vtx_id]) for vtx_id in psi_new.keys()}
-                    g.properties()['psi_head'] = psi_new_dict
-#                    for vtx_id in psi_new.keys():
-#                        g.node(vtx_id).psi_head = 0.5*(psi_prev[vtx_id]+psi_new[vtx_id])
-
-#                HSVisu.property_map(g,prop='psi_head',style='r',add_head_loss=True, fig=fig_psi, color='blue')
 
 # End psi loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
 #           Compute leaf temperature
-            t_iter = HSEnergy.leaf_temperature(g, macro_meteo, solo, True,
-                                               leaf_lbl_prefix, max_iter,
-                                               t_error_crit)
-
-            t_iter_list.append(t_iter)
-            t_new = deepcopy(g.property('Tlc'))
-
-#           Evaluation of leaf temperature conversion creterion
-            error_dict={vtx:abs(t_prev[vtx]-t_new[vtx]) for vtx in g.property('Tlc').keys()}
-
-#            t_error = round(max(error_dict.values()),3)
-#            print 't_error = ', t_error, 'counter =', it
-#            print [vid for vid in error_dict if error_dict[vid]==max(error_dict.values())]
-#            print '**********'
-#            t_error_list.append(t_error)
-            t_error_list.append(ipsi)
-            if max(error_dict.values()) < t_error_crit:
-#                print 't_iter = %d (max %d), max_gas_xylem_iter = %d, max_xylem_iter = %d'%(it+1, max(t_iter_list)+1,max(t_error_list)+1,max(iter_xylem)+1)
+            if not energy_budget:
                 break
-#            elif imeteo.Rg[0] < 100 and imeteo.u[0] <= 0.6:
-#                print 'Temperature loop stopped since low "Rg" and "u"'
-#                break
             else:
-                assert (it <= max_iter), 'The energy budget solution did not converge.'
-                t_new_dict = {vtx_id:0.5*(t_prev[vtx_id]+t_new[vtx_id]) for vtx_id in t_new.keys()}
-                g.properties()['Tlc'] = t_new_dict
+                t_iter = HSEnergy.leaf_temperature(g, macro_meteo, solo, True,
+                                                   leaf_lbl_prefix, max_iter,
+                                                   t_error_crit)
+    
+                t_iter_list.append(t_iter)
+                t_new = deepcopy(g.property('Tlc'))
+    
+    #           Evaluation of leaf temperature conversion creterion
+                error_dict={vtx:abs(t_prev[vtx]-t_new[vtx]) for vtx in g.property('Tlc').keys()}
+    
+    #            t_error = round(max(error_dict.values()),3)
+    #            print 't_error = ', t_error, 'counter =', it
+    #            print [vid for vid in error_dict if error_dict[vid]==max(error_dict.values())]
+    #            print '**********'
+    #            t_error_list.append(t_error)
+                t_error_list.append(ipsi)
+                if max(error_dict.values()) < t_error_crit:
+    #                print 't_iter = %d (max %d), max_gas_xylem_iter = %d, max_xylem_iter = %d'%(it+1, max(t_iter_list)+1,max(t_error_list)+1,max(iter_xylem)+1)
+                    break
+    #            elif imeteo.Rg[0] < 100 and imeteo.u[0] <= 0.6:
+    #                print 'Temperature loop stopped since low "Rg" and "u"'
+    #                break
+                else:
+                    assert (it <= max_iter), 'The energy budget solution did not converge.'
+                    t_new_dict = {vtx_id:0.5*(t_prev[vtx_id]+t_new[vtx_id]) for vtx_id in t_new.keys()}
+                    g.properties()['Tlc'] = t_new_dict
 
 
         # Write mtg to external file
-        HSArc.mtg_save(g, scene, wd)
+        HSArc.mtg_save(g, scene, wd, output_name)
 
 # End t loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -593,7 +626,11 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 
     # Results DataFrame
     results_df = DataFrame(results_dict, index=meteo.time)
+
     # Write
-    results_df.to_csv(wd+'results.output', sep=';', decimal='.')
+    results_df.to_csv(wd+output_name+'.output', sep=';', decimal='.')
+
+    total_time_OFF = time.time()
+    print ("+++Total runtime: %s minutes ---" % ((total_time_OFF-total_time_ON)/60.))
 
     return
