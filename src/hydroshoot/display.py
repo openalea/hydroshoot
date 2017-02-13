@@ -19,6 +19,7 @@ import openalea.plantgl.all as pgl
 mpl.style.use('ggplot')
 
 from hydroshoot.architecture import MTGbase
+from hydroshoot.hydraulic import def_param_soil
 
 
 def default_labels():
@@ -334,3 +335,28 @@ def prop_fun_prop(g, prop1='gs', prop2='psi_head', fig=None,style=None,
         ax.plot((min(df[prop2]),max(df[prop2])),(min(df[prop1]),max(df[prop1])),'k')
 
     return fig, ax
+
+
+def retention_curve(g, ax=None):
+    """
+    Plots the retention curve of the bulk soil:
+    """
+    if not ax:
+        fig,ax = mpl.pyplot.subplots()
+
+    soil_class = g.node(g.Ancestors(g.node(g.root).vid_base)[0]).soil_class
+    param = def_param_soil()[soil_class]
+    theta_r,theta_s,alpha,n,k_sat = [param[i] for i in range(5)]
+    m = 1. - 1./n
+
+    psi_range = np.arange(-150000,0)    
+    theta_ls = []
+    for psiX in psi_range:
+        theta_ls.append(theta_r + (theta_s-theta_r) * 1./((1+np.absolute(alpha*psiX))**n)**m)
+
+    psi_range = np.array(psi_range)*1.e-4
+    ax.plot(psi_range, theta_ls, label = soil_class)
+    ax.set(xlabel = '$\mathregular{\Psi_{soil}\/[MPa]}$',
+           ylabel = '$\mathregular{\Theta_{bulk\/soil}\/[-]}$')
+    ax.legend()
+    return ax
