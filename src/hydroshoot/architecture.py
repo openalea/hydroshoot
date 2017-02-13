@@ -1413,14 +1413,15 @@ def mtg_output(g, wd):
     f.close()
     return
 
-def mtg_save(g, scene, wd):
-    if not path.exists(wd+'mtg/'):
-        mkdir(wd+'mtg/')
+def mtg_save(g, scene, wd, folder_name='mtg'):
+    file_path = wd+folder_name+'/'
+    if not path.exists(file_path):
+        mkdir(file_path)
 #    geom = {sh.id:sh.geometry for sh in scene}
     geom = {vid:g.node(vid).geometry for vid in g.property('geometry')}
     g.remove_property('geometry')
-    fgeom = wd + 'mtg/%s.bgeom'%(g.date)
-    fg = wd + 'mtg/%s.pckl'%(g.date)
+    fgeom = file_path + g.date + '.bgeom'
+    fg = file_path + g.date + '.pckl'
     scene.save(fgeom, 'BGEOM')
     f = open(fg, 'w')
     dump([g,scene], f)
