@@ -42,49 +42,49 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     - **emdate**: datetime, emeergence date (for the calculation of the cumulative degree-day temperature)
     - **scene**: PlantGl scene
     - **kwargs** can include:
-        - **'ca'**
-        - **'collar_label'**
-        - **'E_type'**
-        - **'E_type2'**
-        - **'elevation'**
-        - **'icosphere_level'**
-        - **'Kx_dict'**
-        - **'latitude'**
-        - **'leaf_lbl_prefix'**
-        - **'limit'**
-        - **'longitude'**
-        - **'max_iter'**
-        - **'MassConv'**
-        - **'Na_dict'**
-        - **'opt_prop'**
-        - **'par_gs'**
-        - **'par_K_vul'**
-        - **'par_photo'**
-        - **'par_photo_N'**
-        - **'psi_error_crit'**
-        - **'psi_error_threshold'**
-        - **'psi_min'**
-        - **'psi_soil'**
-        - **'rbt'**
-        - **'rhyzo_solution'**
-        - **'rhyzo_number'**
-        - **'rhyzo_radii'**
-        - **'roots'**
-        - **'scene_rotation'**
-        - **'simplified_form_factors'**
-        - **'soil_class'**
-        - **'soil_dimensions'**
-        - **'solo'**
-        - **'stem_lbl_prefix'**
-        - **'sun2scene'**
-        - **'t_base'**
-        - **'t_cloud'**
-        - **'t_error_crit'**
-        - **'t_sky'**
-        - **'tzone'**
-        - **'turtle_format'**
-        - **'turtle_sectors'**
-        - **'unit_scene_length'**
+        - **collar_label**
+        - **E_type**
+        - **E_type2**
+        - **elevation**
+        - **icosphere_level**
+        - **Kx_dict**
+        - **latitude**
+        - **leaf_lbl_prefix**
+        - **limit**
+        - **longitude**
+        - **max_iter**
+        - **MassConv**
+        - **Na_dict**
+        - **negligible_shoot_resistance**
+        - **opt_prop**
+        - **par_gs**
+        - **par_K_vul**
+        - **par_photo**
+        - **par_photo_N**
+        - **psi_error_crit**
+        - **psi_error_threshold**
+        - **psi_min**
+        - **psi_soil**
+        - **rbt**
+        - **rhyzo_solution**
+        - **rhyzo_number**
+        - **rhyzo_radii**
+        - **roots**
+        - **scene_rotation**
+        - **simplified_form_factors**
+        - **soil_class**
+        - **soil_dimensions**
+        - **solo**
+        - **stem_lbl_prefix**
+        - **sun2scene**
+        - **t_base**
+        - **t_cloud**
+        - **t_error_crit**
+        - **t_sky**
+        - **tzone**
+        - **turtle_format**
+        - **turtle_sectors**
+        - **unit_scene_length**
 
     TODO: replace by a class.
     """
@@ -190,7 +190,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     E_type='Rg_Watt/m2' if 'E_type' not in kwargs else kwargs['E_type']
     E_type2 = 'Ei' if 'E_type2' not in kwargs else kwargs['E_type2']
     rbt = 2./3. if 'rbt' not in kwargs else kwargs['rbt']
-    ca = 360. if 'ca' not in kwargs else kwargs['ca']
+#    ca = 360. if 'ca' not in kwargs else kwargs['ca']
     tzone='Europe/Paris' if 'tzone' not in kwargs else kwargs['tzone']
     turtle_sectors='46' if 'turtle_sectors' not in kwargs else kwargs['turtle_sectors']
     icosphere_level = None if 'icosphere_level' not in kwargs else kwargs['icosphere_level']
@@ -225,12 +225,13 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 
 #   Parameters of maximym stem conductivity allometric relationship
     if 'Kx_dict' not in kwargs:
-        Kx_dict = {'a':1.6,'b':2.}
+        Kx_dict = {'a':1.6,'b':2., 'min_kmax':0.}
     else:
         Kx_dict = kwargs['Kx_dict']
 
     psi_min = -3.0 if 'psi_min' not in kwargs else kwargs['psi_min']
     psi_error_crit = 0.001 if 'psi_error_crit' not in kwargs else kwargs['psi_error_crit']
+    negligible_shoot_resistance = False if not 'negligible_shoot_resistance' in kwargs else kwargs['negligible_shoot_resistance']
 
 #   Parameters of stem water conductivty's vulnerability to cavitation
     if 'par_K_vul' not in kwargs:
@@ -269,13 +270,13 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 
     # Rhyzosphere concentric radii
     rhyzo_solution = True if 'rhyzo_solution' not in kwargs else kwargs['rhyzo_solution']
-
+    print 'rhyzo_solution is %s'%rhyzo_solution
     if rhyzo_solution:
         rhyzo_number = 3 if not 'rhyzo_number' in kwargs else kwargs['rhyzo_number']
         soil_class = 'Sandy_Loam' if not 'Soil_class' in kwargs else kwargs['Sandy_Loam']
         dist_roots, rad_roots = (0.013, .0001) if 'roots' not in kwargs else kwargs['roots']
         if not 'rhyzo_radii' in kwargs:
-            max_radius = 0.5*min(soil_dimensions)/LengthConv
+            max_radius = 0.5*min(soil_dimensions[:2])/LengthConv
             rhyzo_radii = [max_radius*perc for perc in np.array(range(1,rhyzo_number+1))/float(rhyzo_number)]
         else:
             rhyzo_radii = kwargs['rhyzo_radii']
@@ -283,6 +284,8 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         if not any(item.startswith('rhyzo') for item in g.property('label').values()):
             vid_base = HSArc.add_soil_components(g, rhyzo_number, rhyzo_radii,
                                         soil_dimensions, soil_class, vtx_label)
+        else:
+            vid_base = g.node(g.root).vid_base
 
     else:
         dist_roots, rad_roots = (None, None)
@@ -467,12 +470,12 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     
 #               Computes gas-exchange fluxes. Leaf T and Psi are from prev calc loop
                 HSExchange.VineExchange(g, par_photo, par_photo_N, par_gs,
-                                    imeteo, E_type2, leaf_lbl_prefix,rbt, ca)
+                                    imeteo, E_type2, leaf_lbl_prefix,rbt)
 
 #               Computes sapflow and hydraulic properties
                 HSHyd.hydraulic_prop(g, vtx_label=vtx_label, MassConv=MassConv,
                                   LengthConv=LengthConv,
-                                  a=Kx_dict['a'],b=Kx_dict['b'])
+                                  a=Kx_dict['a'],b=Kx_dict['b'],min_kmax=Kx_dict['min_kmax'])
 
 #               Computes xylem water potential
                 N_iter_psi = HSHyd.xylem_water_potential(g, psi_soil,
@@ -480,7 +483,8 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
                               psi_error_crit=psi_error_crit,vtx_label=vtx_label,
                               LengthConv=LengthConv,fifty_cent=psi_critx,
                               sig_slope=slopex, dist_roots=dist_roots,
-                              rad_roots=rad_roots)
+                              rad_roots=rad_roots,
+                              negligible_shoot_resistance = negligible_shoot_resistance)
 
                 psi_new = g.property('psi_head')
 
