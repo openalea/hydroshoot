@@ -25,7 +25,7 @@ R = 0.0083144598 # Ideal gaz constant [kJ K-1 mol-1]
 # Initial values (before accountinf for Na)
 def par_photo_default(Vcm25= 89.0, Jm25 = 143.0, cRd = 0.008, TPU25 = 10.0,
        Kc25 = 404.9, Ko25 = 278.4, Tx25 = 42.75,
-       alpha =  [0.2, 0.2, 0.2, 0.2, 0.2, 0.2], alpha_T_limit = [15, 20, 25, 30, 34, 50],
+       alpha =  [0.2, 0.2, 0.19, 0.19, 0.14, 0.12], alpha_T_limit = [15, 20, 25, 30, 34, 50],
        a1 = 0.98, a2 = 0.98, a3 = 0.98, ds = 0.635, dHd = 200,
        RespT_Kc = {'model':'Ahrenius', 'c':38.05, 'deltaHa':79.43},
        RespT_Ko = {'model':'Ahrenius', 'c':20.30, 'deltaHa':36.38},
@@ -234,10 +234,11 @@ def compute_an_2par(par_photo, PPFD, Tlc):
     TPU = Arrhenius_2('TPUmax',Tlc,par_photo)
     Rd = Arrhenius_2('Rdmax',Tlc,par_photo)
 
-    alpha = par_photo['alpha'][0] # Leaf absorptance to photosynthetic photon flux [-]
-    for i in range(1,len(par_photo['alpha'])):
-        if par_photo['alpha_T_limit'][i-1]< Tlc < par_photo['alpha_T_limit'][i]:
-            alpha = par_photo['alpha'][i]
+#    alpha = par_photo['alpha'][0] # Leaf absorptance to photosynthetic photon flux [-]
+#    for i in range(1,len(par_photo['alpha'])):
+#        if par_photo['alpha_T_limit'][i-1]< Tlc < par_photo['alpha_T_limit'][i]:
+#            alpha = par_photo['alpha'][i]
+    alpha = .24
 
     J = (alpha*PPFD)/((1+((alpha**2*PPFD**2)/(Jmax**2)))**0.5)  # Flux d'electrons en fonction de la temperature de la feuille et du niveau d'eclairement
 
@@ -529,7 +530,7 @@ def Transpiration_rate(Tlc, ea, gs, gb, Pa = 101.3):
 
 
 def VineExchange(g, par_photo, par_photo_N, par_gs, meteo, E_type2, leaf_lbl_prefix='L',
-                 rbt=2./3., ca=360.):
+                 rbt=2./3.):
     """
     Calculates gas exchange fluxes at the leaf scale according to the analytical scheme described by Evers et al. (JxBot 2010, 2203–2216).
 
