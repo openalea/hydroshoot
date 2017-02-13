@@ -332,7 +332,7 @@ def compute_an_2par(par_photo, PPFD, Tlc):
 #==============================================================================
 # Analytical solution of the An - gs - ci processes
 #==============================================================================
-def fvpd_3(model, vpd, psi, psi_crit=-0.37, c1=5.278, c2=1.85, D0=30):
+def fvpd_3(model, vpd, psi, psi_crit=-0.37, c1=5.278, c2=1.85, D0=30.):
     """
     """
     if model =='misson':
@@ -341,6 +341,8 @@ def fvpd_3(model, vpd, psi, psi_crit=-0.37, c1=5.278, c2=1.85, D0=30):
         m = (1. + exp(c2 * psi_crit)) / (1. + exp(float(c2 * (psi_crit - psi))))
     elif model == 'linear':
         m = 1 - min(1,float(psi/psi_crit))
+    elif model == 'vpd':
+        m = 1. / (1. + vpd / float(D0))
     else:
         raise ValueError ("The 'model' argument must be one of the following ('misson','tuzet', 'linear').")
     return c1 * m
