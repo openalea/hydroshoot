@@ -91,7 +91,7 @@ def def_param_soil():
 
 def k_soil_soil(psi, soil_class):
     """
-    Returns actual soil hydraulic conductivity [kg m s-1 MPa-1].
+    Returns actual soil hydraulic conductivity [cm d-1].
     
     :Parameters:
     - **psi**: float, bulk soil-matrix water potential [MPa]
@@ -108,10 +108,10 @@ def k_soil_soil(psi, soil_class):
 
 def k_soil_root(k_soil, d, r):
     """
-    Returns the hydraulic water conductance at the soil-root interface according to Gardner (1960 Soil Sci 89, 63-73) [kg m s-1 MPa-1].
+    Returns the hydraulic water conductance at the soil-root interface according to Gardner (1960 Soil Sci 89, 63-73) [cm d-1].
 
     :Parameters:
-    - **k_soil**: float, soil-matrix hydraulic conductance [kg m s-1 MPa-1]
+    - **k_soil**: float, soil-matrix hydraulic conductivity [kg m s-1 MPa-1]
     - **d**: float, mean distance between the neighbouring roots [m]
     - **r**: float, mean root radius [m]
     """
@@ -267,16 +267,16 @@ def transient_xylem_water_potential(g, model='tuzet', vtx_label='inT',
             psi = 0.5*(psi_head+psi_base)
 
             if n.label.startswith('rhyzo'):
-                radius = n.TopDiameter / 2. * LengthConv
+                cyl_diameter = n.TopDiameter * LengthConv
                 depth = n.depth * LengthConv
-                F = F * 8640./(pi *2.*radius * depth) # [cm d-1]
+                F = F * 8640./(pi *cyl_diameter* depth) # [cm d-1]
                 if n.label.startswith('rhyzo0'):
                     k_soil = k_soil_soil(psi, n.soil_class)
                     KL = k_soil_root(k_soil, dist_roots, rad_roots)
                 else:
                     KL = k_soil_soil(psi, n.soil_class)
 
-                psi_head = psi_base - (L*F/KL) / 100.
+                psi_head = psi_base - (L*F/KL) * rho*g_p*1.e-6
             
             else:
                 if not negligible_shoot_resistance:
