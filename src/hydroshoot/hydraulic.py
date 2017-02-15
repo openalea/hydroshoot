@@ -16,8 +16,6 @@ import warnings
 from openalea.plantgl.all import surface as surf
 import openalea.mtg.traversal as traversal
 
-from hydroshoot.architecture import MTGbase
-
 # Constants
 rho=997.0479    # Density of liquid water at 25 degreC temperature [kg m-3]
 g_p=9.81    #Gravity acceleration [m s-2]
@@ -213,9 +211,10 @@ def hydraulic_prop(mtg, vtx_label='inT', MassConv=18.01528, LengthConv=1.e-2,
 
 def transient_xylem_water_potential(g, model='tuzet', vtx_label='inT',
                                     LengthConv=1.e-2,psi_soil=-0.6,psi_min=-3.,
-                                    fifty_cent=-0.51, sig_slope=0.1,
+                                    fifty_cent=-0.51, sig_slope=1.,
                                     dist_roots=0.013, rad_roots=.0001,
-                                    negligible_shoot_resistance = False):
+                                    negligible_shoot_resistance = False,
+                                    start_vid = None, stop_vid = None):
     """
     Returns a transient hydraulic structure of a plant shoot based on constant values of stem conductivities.
     Stems are assumed isotropic, linear, element.
@@ -236,65 +235,72 @@ def transient_xylem_water_potential(g, model='tuzet', vtx_label='inT',
     - **dist_roots**: float, the average distance between roots [m]
     - **rad_roots**: float, the average radius of individual roots [m]
     - **negligible_shoot_resistance**: logical, defalut `False`, whether shoot resistance should be considered (False) or not (True)
+    - **start_vid**: `None` or integer, vertex id from which the iteration starts (if `None` it is then taken to the basal element)
+    - **stop_vid**: `None` or integer, vertex id at which the iteration breaks (def `None` iteration will include all elements up until the leaves)
     """
 
-    try:
-        vid_base = g.node(g.root).vid_base
-    except AttributeError:
-        vid_base = MTGbase(g,vtx_label)
+    vid_base = g.node(g.root).vid_base
 
-    for vtx_id in traversal.pre_order2(g, vid_base):
-        n = g.node(vtx_id)
-        p = n.parent()
+    if start_vid is None:
+        start_vid = vid_base
 
-        if n.label.startswith('LI'):
-            n.psi_head = p.psi_head
+    for vtx_id in traversal.pre_order2(g, start_vid):
+        if vtx_id == stop_vid:
+            break
         else:
-            F = n.properties()['Flux']
-            L = n.properties()['Length']*LengthConv
-            Z_head = n.properties()['TopPosition'][2]*LengthConv
-            Z_base = n.properties()['BotPosition'][2]*LengthConv
-            Kmax = n.properties()['Kmax']
-
-            psi_base = psi_soil if vtx_id == vid_base else p.psi_head
-
-            try:
-                psi_head = n.psi_head
-                assert (n.psi_head != None), "Water potential has a `None` value"
-            except:
-                psi_head = psi_base
-
-            psi = 0.5*(psi_head+psi_base)
-
-            if n.label.startswith('rhyzo'):
-                cyl_diameter = n.TopDiameter * LengthConv
-                depth = n.depth * LengthConv
-                F = F * 8640./(pi *cyl_diameter* depth) # [cm d-1]
-                if n.label.startswith('rhyzo0'):
-                    k_soil = k_soil_soil(psi, n.soil_class)
-                    KL = k_soil_root(k_soil, dist_roots, rad_roots)
-                else:
-                    KL = k_soil_soil(psi, n.soil_class)
-
-                psi_head = psi_base - (L*F/KL) * rho*g_p*1.e-6
-            
+            n = g.node(vtx_id)
+            p = n.parent()
+    
+            if n.label.startswith('LI'):
+                n.psi_head = p.psi_head
             else:
-                if not negligible_shoot_resistance:
-                    KL = Kmax *k_vulnerability(psi, model, fifty_cent,sig_slope)
-                    psi_head = max(psi_min, psi_base - L*F/KL - (rho*g_p*(Z_head-Z_base))*1.e-6)
+                F = n.properties()['Flux']
+                L = n.properties()['Length']*LengthConv
+                Z_head = n.properties()['TopPosition'][2]*LengthConv
+                Z_base = n.properties()['BotPosition'][2]*LengthConv
+
+    
+                psi_base = psi_soil if vtx_id == vid_base else p.psi_head
+    
+                try:
+                    psi_head = n.psi_head
+                    assert (n.psi_head != None), "Water potential has a `None` value"
+                except:
+                    psi_head = psi_base
+    
+                psi = 0.5*(psi_head+psi_base)
+    
+                if n.label.startswith('rhyzo'):
+                    cyl_diameter = n.TopDiameter * LengthConv
+                    depth = n.depth * LengthConv
+                    F = F * 8640./(pi *cyl_diameter* depth) # [cm d-1]
+                    if n.label.startswith('rhyzo0'):
+                        k_soil = k_soil_soil(psi, n.soil_class)
+                        KL = k_soil_root(k_soil, dist_roots, rad_roots)
+                    else:
+                        KL = k_soil_soil(psi, n.soil_class)
+    
+                    psi_head = psi_base - (L*F/KL) * rho*g_p*1.e-6
+                
                 else:
-                    psi_head = max(psi_min, psi_base - (rho*g_p*(Z_head-Z_base))*1.e-6)
-#            def _psi_headX(_psi_head):
-#                psi = 0.5*(_psi_head+psi_base)
-#                _KL = Kmax*k_vulnerability(psi, model, fifty_cent,sig_slope)
-#                eq_error = _psi_head - (psi_base - L*F/_KL - (rho*g_p*(Z_head-Z_base))*1.e-6)
-#                return eq_error
-#
-#            psi_head = optimize.newton_krylov(_psi_headX,psi_base).tolist()
+                    Kmax = n.properties()['Kmax']
 
-
-            n.psi_head = psi_head
-            n.KL = KL
+                    if not negligible_shoot_resistance:
+                        KL = Kmax *k_vulnerability(psi, model, fifty_cent,sig_slope)
+                        psi_head = max(psi_min, psi_base - L*F/KL - (rho*g_p*(Z_head-Z_base))*1.e-6)
+                    else:
+                        psi_head = max(psi_min, psi_base - (rho*g_p*(Z_head-Z_base))*1.e-6)
+#                def _psi_headX(_psi_head):
+#                    psi = 0.5*(_psi_head+psi_base)
+#                    _KL = Kmax*k_vulnerability(psi, model, fifty_cent,sig_slope)
+#                    eq_error = _psi_head - (psi_base - L*F/_KL - (rho*g_p*(Z_head-Z_base))*1.e-6)
+#                    return eq_error
+#    
+#                psi_head = optimize.newton_krylov(_psi_headX,psi_base).tolist()
+    
+    
+                n.psi_head = psi_head
+                n.KL = KL
 
     return
 
@@ -303,7 +309,8 @@ def xylem_water_potential(g, psi_soil=-0.8, model='tuzet', psi_min=-3.0,
                           psi_error_crit=0.001, max_iter=100, vtx_label='inT',
                           LengthConv=1.E-2, fifty_cent=-0.51,sig_slope=0.1,
                           dist_roots=0.013, rad_roots=.0001,
-                          negligible_shoot_resistance = False):
+                          negligible_shoot_resistance = False,
+                          start_vid = None, stop_vid = None):
     """
     Returns the hydraulic structure of a plant shoot. Stems are assumed isotropic, linear, element.
 
@@ -316,32 +323,37 @@ def xylem_water_potential(g, psi_soil=-0.8, model='tuzet', psi_min=-3.0,
     - **max_iter**: maximum allowed iteration
     - **vtx_label**: string, the label prefix of the basal vertex at highest scale
     - **LengthConv**: conversion coefficient from the length unit used for building the mtg to 1 m
-    - **fifty_cent** and **sig_slope**: Shape parameters of the vulnerability curve, see :func:`Kstem`.
+    - **fifty_cent** and **sig_slope**: Shape parameters of the vulnerability curve, see :func:`Kstem`
+    - **start_vid**: `None` or integer, vertex id from which the iteration starts (if `None` it is then taken to the basal element)
+    - **stop_vid**: `None` or integer, vertex id at which the iteration breaks (def `None` iteration will include all elements up until the leaves)
     """
 
     counter = 0
-
+    
     psi_error = psi_error_crit
     while psi_error >= psi_error_crit:
         psi_error = 0.
+
         psi_prev = deepcopy(g.property('psi_head'))
+
         transient_xylem_water_potential(g, model, vtx_label, LengthConv,
-                                        psi_soil, psi_min,fifty_cent,sig_slope,
-                                        dist_roots, rad_roots,
-                                        negligible_shoot_resistance)
+                                        psi_soil,psi_min,fifty_cent,sig_slope,
+                                        dist_roots,rad_roots,
+                                        negligible_shoot_resistance,
+                                        start_vid, stop_vid)
+
         psi_new = deepcopy(g.property('psi_head'))
 
         psi_avg_dict = {}
         for vtx_id in g.property('psi_head').keys():
-            psi_error = psi_error + abs(psi_prev[vtx_id]-psi_new[vtx_id])
+            psi_error += abs(psi_prev[vtx_id]-psi_new[vtx_id])
             psi_avg_dict[vtx_id] = 0.5*(psi_prev[vtx_id]+psi_new[vtx_id])
 
         g.properties()['psi_head'] = psi_avg_dict
-#            g.property('psi_head')[vtx_id] = psi_avg # Attention! Modifies the iteratble
-#        print "psi_er: ", psi_error
+
         counter += 1
-#        print 'counter: ', counter, '   psi_error: ', round(psi_error,3)
-#        ls.append(psi_error); lsc.append(counter)
+
+
         if counter > max_iter:
             warnings.warn("The numerical solution of the hydraulic architecture did not converge.")
             break
