@@ -7,9 +7,9 @@ Visualization module for HydroShoot
 
 from pandas import DataFrame
 import numpy as np
-from scipy.spatial import distance
+#from scipy.spatial import distance
 import matplotlib as mpl
-import mpl_toolkits.mplot3d as m3d
+#import mpl_toolkits.mplot3d as m3d
 from collections import OrderedDict
 
 
@@ -18,7 +18,7 @@ import openalea.plantgl.all as pgl
 
 mpl.style.use('ggplot')
 
-from hydroshoot.architecture import MTGbase
+#from hydroshoot.architecture import MTGbase
 from hydroshoot.hydraulic import def_param_soil
 
 
@@ -254,10 +254,10 @@ def property_map(g, prop='psi_head', ax=None, style=None, xlabel=None,
         except:
             pass
     if color is None: color=mpl.pyplot.rcParams['axes.color_cycle'][0]
-    vid_base = MTGbase(g)
+    vid_collar = g.node(g.root).vid_collar
     
-    if prop in g.node(vid_base).properties() and not prop.startswith('k_'):
-        for vid in g.Extremities(vid_base):
+    if prop in g.node(vid_collar).properties() and not prop.startswith('k_'):
+        for vid in g.Extremities(vid_collar):
             if prop in g.node(vid).properties():
                 index = 0
             else:
@@ -276,7 +276,7 @@ def property_map(g, prop='psi_head', ax=None, style=None, xlabel=None,
     if add_head_loss:
         ylim = ax.get_ylim()
         ls = np.arange(ylim[0],ylim[1])
-        ax.plot(0.01*ls*(-0.01)+g.node(vid_base).psi_head,ls, '--', label='Hydrostatic slope')
+        ax.plot(0.01*ls*(-0.01)+g.node(vid_collar).psi_head,ls, '--', label='Hydrostatic slope')
     
     handles, labels=ax.get_legend_handles_labels()
     by_label = OrderedDict(zip(labels, handles))
