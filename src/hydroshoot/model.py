@@ -77,6 +77,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         - **simplified_form_factors**
         - **soil_class**
         - **soil_dimensions**
+        - **soil_water_deficit**
         - **solo**
         - **stem_lbl_prefix**
         - **sun2scene**
@@ -121,6 +122,8 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         assert (os.path.isfile(wd+'psi_soil.input')), "The 'psi_soil.input' file is missing."
         psi_pd = read_csv(wd+'psi_soil.input',sep=';',decimal='.').set_index('time')
         psi_pd.index = [dt.datetime.strptime(s, "%Y-%m-%d") for s in psi_pd.index]
+    
+    soil_water_deficit = True if not 'soil_water_deficit' in kwargs else kwargs['soil_water_deficit']
 
 #   Unit length conversion (from scene unit to the standard [m]) unit)
     unit_scene_length = 'cm' if 'unit_scene_length' not in kwargs else kwargs['unit_scene_length']
@@ -299,18 +302,22 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
             rhyzo_radii = kwargs['rhyzo_radii']
         
         if not any(item.startswith('rhyzo') for item in g.property('label').values()):
+            vid_collar = HSArc.MTGbase(g,vtx_label=vtx_label)
             vid_base = HSArc.add_soil_components(g, rhyzo_number, rhyzo_radii,
                                         soil_dimensions, soil_class, vtx_label)
         else:
             g.properties()['soil_class'] = {vid:soil_class for vid in g.Ancestors(3)[1:]}
             vid_base = g.node(g.root).vid_base
+            vid_collar = g.node(g.root).vid_collar
 
     else:
         dist_roots, rad_roots = (None, None)
         # Identifying and attaching the base node of a single MTG
-        vid_base = HSArc.MTGbase(g,vtx_label=vtx_label)
+        vid_collar = HSArc.MTGbase(g,vtx_label=vtx_label)
+        vid_base = vid_collar
 
     g.node(g.root).vid_base = vid_base
+    g.node(g.root).vid_collar = vid_collar
 
 #   Initializing all xylem potential values to soil water potential
     if not 'psi_head' in g.property_names():
@@ -403,14 +410,14 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     for date in meteo.time:
         print '++++++++++++++++++++++Date',date
 
-#       Select of meteo data
+        # Select of meteo data
         imeteo = meteo[meteo.time==date]
         
-#       Add a date index to g
+        # Add a date index to g
 #        g.date = date.to_julian_date()
         g.date = dt.datetime.strftime(date, "%Y-%m-%d %H:%M:%S")
 
-#       Read soil water potntial at midnight
+        # Read soil water potntial at midnight
         if 'psi_soil' in kwargs:
             psi_soil = kwargs['psi_soil']
         else:
@@ -428,19 +435,34 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 #        psi_soil_ls.append(psi_soil)
         print 'psi_soil', round(psi_soil,3)
 
+        # Updating the soil water status
+        if soil_water_deficit:
+            N_iter_psi = HSHyd.xylem_water_potential(g, psi_soil,
+                          psi_min=psi_min, model=modelx, max_iter=max_iter,
+                          psi_error_crit=psi_error_crit,vtx_label=vtx_label,
+                          LengthConv=LengthConv,fifty_cent=psi_critx,
+                          sig_slope=slopex, dist_roots=dist_roots,
+                          rad_roots=rad_roots,
+                          negligible_shoot_resistance = negligible_shoot_resistance,
+                          start_vid = vid_base, stop_vid = vid_collar)
+        else:
+            for vid in g.Ancestors(vid_collar):
+                g.node(vid).psi_head = psi_soil
+
+
 
         if 'sun2scene' not in kwargs or not kwargs['sun2scene']:
             sun2scene = None
         elif kwargs['sun2scene']:
             sun2scene = HSVisu.visu(g,def_elmnt_color_dict=True,scene=Scene())
 
-#       Compute irradiance distribution over the scene
+        # Compute irradiance distribution over the scene
         caribu_source, RdRsH_ratio = HSCaribu.irradiance_distribution(imeteo,
                                 geo_location, E_type, tzone, turtle_sectors,
                                 turtle_format, sun2scene, scene_rotation,
                                 None)
 
-#       Compute irradiance interception and absorbtion
+        # Compute irradiance interception and absorbtion
         g, caribu_scene = HSCaribu.hsCaribu(mtg=g,meteo=imeteo,local_date=None,
                            geo_location=None, E_type=None,
                            unit_scene_length=unit_scene_length, tzone=tzone,
@@ -455,18 +477,18 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         
         g.properties()['Ei'] = {vid:1.2*g.node(vid).Ei for vid in g.property('Ei').keys()}
 
-#       Trace intercepted irradiance on each time step
+        # Trace intercepted irradiance on each time step
         rg_ls.append(sum([g.node(vid).Ei/(0.48 * 4.6)*surface(g.node(vid).geometry)*(LengthConv**2) \
             for vid in g.property('geometry') if g.node(vid).label.startswith('L')]))
     
     
 #        t_soil = HSEnergy.soil_temperature(g,imeteo,t_sky+273.15,'other')
                  #[ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
-#       Hack forcing of soil temperture (model of soil temperature under development)
+        # Hack forcing of soil temperture (model of soil temperature under development)
         dt_soil = [-2,-2,-2,-1,-1, 0, 0, 0,10,15,30,30,30,30,30,20, 6, 5, 4, 3, 2, 1, 0,-1]
         t_soil = imeteo.Tac[0] + dt_soil[date.hour]
     
-#       Climatic data for energy balance module
+        # Climatic data for energy balance module
 # TODO: Change the t_sky_eff formula (cf. Gliah et al., 2011, Heat and Mass Transfer, DOI: 10.1007/s00231-011-0780-1)
         t_sky_eff = RdRsH_ratio*t_cloud + (1-RdRsH_ratio)*t_sky
         macro_meteo = {'T_sky':t_sky_eff+273.15, 'T_soil':t_soil+273.15,
@@ -477,7 +499,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         t_error_list = []
         t_iter_list = []
 
-#       Initialize leaf [and other elements] temperature to air temperature
+        # Initialize leaf [and other elements] temperature to air temperature
         g.properties()['Tlc'] = {vid:imeteo.Tac[0] for vid in g.VtxList() if vid >0 and g.node(vid).label.startswith('L')}
 
         for it in range(max_iter):
@@ -488,36 +510,40 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
                 for ipsi in range(max_iter):
                     psi_prev = deepcopy(g.property('psi_head'))
         
-    #               Computes gas-exchange fluxes. Leaf T and Psi are from prev calc loop
+                    # Computes gas-exchange fluxes. Leaf T and Psi are from prev calc loop
                     HSExchange.VineExchange(g, par_photo, par_photo_N, par_gs,
                                         imeteo, E_type2, leaf_lbl_prefix,rbt)
     
-    #               Computes sapflow and hydraulic properties
+                    # Computes sapflow and hydraulic properties
                     HSHyd.hydraulic_prop(g, vtx_label=vtx_label, MassConv=MassConv,
                                       LengthConv=LengthConv,
                                       a=Kx_dict['a'],b=Kx_dict['b'],min_kmax=Kx_dict['min_kmax'])
     
-    #               Computes xylem water potential
+                    # Computes xylem water potential
+                    
                     N_iter_psi = HSHyd.xylem_water_potential(g, psi_soil,
                                   psi_min=psi_min, model=modelx, max_iter=max_iter,
                                   psi_error_crit=psi_error_crit,vtx_label=vtx_label,
                                   LengthConv=LengthConv,fifty_cent=psi_critx,
                                   sig_slope=slopex, dist_roots=dist_roots,
                                   rad_roots=rad_roots,
-                                  negligible_shoot_resistance = negligible_shoot_resistance)
+                                  negligible_shoot_resistance = negligible_shoot_resistance,
+                                  start_vid = vid_collar, stop_vid = None)
     
                     psi_new = g.property('psi_head')
     
-    #               Evaluation of xylem conversion creterion
+                    # Evaluation of xylem conversion creterion
                     psi_error_dict = {}
                     for vtx_id in g.property('psi_head').keys():
                         psi_error_dict[vtx_id] = abs(psi_prev[vtx_id]-psi_new[vtx_id])
     
                     psi_error = max(psi_error_dict.values())
                     iter_xylem.append(N_iter_psi)
-    #                print '*******************************************************'
-    #                print 'psi_error = ',round(psi_error,3), ':: Nb_iter = %d'%N_iter_psi
-    #                print 'mean(Psi_x) = ', round(np.mean(g.property('psi_head').values()),3), ':: Flux = %e'%g.node(3).Flux
+#                    print '*******************************************************'
+#                    print [vid for vid in psi_error_dict if psi_error_dict[vid]==max(psi_error_dict.values())]
+                    
+#                    print 'psi_error = ',round(psi_error,3), ':: Nb_iter = %d'%N_iter_psi
+#                    print 'mean(Psi_x) = ', round(np.mean(g.property('psi_head').values()),3), ':: Flux = %e'%g.node(3).Flux
     
                     if psi_error < psi_error_threshold:
                         break
