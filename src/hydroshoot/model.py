@@ -64,7 +64,6 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         - **par_K_vul**
         - **par_photo**
         - **par_photo_N**
-        - **psi_error_crit**
         - **psi_error_threshold**
         - **psi_min**
         - **psi_soil**
@@ -92,6 +91,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 
     TODO: replace by a class.
     """
+    print 'Project: ', wd.split('/')[-3:-1]
     total_time_ON = time.time()
     output_name = 'results' if 'output_name' not in kwargs else kwargs['output_name']
 #==============================================================================
@@ -248,13 +248,11 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         Kx_dict = kwargs['Kx_dict']
 
     psi_min = -3.0 if 'psi_min' not in kwargs else kwargs['psi_min']
-    psi_error_crit = 0.001 if 'psi_error_crit' not in kwargs else kwargs['psi_error_crit']
     negligible_shoot_resistance = False if not 'negligible_shoot_resistance' in kwargs else kwargs['negligible_shoot_resistance']
 
 #   Parameters of stem water conductivty's vulnerability to cavitation
     if 'par_K_vul' not in kwargs:
-        par_K_vul = {'model': 'misson', 'psi_error_crit': 0.001,
-                     'fifty_cent': -0.51, 'sig_slope': 1.}
+        par_K_vul = {'model': 'misson', 'fifty_cent': -0.51, 'sig_slope': 1.}
     else:
         par_K_vul = kwargs['par_K_vul']
 
@@ -279,9 +277,9 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
             print 'Computing form factors...'
     
             if not simplified_form_factors:
-               tstart = time.time()
+#               tstart = time.time()
                HSEnergy.form_factors_matrix(g, pattern, LengthConv, limit=limit)
-               print ("---%s minutes ---" % ((time.time()-tstart)/60.))
+#               print ("---%s minutes ---" % ((time.time()-tstart)/60.))
             else:
                 HSEnergy.form_factors_simplified(g, pattern, leaf_lbl_prefix,
                                 stem_lbl_prefix, turtle_sectors, icosphere_level,
@@ -398,7 +396,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 #==============================================================================
 # Simulations
 #==============================================================================
-    tstart = time.time()
+#    tstart = time.time()
 
     sapflow = []; sapEast=[]; sapWest=[]
     an_ls = []
@@ -433,23 +431,6 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 #                                  soil_class=soil_class,
 #                                  intra_dist=intra_dist,inter_dist=inter_dist,depth=depth)
 #        psi_soil_ls.append(psi_soil)
-        print 'psi_soil', round(psi_soil,3)
-
-        # Updating the soil water status
-        if soil_water_deficit:
-            N_iter_psi = HSHyd.xylem_water_potential(g, psi_soil,
-                          psi_min=psi_min, model=modelx, max_iter=max_iter,
-                          psi_error_crit=psi_error_crit,vtx_label=vtx_label,
-                          LengthConv=LengthConv,fifty_cent=psi_critx,
-                          sig_slope=slopex, dist_roots=dist_roots,
-                          rad_roots=rad_roots,
-                          negligible_shoot_resistance = negligible_shoot_resistance,
-                          start_vid = vid_base, stop_vid = vid_collar)
-        else:
-            for vid in g.Ancestors(vid_collar):
-                g.node(vid).psi_head = psi_soil
-
-
 
         if 'sun2scene' not in kwargs or not kwargs['sun2scene']:
             sun2scene = None
@@ -519,11 +500,27 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
                                       LengthConv=LengthConv,
                                       a=Kx_dict['a'],b=Kx_dict['b'],min_kmax=Kx_dict['min_kmax'])
     
+
+                    # Updating the soil water status
+                    if ipsi <= 3 and it <= 5: # Arbitrary limits to guarantee minimum convergence
+                        if soil_water_deficit:
+                            N_iter_psi = HSHyd.xylem_water_potential(g, psi_soil,
+                                          psi_min=psi_min, model=modelx, max_iter=max_iter,
+                                          psi_error_crit=psi_error_threshold,vtx_label=vtx_label,
+                                          LengthConv=LengthConv,fifty_cent=psi_critx,
+                                          sig_slope=slopex, dist_roots=dist_roots,
+                                          rad_roots=rad_roots,
+                                          negligible_shoot_resistance = negligible_shoot_resistance,
+                                          start_vid = vid_base, stop_vid = vid_collar)
+                        else:
+                            for vid in g.Ancestors(vid_collar):
+                                g.node(vid).psi_head = psi_soil
+
+
                     # Computes xylem water potential
-                    
                     N_iter_psi = HSHyd.xylem_water_potential(g, psi_soil,
                                   psi_min=psi_min, model=modelx, max_iter=max_iter,
-                                  psi_error_crit=psi_error_crit,vtx_label=vtx_label,
+                                  psi_error_crit=psi_error_threshold,vtx_label=vtx_label,
                                   LengthConv=LengthConv,fifty_cent=psi_critx,
                                   sig_slope=slopex, dist_roots=dist_roots,
                                   rad_roots=rad_roots,
@@ -541,8 +538,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
                     iter_xylem.append(N_iter_psi)
 #                    print '*******************************************************'
 #                    print [vid for vid in psi_error_dict if psi_error_dict[vid]==max(psi_error_dict.values())]
-                    
-#                    print 'psi_error = ',round(psi_error,3), ':: Nb_iter = %d'%N_iter_psi
+                    print 'psi_error = ',round(psi_error,3), ':: Nb_iter = %d'%N_iter_psi
 #                    print 'mean(Psi_x) = ', round(np.mean(g.property('psi_head').values()),3), ':: Flux = %e'%g.node(3).Flux
     
                     if psi_error < psi_error_threshold:
@@ -553,7 +549,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     #                    for vtx_id in psi_new.keys():
     #                        g.node(vtx_id).psi_head = 0.5*(psi_prev[vtx_id]+psi_new[vtx_id])
     
-    #                HSVisu.property_map(g,prop='psi_head',style='r',add_head_loss=True, fig=fig_psi, color='blue')
+#                    axpsi=HSVisu.property_map(g,prop='psi_head',add_head_loss=True, ax=axpsi, color='red')
 
             else:
                 ipsi = 0
@@ -583,8 +579,8 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     #           Evaluation of leaf temperature conversion creterion
                 error_dict={vtx:abs(t_prev[vtx]-t_new[vtx]) for vtx in g.property('Tlc').keys()}
     
-    #            t_error = round(max(error_dict.values()),3)
-    #            print 't_error = ', t_error, 'counter =', it
+                t_error = round(max(error_dict.values()),3)
+                print 't_error = ', t_error, 'counter =', it
     #            print [vid for vid in error_dict if error_dict[vid]==max(error_dict.values())]
     #            print '**********'
     #            t_error_list.append(t_error)
@@ -618,18 +614,21 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         Ei_dict[date]=deepcopy(g.property('Eabs'))
         an_dict[date]=deepcopy(g.property('An'))
         gs_dict[date]=deepcopy(g.property('gs'))
-    
-        print 'Rdiff/Rglob ', RdRsH_ratio
-        print 't_sky_eff ', t_sky_eff
-        print 'flux H2O',g.node(vid_base).Flux*1000.*3600.
-        print 'flux C2O',g.node(vid_base).FluxC
-        print 'psi_collar',g.node(3).psi_head
-        print 'gs', np.median(g.property('gs').values())
-        print 'psi_leaf', np.median([g.node(vid).psi_head for vid in g.property('gs').keys()])
-        print 'Tlc', round(np.median([g.node(vid).Tlc for vid in g.property('gs').keys()]),2), 'Tair =', round(imeteo.Tac[0],2)
+
+        print 'psi_soil', round(psi_soil,4)
+        print 'psi_collar', round(g.node(3).psi_head,4)
+        print 'psi_leaf', round(np.median([g.node(vid).psi_head for vid in g.property('gs').keys()]),4)
+        print ''
+#        print 'Rdiff/Rglob ', RdRsH_ratio
+#        print 't_sky_eff ', t_sky_eff
+        print 'flux H2O', round(g.node(vid_base).Flux*1000.*3600.,4)
+        print 'flux C2O', round(g.node(vid_base).FluxC,4)
+        print 'Tlc', round(np.median([g.node(vid).Tlc for vid in g.property('gs').keys()]),2), 'Tair =', round(imeteo.Tac[0],4)
+#        print 'gs', np.median(g.property('gs').values())
+
 # End time loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    print ("---%s minutes ---" % ((time.time()-tstart)/60.))
+#    print ("---%s minutes ---" % ((time.time()-tstart)/60.))
 
 # Write output
     # Plant total transpiration
@@ -657,6 +656,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     results_df.to_csv(wd+output_name+'.output', sep=';', decimal='.')
 
     total_time_OFF = time.time()
+
     print ("+++Total runtime: %s minutes ---" % ((total_time_OFF-total_time_ON)/60.))
 
     return
