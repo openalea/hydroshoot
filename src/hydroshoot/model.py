@@ -67,6 +67,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         - **psi_error_threshold**
         - **psi_min**
         - **psi_soil**
+        - **psi_step**
         - **rbt**
         - **rhyzo_solution**
         - **rhyzo_number**
@@ -74,7 +75,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         - **roots**
         - **scene_rotation**
         - **simplified_form_factors**
-        - **soil_class**
+        - **soil_class**: one of ('Sand','Loamy_Sand','Sandy_Loam','Loam', 'Silt','Silty_Loam','Sandy_Clay_Loam','Clay_Loam','Silty_Clay_Loam','Sandy_Clay','Silty_Clay','Clay')
         - **soil_dimensions**
         - **soil_water_deficit**
         - **solo**
@@ -91,7 +92,9 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 
     TODO: replace by a class.
     """
-    print 'Project: ', wd.split('/')[-3:-1]
+    print '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
+    print '+ Project: ', wd.split('/')[-3:-1],'+'
+    print '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
     total_time_ON = time.time()
     output_name = 'results' if 'output_name' not in kwargs else kwargs['output_name']
 #==============================================================================
@@ -176,6 +179,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 
 #   Maximum acceptable error threshold in hydraulic calculations
     psi_error_threshold = 0.05 if 'psi_error_threshold' not in kwargs else kwargs['psi_error_threshold']
+    psi_step = 0.1 if not 'psi_step' in kwargs else kwargs['psi_step']
     
 #   Maximum acceptable error threshold in temperature calculations
     t_error_crit = 0.02 if 't_error_crit' not in kwargs else kwargs['t_error_crit']
@@ -286,11 +290,11 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
                                 unit_scene_length)
 
     # Rhyzosphere concentric radii
+    soil_class = 'Sandy_Loam' if not 'soil_class' in kwargs else kwargs['soil_class']
     rhyzo_solution = True if 'rhyzo_solution' not in kwargs else kwargs['rhyzo_solution']
     print 'rhyzo_solution: %s'%rhyzo_solution
     if rhyzo_solution:
         rhyzo_number = 3 if not 'rhyzo_number' in kwargs else kwargs['rhyzo_number']
-        soil_class = 'Sandy_Loam' if not 'soil_class' in kwargs else kwargs['soil_class']
         print 'Soil class: %s'%soil_class
         dist_roots, rad_roots = (0.013, .0001) if 'roots' not in kwargs else kwargs['roots']
         if not 'rhyzo_radii' in kwargs:
@@ -318,14 +322,14 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     g.node(g.root).vid_collar = vid_collar
 
 #   Initializing all xylem potential values to soil water potential
-    if not 'psi_head' in g.property_names():
-        for vtx_id in traversal.pre_order2(g,vid_base):
-            g.node(vtx_id).psi_head = psi_pd.psi[0]
+#    if not 'psi_head' in g.property_names():
+    for vtx_id in traversal.pre_order2(g,vid_base):
+        g.node(vtx_id).psi_head = psi_pd.psi[0]
     
 #   Initializing sapflow to 0
-    if not 'Flux' in g.property_names():
-        for vtx_id in traversal.pre_order2(g,vid_base):
-            g.node(vtx_id).Flux = 0.
+#    if not 'Flux' in g.property_names():
+    for vtx_id in traversal.pre_order2(g,vid_base):
+        g.node(vtx_id).Flux = 0.
 
 #   Addition of a soil element
     if 'Soil' not in g.properties()['label'].values():
@@ -427,7 +431,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
                     pass
     #     Estimate soil water potntial evolution due to transpiration
 #            else:
-#                psi_soil = HSHyd.soil_water_potential(psi_soil,g.node(vid_base).Flux*3600.,
+#                psi_soil = HSHyd.soil_water_potential(psi_soil,g.node(vid_collar).Flux*3600.,
 #                                  soil_class=soil_class,
 #                                  intra_dist=intra_dist,inter_dist=inter_dist,depth=depth)
 #        psi_soil_ls.append(psi_soil)
@@ -475,6 +479,9 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         macro_meteo = {'T_sky':t_sky_eff+273.15, 'T_soil':t_soil+273.15,
                        'T_air':imeteo.Tac[0]+273.15,'Pa':imeteo.Pa[0],
                        'u':imeteo.u[0]}
+
+        # Updating the soil water content of the 
+
 # The t loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         iter_xylem = []
         t_error_list = []
@@ -501,8 +508,8 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
                                       a=Kx_dict['a'],b=Kx_dict['b'],min_kmax=Kx_dict['min_kmax'])
     
 
-                    # Updating the soil water status
-                    if ipsi <= 3 and it <= 5: # Arbitrary limits to guarantee minimum convergence
+#                    # Updating the soil water status
+                    if ipsi <= 1000 and it <= 1000: # Arbitrary limits to guarantee minimum convergence
                         if soil_water_deficit:
                             N_iter_psi = HSHyd.xylem_water_potential(g, psi_soil,
                                           psi_min=psi_min, model=modelx, max_iter=max_iter,
@@ -544,7 +551,11 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
                     if psi_error < psi_error_threshold:
                         break
                     else:
-                        psi_new_dict = {vtx_id:0.5*(psi_prev[vtx_id]+psi_new[vtx_id]) for vtx_id in psi_new.keys()}
+                        psi_new_dict = {}
+                        for vtx_id in psi_new.keys():
+                            psix = psi_prev[vtx_id] + psi_step*(psi_new[vtx_id]-psi_prev[vtx_id])
+                            psi_new_dict[vtx_id]=psix
+                        
                         g.properties()['psi_head'] = psi_new_dict
     #                    for vtx_id in psi_new.keys():
     #                        g.node(vtx_id).psi_head = 0.5*(psi_prev[vtx_id]+psi_new[vtx_id])
@@ -603,11 +614,11 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 # End t loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 ##       Plot stuff..
-        sapflow.append(g.node(vid_base).Flux)
+        sapflow.append(g.node(vid_collar).Flux)
         sapEast.append(g.node(arm_vid['arm1']).Flux)
         sapWest.append(g.node(arm_vid['arm2']).Flux)
 
-        an_ls.append(g.node(vid_base).FluxC)
+        an_ls.append(g.node(vid_collar).FluxC)
     
         psi_stem[date]=deepcopy(g.property('psi_head'))
         Tlc_dict[date]=deepcopy(g.property('Tlc'))
@@ -621,8 +632,8 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         print ''
 #        print 'Rdiff/Rglob ', RdRsH_ratio
 #        print 't_sky_eff ', t_sky_eff
-        print 'flux H2O', round(g.node(vid_base).Flux*1000.*3600.,4)
-        print 'flux C2O', round(g.node(vid_base).FluxC,4)
+        print 'flux H2O', round(g.node(vid_collar).Flux*1000.*3600.,4)
+        print 'flux C2O', round(g.node(vid_collar).FluxC,4)
         print 'Tlc', round(np.median([g.node(vid).Tlc for vid in g.property('gs').keys()]),2), 'Tair =', round(imeteo.Tac[0],4)
 #        print 'gs', np.median(g.property('gs').values())
 
