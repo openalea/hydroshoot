@@ -344,19 +344,21 @@ def retention_curve(g, ax=None):
     if not ax:
         fig,ax = mpl.pyplot.subplots()
 
+    mpl.pyplot.xscale('log')
     soil_class = g.node(g.Ancestors(g.node(g.root).vid_base)[0]).soil_class
     param = def_param_soil()[soil_class]
     theta_r,theta_s,alpha,n,k_sat = [param[i] for i in range(5)]
     m = 1. - 1./n
 
-    psi_range = np.arange(-150000,0)    
+    psi_range = np.arange(0,150000)
     theta_ls = []
     for psiX in psi_range:
         theta_ls.append(theta_r + (theta_s-theta_r) * 1./((1+np.absolute(alpha*psiX))**n)**m)
 
     psi_range = np.array(psi_range)*1.e-4
     ax.plot(psi_range, theta_ls, label = soil_class)
-    ax.set(xlabel = '$\mathregular{\Psi_{soil}\/[MPa]}$',
+    ax.set(xlabel = '$\mathregular{-\Psi_{soil}\/[MPa]}$',
            ylabel = '$\mathregular{\Theta_{bulk\/soil}\/[-]}$')
+
     ax.legend()
     return ax
