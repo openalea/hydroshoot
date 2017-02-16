@@ -82,7 +82,8 @@ def def_param_soil():
                 'Silty_Clay_Loam': (0.089, 0.430, 0.010, 1.23, 1.68),
                 'Sandy_Clay': (0.100, 0.380, 0.027, 1.23, 2.88),
                 'Silty_Clay': (0.070, 0.360, 0.005, 1.09, 0.48),
-                'Clay': (0.068, 0.380, 0.008, 1.09, 4.80)}
+                'Clay': (0.068, 0.380, 0.008, 1.09, 4.80),
+                'Costum': (0.065, 0.410, 0.075, 1.56, 106.1)}
 
     return def_dict
 
@@ -139,7 +140,9 @@ def soil_water_potential(psi_soil_init, flux, soil_class,
     theta_init = theta_r + (theta_s-theta_r)/((1+absolute(alpha*psi))**n)**m
 
     F = flux*1.e-3 # kg T-1 to m3 T-1
-    d_theta = F / (intra_dist * inter_dist * depth)
+    # Rough estimation of total porosity volume
+    porosity_volume = pi * min(intra_dist,inter_dist)**2 /4. * depth * theta_s
+    d_theta = F / porosity_volume
 
     theta = max(theta_r,theta_init - d_theta)
     if theta == theta_r:
