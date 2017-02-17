@@ -29,7 +29,7 @@ import hydroshoot.hydraulic as HSHyd
 import hydroshoot.energy as HSEnergy
 import hydroshoot.display as HSVisu
 
-
+# TODO: The priority is to introduce a method for adapting the psi_step value to a some convergence status index.
 def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     """
     Calculates leaf gas and energy exchange in addition to the hydraulic structure of an individual plant.
