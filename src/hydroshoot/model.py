@@ -29,7 +29,7 @@ import hydroshoot.hydraulic as HSHyd
 import hydroshoot.energy as HSEnergy
 import hydroshoot.display as HSVisu
 
-# TODO: The priority is to introduce a method for adapting the psi_step value to a some convergence status index.
+# TODO: The priority is to introduce a method for adapting the psi_step and t_step values to a some convergence status index.
 def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     """
     Calculates leaf gas and energy exchange in addition to the hydraulic structure of an individual plant.
@@ -85,6 +85,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         - **t_cloud**
         - **t_error_crit**
         - **t_sky**
+        - **t_step**
         - **tzone**
         - **turtle_format**
         - **turtle_sectors**
@@ -177,9 +178,12 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 #   Maximum number of iterations for both temperature and hydraulic calculations
     max_iter = 100 if 'max_iter' not in kwargs else kwargs['max_iter']
 
+#   Steps size
+    t_step = 0.5 if not 't_step' in kwargs else kwargs['t_step']
+    psi_step = 0.5 if not 'psi_step' in kwargs else kwargs['psi_step']
+
 #   Maximum acceptable error threshold in hydraulic calculations
     psi_error_threshold = 0.05 if 'psi_error_threshold' not in kwargs else kwargs['psi_error_threshold']
-    psi_step = 0.1 if not 'psi_step' in kwargs else kwargs['psi_step']
     
 #   Maximum acceptable error threshold in temperature calculations
     t_error_crit = 0.02 if 't_error_crit' not in kwargs else kwargs['t_error_crit']
@@ -604,7 +608,12 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     #                break
                 else:
                     assert (it <= max_iter), 'The energy budget solution did not converge.'
-                    t_new_dict = {vtx_id:0.5*(t_prev[vtx_id]+t_new[vtx_id]) for vtx_id in t_new.keys()}
+                    t_new_dict = {}
+                    for vtx_id in t_new.keys():
+                        tx = t_prev[vtx_id] + t_step*(t_new[vtx_id]-t_prev[vtx_id])
+                        t_new_dict[vtx_id] = tx
+
+#                    t_new_dict = {vtx_id:0.5*(t_prev[vtx_id]+t_new[vtx_id]) for vtx_id in t_new.keys()}
                     g.properties()['Tlc'] = t_new_dict
 
 
