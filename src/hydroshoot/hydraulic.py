@@ -7,9 +7,9 @@ Hydraulic strcture module of HydroShoot.
 This module computes xylem water potential value at each node of the shoot.
 """
 
-from scipy import exp, absolute, pi, log, array #, optimize
-from sympy.solvers.solveset import solveset_real
-from sympy import Symbol
+from scipy import exp, absolute, pi, log, optimize
+#from sympy.solvers.solveset import solveset_real
+#from sympy import Symbol
 from copy import deepcopy
 import warnings
 
@@ -71,7 +71,7 @@ def def_param_soil():
     - Carsel and Parrish (1988) WRR 24,755–769 DOI: 10.1029/WR024i005p00755
     """
 
-    def_dict = {'Sand': (0.045, 0.430, 0.145,2.68, 712.8),
+    def_dict = {'Sand': (0.045, 0.430, 0.145, 2.68, 712.8),
                 'Loamy_Sand': (0.057, 0.410, 0.124, 2.28, 350.2),
                 'Sandy_Loam': (0.065, 0.410, 0.075, 1.89, 106.1),
                 'Loam': (0.078, 0.430, 0.036, 1.56, 24.96),
@@ -83,7 +83,7 @@ def def_param_soil():
                 'Sandy_Clay': (0.100, 0.380, 0.027, 1.23, 2.88),
                 'Silty_Clay': (0.070, 0.360, 0.005, 1.09, 0.48),
                 'Clay': (0.068, 0.380, 0.008, 1.09, 4.80),
-                'Costum': (0.065, 0.410, 0.075, 1.56, 106.1)}
+                'Costum': (0.065, 0.410, 0.005, 2., 106.1)}
 
     return def_dict
 
@@ -96,30 +96,36 @@ def k_soil_soil(psi, soil_class):
     - **psi**: float, bulk soil-matrix water potential [MPa]
     - **soil_class**: string, the name of the soil hydrodynamic class as proposed by Carsel and Parrish (1988) DOI: 10.1029/WR024i005p00755
     """
+
+    psi *= 1.e6/(rho*g_p)*100. # conversion MPa to cm_H20
     param = def_param_soil()[soil_class]
     theta_r,theta_s,alpha,n,k_sat = [param[i] for i in range(5)]
     m = 1. - 1./n
-    p = 2.
-    k_soil = k_sat * (1./(1.+(alpha*-psi)**n))**(p-p/n) * (1-(1./(1.+(alpha*-psi)**n))**(m))**2
+#    p = 2.
+
+#    k_soil = k_sat * (1./(1.+(alpha*(-psi))**n))**(p-p/n) * (1. - (1. - (1. / (1. + (alpha * (-psi))**n)))**m)**2
+    
+    se = 1. / (1. + abs(alpha * psi)**n)**m
+    k_soil = k_sat * (se)**0.5 * (1. - (1. - se**(1./m))**m)**2
 
     return k_soil
 
 
 def k_soil_root(k_soil, d, r):
     """
-    Returns the hydraulic water conductance at the soil-root interface according to Gardner (1960 Soil Sci 89, 63-73) [cm d-1].
+    Returns the hydraulic water conductivity at the soil-root interface according to Gardner (1960 Soil Sci 89, 63-73) [cm d-1].
 
     :Parameters:
-    - **k_soil**: float, soil-matrix hydraulic conductivity [kg m s-1 MPa-1]
+    - **k_soil**: float, soil-matrix hydraulic conductivity [cm d-1]
     - **d**: float, mean distance between the neighbouring roots [m]
     - **r**: float, mean root radius [m]
     """
 
-    return 4.*pi*k_soil / log(d**2/r**2)
+    return 4. * pi * k_soil / log((d/r)**2)
 
 
-def soil_water_potential(psi_soil_init, flux, soil_class,
-          intra_dist=1., inter_dist=3.6, depth=2.):
+def soil_water_potential(psi_soil_init, flux, soil_class, soil_total_volume,
+                         psi_min = -3.):
     """
     Estimates soil water potential based on Brooks and Corey (1964) van Genuchten water retention curves.
 
@@ -137,21 +143,27 @@ def soil_water_potential(psi_soil_init, flux, soil_class,
     m = 1. - 1./n
 
     psi = psi_soil_init*1.e6/(rho*g_p)*100. # conversion MPa to cm_H20
-    theta_init = theta_r + (theta_s-theta_r)/((1+absolute(alpha*psi))**n)**m
+    theta_init = theta_r + (theta_s-theta_r) / (1. + absolute(alpha*psi)**n)**m
 
-    F = flux*1.e-3 # kg T-1 to m3 T-1
-    # Rough estimation of total porosity volume
-    porosity_volume = pi * min(intra_dist,inter_dist)**2 /4. * depth * theta_s
-    d_theta = F / porosity_volume
+    F = flux * 1.e-3 # kg T-1 to m3 T-1
 
-    theta = max(theta_r,theta_init - d_theta)
+    # Rough estimation of total porosity volume [m3]
+    porosity_volume = soil_total_volume * theta_s
+
+    d_theta = F / porosity_volume # [m3 m-3]
+
+    theta = max(theta_r, theta_init - d_theta)
+
     if theta == theta_r:
-        psi_soil = -15.
+        psi_soil = psi_min
     else:
-        psiX = Symbol('psi')
-        eq = 1./((1+absolute(alpha*psiX))**n)**m - (theta-theta_r)/(theta_s-theta_r)
-        psi_soil = (solveset_real(eq, psiX).inf)/(1.e6/(rho*g_p)*100)
-        if not psi_soil.is_Float: psi_soil.removeO()
+        eq = lambda psi : 1. / (1. + absolute(alpha*psi)**n)**m - (theta-theta_r)/(theta_s-theta_r)
+        psi_soil = optimize.fsolve(eq, psi)[0]/(1.e6/(rho*g_p)*100)
+#        psiX = Symbol('psi')
+#        eq = 1. / (1. + absolute(alpha*psi)**n)**m - (theta-theta_r)/(theta_s-theta_r)
+#        psi_soil = (solveset_real(eq, psiX).inf)/(1.e6/(rho*g_p)*100)
+#        if not psi_soil.is_Float:
+#            psi_soil.removeO()
 
     return float(psi_soil)
 
@@ -271,20 +283,20 @@ def transient_xylem_water_potential(g, model='tuzet', vtx_label='inT',
                 except:
                     psi_head = psi_base
     
-                psi = 0.5*(psi_head+psi_base)
-    
+                psi = 0.5 * (psi_head + psi_base)
+
                 if n.label.startswith('rhyzo'):
                     cyl_diameter = n.TopDiameter * LengthConv
                     depth = n.depth * LengthConv
-                    F = F * 8640./(pi *cyl_diameter* depth) # [cm d-1]
+                    F *= 8640./(pi *cyl_diameter* depth) # [cm d-1]
                     if n.label.startswith('rhyzo0'):
-                        k_soil = k_soil_soil(psi, n.soil_class)
-                        KL = k_soil_root(k_soil, dist_roots, rad_roots)
+                        k_soil = k_soil_soil(psi, n.soil_class) # [cm d-1]
+                        gL = k_soil_root(k_soil, dist_roots, rad_roots) #[cm d-1 m-1]
+                        psi_head = max(psi_min, psi_base - (F/gL) * rho*g_p*1.e-6)
                     else:
-                        KL = k_soil_soil(psi, n.soil_class)
-    
-                    psi_head = psi_base - (L*F/KL) * rho*g_p*1.e-6
-                
+                        KL = k_soil_soil(psi, n.soil_class) # [cm d-1]
+                        psi_head = max(psi_min, psi_base - (L*F/KL) * rho*g_p*1.e-6)
+
                 else:
                     Kmax = n.properties()['Kmax']
 
@@ -313,7 +325,8 @@ def xylem_water_potential(g, psi_soil=-0.8, model='tuzet', psi_min=-3.0,
                           LengthConv=1.E-2, fifty_cent=-0.51,sig_slope=0.1,
                           dist_roots=0.013, rad_roots=.0001,
                           negligible_shoot_resistance = False,
-                          start_vid = None, stop_vid = None):
+                          start_vid = None, stop_vid = None,
+                          psi_step = 0.5):
     """
     Returns the hydraulic structure of a plant shoot. Stems are assumed isotropic, linear, element.
 
@@ -334,6 +347,9 @@ def xylem_water_potential(g, psi_soil=-0.8, model='tuzet', psi_min=-3.0,
     counter = 0
     
     psi_error = psi_error_crit
+    psi_error_trace = []
+    ipsi_step = psi_step
+
     while psi_error >= psi_error_crit:
         psi_error = 0.
 
@@ -347,18 +363,108 @@ def xylem_water_potential(g, psi_soil=-0.8, model='tuzet', psi_min=-3.0,
 
         psi_new = deepcopy(g.property('psi_head'))
 
-        psi_avg_dict = {}
-        for vtx_id in g.property('psi_head').keys():
-            psi_error += abs(psi_prev[vtx_id]-psi_new[vtx_id])
-            psi_avg_dict[vtx_id] = 0.5*(psi_prev[vtx_id]+psi_new[vtx_id])
-
-        g.properties()['psi_head'] = psi_avg_dict
-
-        counter += 1
-
+        psi_error_trace.append(psi_error)
 
         if counter > max_iter:
             warnings.warn("The numerical solution of the hydraulic architecture did not converge.")
-            break
+#            break
+        else:
+            try:
+                if abs(psi_error_trace[-1] - psi_error_trace[-2]) < psi_error_crit:
+                    ipsi_step = max(0.01, ipsi_step/2.)
+            except:
+                pass
+
+            psi_avg_dict = {}
+    
+            for vtx_id in g.property('psi_head').keys():
+                psi_error += abs(psi_prev[vtx_id]-psi_new[vtx_id])
+                psi_avg_dict[vtx_id] = psi_prev[vtx_id] + psi_step * (psi_new[vtx_id] - psi_prev[vtx_id])
+            
+            g.properties()['psi_head'] = psi_avg_dict
+
+
+        counter += 1
 
     return counter
+
+
+#def soil_rhyzo_water_potential(g, psi_collar,LengthConv, dist_roots, rad_roots):
+#    """
+#    """
+#
+#    vid_collar = g.node(g.root).vid_collar
+#    vid_base = g.node(g.root).vid_base
+#
+#    psi_soil = psi_collar
+#
+#    for vid in g.Ancestors(vid_collar)[1:]:
+#        n = g.node(vid)
+#        p = n.parent()
+#
+#        cyl_diameter = n.TopDiameter * LengthConv
+#        depth = n.depth * LengthConv
+#
+#        F = n.Flux * 8640./(pi *cyl_diameter* depth) # [cm d-1]
+#        L = n.Length * LengthConv
+#
+#        psi_head = psi_collar if n == g.node(vid_collar).parent() else n.psi_head
+#        psi_base = psi_soil if vid == vid_base else p.psi_head
+#
+#        psi = 0.5 * (psi_head + psi_base)
+#
+#        if n.label.startswith('rhyzo0'):
+#            k_soil = k_soil_soil(psi, n.soil_class) # [cm d-1]
+#            gL = k_soil_root(k_soil, dist_roots, rad_roots) #[cm d-1 m-1]
+#            psi_base = min(-0.001,max(-15, psi_head + (L*F/gL) * rho*g_p*1.e-6))
+#
+#        else:
+#            KL = k_soil_soil(psi, n.soil_class) # [cm d-1]
+#            psi_base = min(-0.001, max(-15, psi_head + (L*F/KL) * rho*g_p*1.e-6))
+#
+#        if vid != vid_base:
+#            p.psi_head = psi_base 
+#        else:
+#            psi_soil = psi_base
+#
+#
+#    print psi_soil
+#
+#    return
+
+def soil_rhyzo_water_potential(flux, psi_collar_init, psi_bulk,
+                               psi_error_thershold, soil_class, time_step,
+                               rhyzo_rad, soil_rad, depth, psi_min=-3.):
+    """
+    """
+
+    param = def_param_soil()[soil_class]
+    theta_r,theta_s,alpha,n,k_sat = [param[i] for i in range(5)]
+
+    # Rough estimation of total porosity volumes [m3]
+    bulk_soil_volume = pi * (soil_rad**2 - rhyzo_rad**2) * depth * theta_s
+    rhyzosphere_volume = pi * rhyzo_rad**2 * depth * theta_s
+
+    F = flux * 1.e-3 # kg T-1 to m3 T-1
+
+    influx = 0.
+    psi_rhyzo = psi_collar_init
+
+    for ipsi in range(100):
+        psi_prev = psi_rhyzo
+        F -= influx
+        psi_rhyzo = soil_water_potential(psi_prev, F, soil_class,
+                                         rhyzosphere_volume, psi_min)
+
+        if abs(psi_prev - psi_rhyzo) < psi_error_thershold:
+
+            psi_bulk = soil_water_potential(psi_bulk, influx, soil_class,
+                                            bulk_soil_volume, psi_min)
+            break
+        else:
+            k_soil = k_soil_soil(psi_bulk, soil_class) * 1.e-2 * pi * 2.*soil_rad * depth # cm d-1 to m3 d-1
+            k_soil /= {'D':1., 'H':24., 'T':1440., 'S':86400}[time_step] # m3 d-1 to m3 T-1
+            influx = k_soil * (psi_bulk - psi_rhyzo)* 1.e6/(rho*g_p) / (soil_rad - rhyzo_rad)
+
+#    print soil_class, psi_rhyzo
+    return psi_rhyzo, psi_bulk
