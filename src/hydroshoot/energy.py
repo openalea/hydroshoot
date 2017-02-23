@@ -202,7 +202,8 @@ Cp = 29.07
 
 
 def leaf_temperature(g, macro_meteo, solo=True, simple_ff=True,
-                     leaf_lbl_prefix='L', max_iter=100, t_error_crit=0.01):
+                     leaf_lbl_prefix='L', max_iter=100, t_error_crit=0.01,
+                     t_step = 0.5):
     """
     Returns the "thermal structure", temperatures [degreeC] of each individual leaf and soil elements.
 
@@ -219,6 +220,8 @@ def leaf_temperature(g, macro_meteo, solo=True, simple_ff=True,
 
 #   Iterative calculation of leaves temperature
     if solo:
+        t_error_trace = []
+        it_step = t_step
         for it in range(max_iter):
             t_prev = deepcopy(g.property('Tlc'))
 #            T_leaves = mean([g.node(vid).Tlc for vid in g.property('Tlc').keys() if g.node(vid).label.startswith(leaf_lbl_prefix)]) + 273.15
@@ -226,7 +229,6 @@ def leaf_temperature(g, macro_meteo, solo=True, simple_ff=True,
             t_dict = {}
 #           +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             for vid in g.property('Tlc').keys():
-#                if g.node(vid).label.startswith(leaf_lbl_prefix):
                 node = g.node(vid)
                 E_glob = node.Ei/(0.48*4.6) # Ei not Eabs
                 k_sky = node.k_sky
@@ -276,11 +278,29 @@ def leaf_temperature(g, macro_meteo, solo=True, simple_ff=True,
 
 #           Evaluation of leaf temperature conversion creterion
             error_dict={vtx:abs(t_prev[vtx]-t_new[vtx]) for vtx in g.property('Tlc').keys()}
+            
+            t_error = max(error_dict.values())
+            t_error_trace.append(t_error)
 
-            if max(error_dict.values()) < t_error_crit:
+            if t_error < t_error_crit:
                 break
             else:
-                g.properties()['Tlc'] = {vtx_id:0.5*(t_prev[vtx_id]+t_new[vtx_id]) for vtx_id in t_new.keys()}
+                try:
+                    if abs(t_error_trace[-1] - t_error_trace[-2]) < t_error_crit:
+                        it_step = max(0.01, it_step/2.)
+                except:
+                    pass
+
+                t_new_dict = {}
+                for vtx_id in t_new.keys():
+                    tx = t_prev[vtx_id] + it_step*(t_new[vtx_id]-t_prev[vtx_id])
+                    t_new_dict[vtx_id] = tx
+
+#               t_new_dict = {vtx_id:0.5*(t_prev[vtx_id]+t_new[vtx_id]) for vtx_id in t_new.keys()}
+                g.properties()['Tlc'] = t_new_dict
+
+                
+#                g.properties()['Tlc'] = {vtx_id:0.5*(t_prev[vtx_id]+t_new[vtx_id]) for vtx_id in t_new.keys()}
 
 
 #   Matrix iterative calculation of leaves temperature
