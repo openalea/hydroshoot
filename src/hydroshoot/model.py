@@ -117,6 +117,8 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     #   Determination of the simulation period
     datet = date_range(sdate, edate, freq='H')
     meteo = meteo_tab.ix[datet]
+    TimeConv = {'D':86.4e3, 'H':3600., 'T':60., 'S':1.}[datet.freqstr]
+    
 
     # Reading available pre-dawn soil water potential data
     if 'psi_soil' in kwargs:
@@ -159,6 +161,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 
     # Soil reservoir dimensions (inter row, intra row, depth) [m]
     soil_dimensions = (3.6, 1.0, 1.2) if 'soil_dimensions' not in kwargs else kwargs['soil_dimensions']
+    soil_total_volume = np.pi * min(soil_dimensions[:2])**2 / 4. * soil_dimensions[2]
 
 #   Counter clockwise angle between the default X-axis direction (South) and the    
 #    real direction of X-axis.
@@ -293,28 +296,45 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
                                 stem_lbl_prefix, turtle_sectors, icosphere_level,
                                 unit_scene_length)
 
-    # Rhyzosphere concentric radii
+    # Soil class
     soil_class = 'Sandy_Loam' if not 'soil_class' in kwargs else kwargs['soil_class']
+    print 'Soil class: %s'%soil_class
+
+    # Rhyzosphere concentric radii determination
+    if not 'rhyzo_radii' in kwargs:
+        rhyzo_number = 3
+        max_radius = 0.5*min(soil_dimensions[:2])/LengthConv
+        rhyzo_radii = [max_radius*perc for perc in np.array(range(1,rhyzo_number+1))/float(rhyzo_number)]
+    else:
+        rhyzo_radii = kwargs['rhyzo_radii']
+        rhyzo_number = len(rhyzo_radii)
+
+    # Add rhyzosphere elements to mtg
     rhyzo_solution = True if 'rhyzo_solution' not in kwargs else kwargs['rhyzo_solution']
     print 'rhyzo_solution: %s'%rhyzo_solution
+
     if rhyzo_solution:
-        rhyzo_number = 3 if not 'rhyzo_number' in kwargs else kwargs['rhyzo_number']
-        print 'Soil class: %s'%soil_class
         dist_roots, rad_roots = (0.013, .0001) if 'roots' not in kwargs else kwargs['roots']
-        if not 'rhyzo_radii' in kwargs:
-            max_radius = 0.5*min(soil_dimensions[:2])/LengthConv
-            rhyzo_radii = [max_radius*perc for perc in np.array(range(1,rhyzo_number+1))/float(rhyzo_number)]
-        else:
-            rhyzo_radii = kwargs['rhyzo_radii']
-        
         if not any(item.startswith('rhyzo') for item in g.property('label').values()):
             vid_collar = HSArc.MTGbase(g,vtx_label=vtx_label)
             vid_base = HSArc.add_soil_components(g, rhyzo_number, rhyzo_radii,
                                         soil_dimensions, soil_class, vtx_label)
         else:
-            g.properties()['soil_class'] = {vid:soil_class for vid in g.Ancestors(3)[1:]}
-            vid_base = g.node(g.root).vid_base
+
             vid_collar = g.node(g.root).vid_collar
+            vid_base = g.node(g.root).vid_base
+
+            radius_prev = 0.
+
+            for ivid, vid in enumerate(g.Ancestors(vid_collar)[1:]):
+                radius = rhyzo_radii[ivid]
+                g.node(vid).Length = radius - radius_prev
+                g.node(vid).depth = soil_dimensions[2]/LengthConv #[m]
+                g.node(vid).TopDiameter = radius*2.
+                g.node(vid).BotDiameter = radius*2.
+                g.node(vid).soil_class = soil_class
+                radius_prev = radius
+
 
     else:
         dist_roots, rad_roots = (None, None)
@@ -325,11 +345,6 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     g.node(g.root).vid_base = vid_base
     g.node(g.root).vid_collar = vid_collar
 
-#   Initializing all xylem potential values to soil water potential
-#    if not 'psi_head' in g.property_names():
-    for vtx_id in traversal.pre_order2(g,vid_base):
-        g.node(vtx_id).psi_head = psi_pd.psi[0]
-    
 #   Initializing sapflow to 0
 #    if not 'Flux' in g.property_names():
     for vtx_id in traversal.pre_order2(g,vid_base):
@@ -394,7 +409,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
                            opt_prop=opt_prop, rotation_angle = scene_rotation,
                            icosphere_level=None)
                                              
-        g.properties()['Ei10'] = {vid:g.node(vid).Ei*3600./10./1.e6 for vid in g.property('Ei').keys()}
+        g.properties()['Ei10'] = {vid:g.node(vid).Ei*TimeConv/10./1.e6 for vid in g.property('Ei').keys()}
     
         # Estimation of leaf surface-based nitrogen content:
         for vid in g.VtxList(Scale=3):
@@ -434,11 +449,19 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
                 except KeyError:
                     pass
     #     Estimate soil water potntial evolution due to transpiration
-#            else:
-#                psi_soil = HSHyd.soil_water_potential(psi_soil,g.node(vid_collar).Flux*3600.,
+            else:
+                if 'psi_head' in g.node(vid_collar).properties():
+                    psi_soil = 0.5*(g.node(vid_collar).psi_head + psi_soil)
+#                psi_soil = HSHyd.soil_water_potential(psi_soil,g.node(vid_collar).Flux*TimeConv,
 #                                  soil_class=soil_class,
 #                                  intra_dist=intra_dist,inter_dist=inter_dist,depth=depth)
+
+
 #        psi_soil_ls.append(psi_soil)
+
+        # Initializing all xylem potential values to soil water potential
+        for vtx_id in traversal.pre_order2(g,vid_base):
+            g.node(vtx_id).psi_head = psi_soil
 
         if 'sun2scene' not in kwargs or not kwargs['sun2scene']:
             sun2scene = None
@@ -487,9 +510,13 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         # Updating the soil water content of the 
 
 # The t loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        iter_xylem = []
-        t_error_list = []
-        t_iter_list = []
+#        iter_xylem = []
+#        t_error_list = []
+#        t_iter_list = []
+        
+        t_error_trace = []
+        it_step = t_step
+
 
         # Initialize leaf [and other elements] temperature to air temperature
         g.properties()['Tlc'] = {vid:imeteo.Tac[0] for vid in g.VtxList() if vid >0 and g.node(vid).label.startswith('L')}
@@ -499,6 +526,8 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     
 # The psi loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             if hydraulic_structure:
+                psi_error_trace = []
+                ipsi_step = psi_step
                 for ipsi in range(max_iter):
                     psi_prev = deepcopy(g.property('psi_head'))
         
@@ -513,30 +542,46 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     
 
 #                    # Updating the soil water status
-                    if ipsi <= 1000 and it <= 1000: # Arbitrary limits to guarantee minimum convergence
-                        if soil_water_deficit:
-                            N_iter_psi = HSHyd.xylem_water_potential(g, psi_soil,
-                                          psi_min=psi_min, model=modelx, max_iter=max_iter,
-                                          psi_error_crit=psi_error_threshold,vtx_label=vtx_label,
-                                          LengthConv=LengthConv,fifty_cent=psi_critx,
-                                          sig_slope=slopex, dist_roots=dist_roots,
-                                          rad_roots=rad_roots,
-                                          negligible_shoot_resistance = negligible_shoot_resistance,
-                                          start_vid = vid_base, stop_vid = vid_collar)
-                        else:
-                            for vid in g.Ancestors(vid_collar):
-                                g.node(vid).psi_head = psi_soil
+                    if soil_water_deficit:
+#                        N_iter_psi = HSHyd.xylem_water_potential(g, psi_soil,
+#                                      psi_min=psi_min, model=modelx, max_iter=max_iter,
+#                                      psi_error_crit=psi_error_threshold,vtx_label=vtx_label,
+#                                      LengthConv=LengthConv,fifty_cent=psi_critx,
+#                                      sig_slope=slopex, dist_roots=dist_roots,
+#                                      rad_roots=rad_roots,
+#                                      negligible_shoot_resistance = negligible_shoot_resistance,
+#                                      start_vid = vid_base, stop_vid = vid_collar,
+#                                      psi_step = psi_step)
+
+                        psi_collar = HSHyd.soil_water_potential(psi_soil,g.node(vid_collar).Flux*TimeConv,
+                                  soil_class, soil_total_volume, psi_min)
+
+#                        psi_collar, psi_soil = \
+#                           HSHyd.soil_rhyzo_water_potential(g.node(vid_collar).Flux*TimeConv,
+#                                                      g.node(vid_collar).psi_head,
+#                                                      psi_soil, psi_error_threshold,
+#                                                      soil_class, datet.freqstr,
+#                                                      rhyzo_radii[0]*LengthConv,
+#                                                      rhyzo_radii[-1]*LengthConv,
+#                                                      depth, psi_min)
+
+#                        print psi_collar, psi_soil
+                    else:
+                        psi_collar = psi_soil
+                        for vid in g.Ancestors(vid_collar):
+                            g.node(vid).psi_head = psi_collar
 
 
                     # Computes xylem water potential
-                    N_iter_psi = HSHyd.xylem_water_potential(g, psi_soil,
+                    N_iter_psi = HSHyd.xylem_water_potential(g, psi_collar,
                                   psi_min=psi_min, model=modelx, max_iter=max_iter,
                                   psi_error_crit=psi_error_threshold,vtx_label=vtx_label,
                                   LengthConv=LengthConv,fifty_cent=psi_critx,
                                   sig_slope=slopex, dist_roots=dist_roots,
                                   rad_roots=rad_roots,
                                   negligible_shoot_resistance = negligible_shoot_resistance,
-                                  start_vid = vid_collar, stop_vid = None)
+                                  start_vid = vid_collar, stop_vid = None,
+                                  psi_step = psi_step)
     
                     psi_new = g.property('psi_head')
     
@@ -546,18 +591,28 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
                         psi_error_dict[vtx_id] = abs(psi_prev[vtx_id]-psi_new[vtx_id])
     
                     psi_error = max(psi_error_dict.values())
-                    iter_xylem.append(N_iter_psi)
+                    psi_error_trace.append(psi_error)
+#                    iter_xylem.append(N_iter_psi)
 #                    print '*******************************************************'
 #                    print [vid for vid in psi_error_dict if psi_error_dict[vid]==max(psi_error_dict.values())]
-                    print 'psi_error = ',round(psi_error,3), ':: Nb_iter = %d'%N_iter_psi
+                    print 'psi_error = ',round(psi_error,3), ':: Nb_iter = %d'%N_iter_psi, 'ipsi_step = %f'%ipsi_step
 #                    print 'mean(Psi_x) = ', round(np.mean(g.property('psi_head').values()),3), ':: Flux = %e'%g.node(3).Flux
     
                     if psi_error < psi_error_threshold:
                         break
                     else:
+                        try:
+                            moving_avg_1 = np.mean(psi_error_trace[-5:])
+                            moving_avg_2 = np.mean(psi_error_trace[-6:-1])
+                            if abs(moving_avg_1 - moving_avg_2)/moving_avg_1 < psi_error_threshold:
+                                ipsi_step = max(0.05, ipsi_step/2.)
+
+                        except:
+                            pass
+
                         psi_new_dict = {}
                         for vtx_id in psi_new.keys():
-                            psix = psi_prev[vtx_id] + psi_step*(psi_new[vtx_id]-psi_prev[vtx_id])
+                            psix = psi_prev[vtx_id] + ipsi_step*(psi_new[vtx_id]-psi_prev[vtx_id])
                             psi_new_dict[vtx_id]=psix
                         
                         g.properties()['psi_head'] = psi_new_dict
@@ -567,7 +622,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 #                    axpsi=HSVisu.property_map(g,prop='psi_head',add_head_loss=True, ax=axpsi, color='red')
 
             else:
-                ipsi = 0
+#                ipsi = 0
 #               Computes gas-exchange fluxes. Leaf T and Psi are from prev calc loop
                 HSExchange.VineExchange(g, par_photo, par_photo_N, par_gs,
                                     imeteo, E_type2, leaf_lbl_prefix,rbt)
@@ -586,31 +641,38 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
             else:
                 t_iter = HSEnergy.leaf_temperature(g, macro_meteo, solo, True,
                                                    leaf_lbl_prefix, max_iter,
-                                                   t_error_crit)
+                                                   t_error_crit, t_step)
     
-                t_iter_list.append(t_iter)
+#                t_iter_list.append(t_iter)
                 t_new = deepcopy(g.property('Tlc'))
     
     #           Evaluation of leaf temperature conversion creterion
                 error_dict={vtx:abs(t_prev[vtx]-t_new[vtx]) for vtx in g.property('Tlc').keys()}
     
                 t_error = round(max(error_dict.values()),3)
-                print 't_error = ', t_error, 'counter =', it
+                print 't_error = ', t_error, 'counter =', it, 't_iter = ', t_iter, 'it_step = ', it_step
+                t_error_trace.append(t_error)
     #            print [vid for vid in error_dict if error_dict[vid]==max(error_dict.values())]
     #            print '**********'
     #            t_error_list.append(t_error)
-                t_error_list.append(ipsi)
-                if max(error_dict.values()) < t_error_crit:
+#                t_error_list.append(ipsi)
+                if t_error < t_error_crit:
     #                print 't_iter = %d (max %d), max_gas_xylem_iter = %d, max_xylem_iter = %d'%(it+1, max(t_iter_list)+1,max(t_error_list)+1,max(iter_xylem)+1)
                     break
-    #            elif imeteo.Rg[0] < 100 and imeteo.u[0] <= 0.6:
-    #                print 'Temperature loop stopped since low "Rg" and "u"'
-    #                break
                 else:
                     assert (it <= max_iter), 'The energy budget solution did not converge.'
+
+                    try:
+                        moving_avg_1 = np.mean(t_error_trace[-5:])
+                        moving_avg_2 = np.mean(t_error_trace[-6:-1])
+                        if abs(moving_avg_1 - moving_avg_2)/moving_avg_1 < t_error_crit:
+                            it_step = max(0.01, it_step/2.)
+                    except:
+                        pass
+
                     t_new_dict = {}
                     for vtx_id in t_new.keys():
-                        tx = t_prev[vtx_id] + t_step*(t_new[vtx_id]-t_prev[vtx_id])
+                        tx = t_prev[vtx_id] + it_step*(t_new[vtx_id]-t_prev[vtx_id])
                         t_new_dict[vtx_id] = tx
 
 #                    t_new_dict = {vtx_id:0.5*(t_prev[vtx_id]+t_new[vtx_id]) for vtx_id in t_new.keys()}
@@ -635,13 +697,14 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         an_dict[date]=deepcopy(g.property('An'))
         gs_dict[date]=deepcopy(g.property('gs'))
 
+        print '---------------------------'
         print 'psi_soil', round(psi_soil,4)
         print 'psi_collar', round(g.node(3).psi_head,4)
         print 'psi_leaf', round(np.median([g.node(vid).psi_head for vid in g.property('gs').keys()]),4)
         print ''
 #        print 'Rdiff/Rglob ', RdRsH_ratio
 #        print 't_sky_eff ', t_sky_eff
-        print 'flux H2O', round(g.node(vid_collar).Flux*1000.*3600.,4)
+        print 'flux H2O', round(g.node(vid_collar).Flux*1000.*TimeConv,4)
         print 'flux C2O', round(g.node(vid_collar).FluxC,4)
         print 'Tlc', round(np.median([g.node(vid).Tlc for vid in g.property('gs').keys()]),2), 'Tair =', round(imeteo.Tac[0],4)
 #        print 'gs', np.median(g.property('gs').values())
@@ -652,7 +715,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 
 # Write output
     # Plant total transpiration
-    sapflow, sapEast, sapWest = [np.array(flow)*3600.*1000. for i,flow in enumerate((sapflow, sapEast, sapWest))]
+    sapflow, sapEast, sapWest = [np.array(flow)*TimeConv*1000. for i,flow in enumerate((sapflow, sapEast, sapWest))]
 
     # Median leaf temperature
     t_ls = [np.median(Tlc_dict[date].values()) for date in meteo.time]
