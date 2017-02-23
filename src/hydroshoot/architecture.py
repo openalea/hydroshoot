@@ -958,7 +958,7 @@ def MTGbase(g, vtx_label='inT'):
 
     :Parameters:
     - **g**: an MTG object of **only one plant**
-    - **vtx_label**: string, the label prefix of the basal highest-scale vertex
+    - **vtx_label**: string, the label prefix of the basal highest-scale stem vertex
     """
 
     for vid in g.VtxList(Scale=3):
@@ -1048,6 +1048,15 @@ def AddSoil(g, side_length=10.):
 def add_soil_components(g, cylinders_number, cylinders_radii, soil_dimensions,
                         soil_class, vtx_label):
     """
+    Adds concentric soil cylinders to the mtg.
+    
+    :Parameters:
+    - **g**: a multiscale tree graphe object
+    - **cylinders_number**: integer, the number of cylinders to be added
+    - **cylinders_radii**: list of floats, the radii of cylinders to be used
+    - **soil_dimensions**: list of floats (length, width, depth) of the soil [m]
+    - **soil_class**: string, the soil class name according to Carsel and Parrish (1988) WRR 24,755–769 DOI: 10.1029/WR024i005p00755
+    - **vtx_label**: string, the label prefix of the basal highest-scale stem vertex
     """
     max_radius = 0.5 * min(soil_dimensions[:2])*100 #[cm]
     assert (max(cylinders_radii) <= max_radius), 'Maximum soil radius must not exceed %d cm'%max_radius
@@ -1068,7 +1077,6 @@ def add_soil_components(g, cylinders_number, cylinders_radii, soil_dimensions,
                        TopPosition = 3*[0], BotPosition = 3*[0],
                        soil_class = soil_class)
         radius_prev = radius
-        
 
     return child._vid
 
