@@ -585,13 +585,13 @@ def VineExchange(g, par_photo, par_photo_N, par_gs, meteo, E_type2, leaf_lbl_pre
                 meteo_leaf['Rg'] = PPFD_leaf/(0.48*4.6)
 #                meteo_leaf['u'] = min(1., meteo_leaf['u']) # Hack: see Nobel p.338
                 
-                if not 'par_photo' in node.properties():
-                    leaf_par_photo = deepcopy(par_photo)
-                    leaf_par_photo['Vcm25'] = par_photo_N['Vcm25_N'][0]*node.Na+par_photo_N['Vcm25_N'][1]
-                    leaf_par_photo['Jm25'] = par_photo_N['Jm25_N'][0]*node.Na+par_photo_N['Jm25_N'][1]
-                    leaf_par_photo['TPU25'] = par_photo_N['TPU25_N'][0]*node.Na+par_photo_N['TPU25_N'][1]
-                    leaf_par_photo['Rd'] = par_photo_N['Rd_N'][0]*node.Na+par_photo_N['Rd_N'][1]
-                    node.par_photo = leaf_par_photo
+#                if not 'par_photo' in node.properties():
+                leaf_par_photo = deepcopy(par_photo)
+                leaf_par_photo['Vcm25'] = par_photo_N['Vcm25_N'][0]*node.Na+par_photo_N['Vcm25_N'][1]
+                leaf_par_photo['Jm25'] = par_photo_N['Jm25_N'][0]*node.Na+par_photo_N['Jm25_N'][1]
+                leaf_par_photo['TPU25'] = par_photo_N['TPU25_N'][0]*node.Na+par_photo_N['TPU25_N'][1]
+                leaf_par_photo['Rd'] = par_photo_N['Rd_N'][0]*node.Na+par_photo_N['Rd_N'][1]
+                node.par_photo = leaf_par_photo
 
                 An, Cc, Ci, gs = AnGsCi(node.par_photo, meteo_leaf, psi, Tlc,
                                            model, g0, rbt, Ca, m0, psi0, D0, n)
