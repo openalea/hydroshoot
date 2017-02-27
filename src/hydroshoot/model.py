@@ -16,6 +16,7 @@ import os.path
 from pandas import read_csv, DataFrame, date_range, DatetimeIndex #, read_excel
 from copy import deepcopy
 import numpy as np
+from operator import mul
 import time
 
 import openalea.mtg.traversal as traversal
@@ -161,7 +162,8 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 
     # Soil reservoir dimensions (inter row, intra row, depth) [m]
     soil_dimensions = (3.6, 1.0, 1.2) if 'soil_dimensions' not in kwargs else kwargs['soil_dimensions']
-    soil_total_volume = np.pi * min(soil_dimensions[:2])**2 / 4. * soil_dimensions[2]
+    soil_total_volume = reduce(mul, soil_dimensions)
+    rhyzo_total_volume = 0.5 * np.pi * min(soil_dimensions[:2])**2 / 4. * soil_dimensions[2]
 
 #   Counter clockwise angle between the default X-axis direction (South) and the    
 #    real direction of X-axis.
@@ -450,12 +452,13 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
                     pass
     #     Estimate soil water potntial evolution due to transpiration
             else:
-                if 'psi_head' in g.node(vid_collar).properties():
-                    psi_soil = 0.5*(g.node(vid_collar).psi_head + psi_soil)
-#                psi_soil = HSHyd.soil_water_potential(psi_soil,g.node(vid_collar).Flux*TimeConv,
-#                                  soil_class=soil_class,
-#                                  intra_dist=intra_dist,inter_dist=inter_dist,depth=depth)
+                psi_soil = HSHyd.soil_water_potential(psi_soil,
+                                            g.node(vid_collar).Flux*TimeConv,
+                                            soil_class, soil_total_volume,psi_min)
 
+#            if not rhyzo_solution:
+#            if 'psi_head' in g.node(vid_collar).properties():
+#                psi_soil = 0.5*(g.node(vid_collar).psi_head + psi_soil)
 
 #        psi_soil_ls.append(psi_soil)
 
@@ -552,9 +555,10 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 #                                      negligible_shoot_resistance = negligible_shoot_resistance,
 #                                      start_vid = vid_base, stop_vid = vid_collar,
 #                                      psi_step = psi_step)
+#                        psi_collar = g.node(vid_collar).psi_head
 
                         psi_collar = HSHyd.soil_water_potential(psi_soil,g.node(vid_collar).Flux*TimeConv,
-                                  soil_class, soil_total_volume, psi_min)
+                                  soil_class, rhyzo_total_volume, psi_min)
 
 #                        psi_collar, psi_soil = \
 #                           HSHyd.soil_rhyzo_water_potential(g.node(vid_collar).Flux*TimeConv,
@@ -704,10 +708,10 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         print ''
 #        print 'Rdiff/Rglob ', RdRsH_ratio
 #        print 't_sky_eff ', t_sky_eff
+        print 'gs', np.median(g.property('gs').values())
         print 'flux H2O', round(g.node(vid_collar).Flux*1000.*TimeConv,4)
         print 'flux C2O', round(g.node(vid_collar).FluxC,4)
         print 'Tlc', round(np.median([g.node(vid).Tlc for vid in g.property('gs').keys()]),2), 'Tair =', round(imeteo.Tac[0],4)
-#        print 'gs', np.median(g.property('gs').values())
 
 # End time loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
