@@ -255,6 +255,7 @@ def transient_xylem_water_potential(g, model='tuzet', vtx_label='inT',
     """
 
     vid_base = g.node(g.root).vid_base
+#    vid_collar = g.node(g.root).vid_collar
 
     if start_vid is None:
         start_vid = vid_base
@@ -286,9 +287,14 @@ def transient_xylem_water_potential(g, model='tuzet', vtx_label='inT',
                 psi = 0.5 * (psi_head + psi_base)
 
                 if n.label.startswith('rhyzo'):
+#                    # Hack
+#                    k_sat = g.node(vid_collar).Kmax
+#                    KL = k_sat * k_vulnerability(psi, 'misson', -.2, 5)
+#                    psi_head = max(psi_min, psi_base - L*F/KL)
                     cyl_diameter = n.TopDiameter * LengthConv
                     depth = n.depth * LengthConv
                     F *= 8640./(pi *cyl_diameter* depth) # [cm d-1]
+
                     if n.label.startswith('rhyzo0'):
                         k_soil = k_soil_soil(psi, n.soil_class) # [cm d-1]
                         gL = k_soil_root(k_soil, dist_roots, rad_roots) #[cm d-1 m-1]
@@ -304,6 +310,7 @@ def transient_xylem_water_potential(g, model='tuzet', vtx_label='inT',
                         KL = Kmax *k_vulnerability(psi, model, fifty_cent,sig_slope)
                         psi_head = max(psi_min, psi_base - L*F/KL - (rho*g_p*(Z_head-Z_base))*1.e-6)
                     else:
+                        KL = None
                         psi_head = max(psi_min, psi_base - (rho*g_p*(Z_head-Z_base))*1.e-6)
 #                def _psi_headX(_psi_head):
 #                    psi = 0.5*(_psi_head+psi_base)
