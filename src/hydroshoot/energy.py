@@ -252,7 +252,8 @@ def leaf_temperature(g, macro_meteo, solo=True, simple_ff=True,
                     E_leaves = -sigma*sum([node.vis_a_vis[ivid]*(g.node(ivid).Tlc+273.15)**4 \
                             for ivid in node.vis_a_vis.keys()])
                 else:
-                    E_leaves = k_leaves*sigma*(T_leaves)**4
+#                    E_leaves = k_leaves*sigma*(T_leaves)**4
+                    E_leaves = k_leaves*sigma*(t_leaf + 273.15)**4
 
                 def _VineEnergyX(T_leaf):
                     E_SW = a_glob*E_glob
