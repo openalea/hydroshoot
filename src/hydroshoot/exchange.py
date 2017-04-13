@@ -409,7 +409,7 @@ def compute_amono_analytic(x1, x2, temp, vpd, gammax, Rd, psi, model='misson',
     - **D0** and **n**: float, shape parameters
     """
 
-    f_VPD = fvpd_3(model, vpd, psi, psi_crit=psi0, c1=m0, c2=n, D0=30)
+    f_VPD = fvpd_3(model, vpd, psi, psi_crit=psi0, c1=m0, c2=n, D0=D0)
 #    if psi < -1.5: f_VPD = 0
 
     cube_a = g0*(x2+gammax)+(g0/gm(temp)+f_VPD)*(x1-Rd)
@@ -457,7 +457,7 @@ def compute_an_analytic(temp, vpd, x1c, x2c, x1j, x2j, x1t, x2t, Rd, psi,
     - **gsw**: stomatal conductance for water [mol m-2 s-1]
     """
 
-    f_VPD = fvpd_3(model, vpd, psi, psi_crit=psi0, c1=m0, c2=n, D0=30)
+    f_VPD = fvpd_3(model, vpd, psi, psi_crit=psi0, c1=m0, c2=n, D0=D0)
 
     gammax = x2j/2.
     ci_asterisk = gammax-Rd/gm(temp)
