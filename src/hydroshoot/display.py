@@ -231,29 +231,47 @@ def hydraulic_map(g, prop='psi_head', fig=None,style=None):
 
 
 def property_map(g, prop='psi_head', ax=None, style=None, xlabel=None,
-            add_head_loss=False, color=None):
+            add_head_loss=False, color=None, prop2=None, colormap=None,
+            colorbar=False):
     """
     Plots values of a given MTG property vs hight.
 
     :Parameters:
     - **g**: an MTG object
     - **prop**: string, name of an MTG property to plot
-    - **fig**: a matplotlib figure object, default None, if given adds the hydraulic cart to it
+    - **ax**: a matplotlib figure object, default None, if given adds the hydraulic cart to it
     - **style**: string, a legal matplotlib style
     - **xlabel**: string, label of y axis, if None, tries to get a label from :func:`default_labels` based on **prop** string
     - **add_head_loss**: logical, if True, adds a dashed line representing water head loss due to elevation [-0.01 MPa m-1]
     - **color**: string, a legal matplotlib color name
+    - **prop2**: string, name of an MTG property to plot
+    - **colormap**: string, name of a matplotlib colarmap
+    - **colorbar**: logic, whether or not to plot the colar bar (only actif if colormap!=None)
     """
+    if colormap is not None:
+        assert (prop2 is not None), 'prop2 must be precised.'
 
     if not ax:
         fig, ax = mpl.pyplot.subplots()
+    else:
+        fig = ax.get_figure()
 
     if xlabel is None:
         try:
             xlabel = default_labels()[prop]
         except:
             pass
-    if color is None: color=mpl.pyplot.rcParams['axes.color_cycle'][0]
+
+    if colormap is not None:
+        cm = mpl.pyplot.cm.get_cmap(colormap)
+        try:
+            label2 = default_labels()[prop2]
+        except:
+            label2 = None
+    elif color is None:
+        color = mpl.pyplot.rcParams['axes.color_cycle'][0]
+
+
     vid_collar = g.node(g.root).vid_collar
     
     if prop in g.node(vid_collar).properties() and not prop.startswith('k_'):
@@ -264,23 +282,45 @@ def property_map(g, prop='psi_head', ax=None, style=None, xlabel=None,
                 index = 1
             y=[g.node(ivid).TopPosition[2] for ivid in g.Ancestors(vid)[index:]]
             x=[g.node(ivid).properties()[prop] for ivid in g.Ancestors(vid)[index:]]
-            ax.plot(x,y,'.-',color=color, label=xlabel)
+            ax.plot(x,y,'.-',color=color, label=xlabel, zorder=0)
             ax.set(ylabel='z [cm]', xlabel=xlabel)
         #    ax.plot(x,y,'-',color=mpl.pyplot.rcParams['axes.color_cycle'][2])
+
+        if colormap is not None:
+            x = []; y = []; c = []
+            for ivid in g.Extremities(vid_collar):
+                x.append(g.node(ivid).properties()[prop])
+                y.append(g.node(ivid).TopPosition[2])
+                c.append(g.node(ivid).properties()[prop2])
+            im = ax.scatter(x, y, c=c, vmin=min(c), vmax=max(c), cmap=cm)
+            ax.im = im
+            if colorbar:
+                fig.colorbar(im, ax=ax, label=label2)
+
     else:
         x=[g.node(ivid).properties()[prop] for ivid in g.VtxList(Scale=3) if g.node(ivid).label.startswith(('L'))]
         y=[g.node(ivid).TopPosition[2] for ivid in g.VtxList(Scale=3) if g.node(ivid).label.startswith(('L'))]
-        ax.plot(x,y,'.',color=color, label=xlabel)
+        if colormap is None:
+            ax.plot(x,y,'.',color=color, label=xlabel, zorder=0)
+        else:
+            c = [g.node(ivid).properties()[prop2] for ivid in g.VtxList(Scale=3) if g.node(ivid).label.startswith(('L'))]
+            im = ax.scatter(x, y, c=c, vmin=min(c), vmax=max(c), cmap=cm)
+            if colorbar:
+                fig.colorbar(im, ax=ax, label=label2)
+
         ax.set(ylabel='z [cm]', xlabel=xlabel)
+
         
     if add_head_loss:
         ylim = ax.get_ylim()
         ls = np.arange(ylim[0],ylim[1])
         ax.plot(0.01*ls*(-0.01)+g.node(vid_collar).psi_head,ls, '--', label='Hydrostatic slope')
-    
+
+
     handles, labels=ax.get_legend_handles_labels()
     by_label = OrderedDict(zip(labels, handles))
     ax.legend(by_label.values(), by_label.keys())
+    fig.tight_layout()
 
     return ax
 
