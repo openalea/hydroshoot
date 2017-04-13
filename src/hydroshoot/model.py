@@ -60,7 +60,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         - **Na_dict**
         - **negligible_shoot_resistance**
         - **opt_prop**
-        - **output_name**
+        - **output_index**
         - **par_gs**
         - **par_K_vul**
         - **par_photo**
@@ -98,7 +98,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     print '+ Project: ', wd.split('/')[-3:-1],'+'
     print '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
     total_time_ON = time.time()
-    output_name = 'results' if 'output_name' not in kwargs else kwargs['output_name']
+    output_index = 'results' if 'output_index' not in kwargs else kwargs['output_index']
 #==============================================================================
 # Initialisation
 #==============================================================================
@@ -163,7 +163,8 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     # Soil reservoir dimensions (inter row, intra row, depth) [m]
     soil_dimensions = (3.6, 1.0, 1.2) if 'soil_dimensions' not in kwargs else kwargs['soil_dimensions']
     soil_total_volume = reduce(mul, soil_dimensions)
-    rhyzo_total_volume = 0.5 * np.pi * min(soil_dimensions[:2])**2 / 4. * soil_dimensions[2]
+    rhyzo_coeff = 0.5 if not 'rhyzo_coeff' in kwargs else kwargs['rhyzo_coeff']
+    rhyzo_total_volume = rhyzo_coeff * np.pi * min(soil_dimensions[:2])**2 / 4. * soil_dimensions[2]
 
 #   Counter clockwise angle between the default X-axis direction (South) and the    
 #    real direction of X-axis.
@@ -239,6 +240,10 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     else:
         par_photo = kwargs['par_photo']
 
+#   Shoot hydraulic resistance
+    negligible_shoot_resistance = False if not 'negligible_shoot_resistance' in kwargs else kwargs['negligible_shoot_resistance']
+
+
 #   Stomatal conductance parameters
     hydraulic_structure = True if not 'hydraulic_structure' in kwargs else kwargs['hydraulic_structure']
     print 'Hydraulic structure: %s'%hydraulic_structure
@@ -249,10 +254,18 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         else:
             par_gs = kwargs['par_gs']
 
-        negligible_shoot_resistance = False if not 'negligible_shoot_resistance' in kwargs else kwargs['negligible_shoot_resistance']
     else:
-        par_gs = {'model':'vpd', 'g0':0.0, 'm0':5.278,
-                       'psi0':None,'D0':None,'n':None}
+        if 'par_gs' not in kwargs:
+            par_gs = {'model':'vpd', 'g0':0.0, 'm0':5.278, 'psi0':None,
+                      'D0':30.,'n':4.}
+        else:
+            par_gs0 = kwargs['par_gs']
+            par_gs = {'model':'vpd', 'g0':par_gs0['g0'], 'm0':par_gs0['m0'],
+                      'psi0':None, 'D0':par_gs0['D0'],'n':par_gs0['n']}
+            negligible_shoot_resistance = True
+            
+            print "par_gs: 'model', 'psi0', 'D0' and 'n' are forced to 'vpd', None, None, None."
+            print "negligible_shoot_resistance is forced to True."
 
 #   Parameters of maximum stem conductivity allometric relationship
     if 'Kx_dict' not in kwargs:
@@ -261,7 +274,6 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         Kx_dict = kwargs['Kx_dict']
 
     psi_min = -3.0 if 'psi_min' not in kwargs else kwargs['psi_min']
-    negligible_shoot_resistance = False if not 'negligible_shoot_resistance' in kwargs else kwargs['negligible_shoot_resistance']
 
 #   Parameters of stem water conductivty's vulnerability to cavitation
     if 'par_K_vul' not in kwargs:
@@ -500,7 +512,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 #        t_soil = HSEnergy.soil_temperature(g,imeteo,t_sky+273.15,'other')
                  #[ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
         # Hack forcing of soil temperture (model of soil temperature under development)
-        dt_soil = [-2,-2,-2,-1,-1, 0, 0, 0,10,15,30,30,30,30,30,20, 6, 5, 4, 3, 2, 1, 0,-1]
+        dt_soil = [3,3,3,3,3, 3, 3, 3,10,15,20,20,20,20,20,15, 6, 5, 4, 3, 3, 3, 3,3]
         t_soil = imeteo.Tac[0] + dt_soil[date.hour]
     
         # Climatic data for energy balance module
@@ -559,6 +571,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 
                         psi_collar = HSHyd.soil_water_potential(psi_soil,g.node(vid_collar).Flux*TimeConv,
                                   soil_class, rhyzo_total_volume, psi_min)
+                        psi_collar = max(-1.3, psi_collar)
 
 #                        psi_collar, psi_soil = \
 #                           HSHyd.soil_rhyzo_water_potential(g.node(vid_collar).Flux*TimeConv,
@@ -571,7 +584,12 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 
 #                        print psi_collar, psi_soil
                     else:
-                        psi_collar = psi_soil
+                        psi_collar = HSHyd.soil_water_potential(psi_soil,g.node(vid_collar).Flux*TimeConv,
+                                  soil_class, rhyzo_total_volume, psi_min)
+                        
+                        psi_collar = max(-0.7, psi_collar)
+
+#                        psi_collar = psi_soil
                         for vid in g.Ancestors(vid_collar):
                             g.node(vid).psi_head = psi_collar
 
@@ -606,9 +624,10 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
                         break
                     else:
                         try:
-                            moving_avg_1 = np.mean(psi_error_trace[-5:])
-                            moving_avg_2 = np.mean(psi_error_trace[-6:-1])
-                            if abs(moving_avg_1 - moving_avg_2)/moving_avg_1 < psi_error_threshold:
+#                            moving_avg_1 = np.mean(psi_error_trace[-5:])
+#                            moving_avg_2 = np.mean(psi_error_trace[-6:-1])
+##                            if abs(moving_avg_1 - moving_avg_2)/moving_avg_1 < psi_error_threshold:
+                            if psi_error_trace[-1] >= psi_error_trace[-2] - psi_error_threshold:
                                 ipsi_step = max(0.05, ipsi_step/2.)
 
                         except:
@@ -669,8 +688,9 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
                     try:
                         moving_avg_1 = np.mean(t_error_trace[-5:])
                         moving_avg_2 = np.mean(t_error_trace[-6:-1])
-                        if abs(moving_avg_1 - moving_avg_2)/moving_avg_1 < t_error_crit:
-                            it_step = max(0.01, it_step/2.)
+#                        if abs(moving_avg_1 - moving_avg_2)/moving_avg_1 < t_error_crit:
+                        if t_error_trace[-1] >= t_error_trace[-2] - t_error_crit:
+                            it_step = max(0.001, it_step/2.)
                     except:
                         pass
 
@@ -684,7 +704,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 
 
         # Write mtg to external file
-        HSArc.mtg_save(g, scene, wd, output_name)
+        HSArc.mtg_save(g, scene, wd, 'mtg'+output_index)
 
 # End t loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -740,10 +760,11 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     results_df = DataFrame(results_dict, index=meteo.time)
 
     # Write
-    results_df.to_csv(wd+output_name+'.output', sep=';', decimal='.')
+    results_df.to_csv(wd+'results%s.output'%output_index, sep=';', decimal='.')
 
     total_time_OFF = time.time()
 
-    print ("+++Total runtime: %s minutes ---" % ((total_time_OFF-total_time_ON)/60.))
+    print ("--- Total runtime: %s minutes ---" % ((total_time_OFF-total_time_ON)/60.))
+    print time.ctime()
 
     return
