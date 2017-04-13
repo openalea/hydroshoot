@@ -47,6 +47,8 @@ def par_photo_default(Vcm25= 89.0, Jm25 = 143.0, cRd = 0.008, TPU25 = 10.0,
    - **Tx25**: CO2 compensation point in the absence of mitochondrial respiration [umol mol-1]
    - **alpha**, **alpha_T_limit**, **a1**, **a2**, **a3**: parameters regulating electron transport for sunlit and shaded leaves (**not used**)
    - **c** and **deltaHa** are empirical parameters defining the temperature response curves of each of Kc, Ko, Vcm, Jm, TPU, Rd and Tx
+   - **ds**: float, enthalpie of activation [KJ mol-1]
+   - **dHd**: float, enthalpie of deactivation [KJ mol-1]
    """
 
     par_photodef = {}
@@ -171,6 +173,17 @@ def Arrhenius_2(param,Tlc,par_photo):
     p = p25*(exp(c - (deltaHa /(R*Tak)))) / (1. + exp((ds*Tak-dHd)/(R*Tak)))
 
     return p
+
+
+def dHd_sensibility(psi, Tleaf, dHd_max=200., dHd_min1=195.,dHd_min2=190.,
+                    psi_max=-.75, psi_min=-2., Tleaf_1=35, Tleaf_2=40):
+    """
+    """
+    dHd_min = dHd_min1 - (dHd_min1 - dHd_min2)*min(1,max(0,(Tleaf - Tleaf_1))/float(Tleaf_2-Tleaf_1))
+    dHd = dHd_max - max(0, (dHd_max - dHd_min)*min(1, (psi - psi_max)/float(psi_min-psi_max)))
+
+
+    return dHd
 
 
 #def compute_an_2(par_photo, PPFD, Tlc, Ci):
@@ -346,6 +359,13 @@ def fvpd_3(model, vpd, psi, psi_crit=-0.37, c1=5.278, c2=1.85, D0=30.):
     else:
         raise ValueError ("The 'model' argument must be one of the following ('misson','tuzet', 'linear').")
     return c1 * m
+
+
+def g0_sensibility(psi, psi_crit=-0.1, n=3):
+    """
+    """
+    return 1. / (1. + (psi/psi_crit)**n)
+
 
 def gm(temp, gm25=0.1025, EA_gm=49600., DEA_gm=437400., Sgm=1400.):
     """
@@ -555,7 +575,7 @@ def VineExchange(g, par_photo, par_photo_N, par_gs, meteo, E_type2, leaf_lbl_pre
     - **E** leaf transpiration [mol m-2 s-1].
     """
     
-    model,g0,m0,psi0,D0,n = [par_gs[ikey] for ikey in ('model','g0','m0','psi0','D0','n')]
+    model,g0max,m0,psi0,D0,n = [par_gs[ikey] for ikey in ('model','g0','m0','psi0','D0','n')]
     
     meteo_leaf = deepcopy(meteo)
     meteo_leaf = meteo_leaf.iloc[0]
@@ -591,7 +611,14 @@ def VineExchange(g, par_photo, par_photo_N, par_gs, meteo, E_type2, leaf_lbl_pre
                 leaf_par_photo['Jm25'] = par_photo_N['Jm25_N'][0]*node.Na+par_photo_N['Jm25_N'][1]
                 leaf_par_photo['TPU25'] = par_photo_N['TPU25_N'][0]*node.Na+par_photo_N['TPU25_N'][1]
                 leaf_par_photo['Rd'] = par_photo_N['Rd_N'][0]*node.Na+par_photo_N['Rd_N'][1]
+                dHd_max = leaf_par_photo['dHd']
+                dHd = dHd_sensibility(psi, Tlc, dHd_max=dHd_max, dHd_min1=195.,dHd_min2=190.,
+                    psi_max=-.75, psi_min=-2., Tleaf_1=32, Tleaf_2=33)
+
+                leaf_par_photo['dHd'] = dHd
                 node.par_photo = leaf_par_photo
+                
+                g0 = g0max#*g0_sensibility(psi, psi_crit=-1, n=4)
 
                 An, Cc, Ci, gs = AnGsCi(node.par_photo, meteo_leaf, psi, Tlc,
                                            model, g0, rbt, Ca, m0, psi0, D0, n)
