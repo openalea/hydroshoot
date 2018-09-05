@@ -686,8 +686,8 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
                     assert (it <= max_iter), 'The energy budget solution did not converge.'
 
                     try:
-                        moving_avg_1 = np.mean(t_error_trace[-5:])
-                        moving_avg_2 = np.mean(t_error_trace[-6:-1])
+#                        moving_avg_1 = np.mean(t_error_trace[-5:])
+#                        moving_avg_2 = np.mean(t_error_trace[-6:-1])
 #                        if abs(moving_avg_1 - moving_avg_2)/moving_avg_1 < t_error_crit:
                         if t_error_trace[-1] >= t_error_trace[-2] - t_error_crit:
                             it_step = max(0.001, it_step/2.)
