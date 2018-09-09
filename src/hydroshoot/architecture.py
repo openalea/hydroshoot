@@ -1421,15 +1421,15 @@ def mtg_output(g, wd):
     f.close()
     return
 
-def mtg_save(g, scene, wd, folder_name='mtg'):
-    file_path = wd+folder_name+'/'
+def mtg_save(g, scene, file_path):
+
     if not path.exists(file_path):
         mkdir(file_path)
 
     geom = {vid:g.node(vid).geometry for vid in g.property('geometry')}
     g.remove_property('geometry')
 
-    fg = file_path + g.date + '.pckl'
+    fg = file_path + 'mtg' + g.date + '.pckl'
 
     f = open(fg, 'w')
     dump([g,scene], f)
