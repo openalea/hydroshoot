@@ -430,6 +430,12 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
             if g.node(vid).label.startswith(leaf_lbl_prefix):
                 g.node(vid).Na= HSExchange.leaf_Na(tt,g.node(vid).Ei10,aN,bN,aM,bM)
 
+        # Define path to folder
+        output_path = wd + 'output' + output_index + '/'
+        
+        # Save geometry in an external file
+        HSArc.mtg_save_geometry(scene, output_path)
+
 #==============================================================================
 # Simulations
 #==============================================================================
@@ -704,7 +710,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 
 
         # Write mtg to external file
-        HSArc.mtg_save(g, scene, wd, 'mtg'+output_index)
+        HSArc.mtg_save(g, scene, output_path)
 
 # End t loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -760,7 +766,8 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     results_df = DataFrame(results_dict, index=meteo.time)
 
     # Write
-    results_df.to_csv(wd+'results%s.output'%output_index, sep=';', decimal='.')
+    results_df.to_csv(output_path+'time_series.output',
+                      sep=';', decimal='.')
 
     total_time_OFF = time.time()
 
