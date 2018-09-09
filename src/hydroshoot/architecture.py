@@ -502,6 +502,12 @@ def vine_LII(NFII, pruning_type='avg_field_model', a_L=43.718, b_L=-37.663, a_P=
 
 
 def VineInL(phyto_num, tot_len):
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_internode_length()")
+    return vine_internode_length(phyto_num, tot_len)
+
+
+def vine_internode_length(phyto_num, tot_len):
     """
     Returns the length of an individual internode.
 
@@ -637,7 +643,7 @@ def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
                 in_order = int(fatherI.index()) if not fatherI.label[-1].isalpha() else int(findall('\d+',str(fatherI.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
                 NFII = vine_NFII(in_order, pruning_type,N_init,N_max,N_max_order,in_order_max,slope_nfii,phyto_type)
                 tot_len = 0.1*vine_LII(NFII, pruning_type, a_L, b_L, a_P, b_P, c_P)
-                length = VineInL(NFII, tot_len)
+                length = vine_internode_length(NFII, tot_len)
 
 #               Generation of secondary internodes
                 for vtx_id in range(NFII):
