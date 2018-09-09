@@ -409,7 +409,14 @@ def vine_phyto_modular(g,v, *args):
     return g
 
 
-def VineNFII(in_order, pruning_type='avg_field_model',N_init=0.18,N_max=2.25,N_max_order=4,in_order_max=25,sig_slope=5.7,phyto_type='P0'):
+def VineNFII(in_order, pruning_type='avg_field_model', N_init=0.18, N_max=2.25,
+             N_max_order=4, in_order_max=25, sig_slope=5.7, phyto_type='P0'):
+    raise DeprecationWarning("This function must be replaced by vine_NFII()")
+    return vine_NFII(in_order, pruning_type, N_init, N_max, N_max_order,
+                     in_order_max, sig_slope, phyto_type)
+
+
+def vine_NFII(in_order, pruning_type='avg_field_model',N_init=0.18,N_max=2.25,N_max_order=4,in_order_max=25,sig_slope=5.7,phyto_type='P0'):
     """
     Returns NFII, the total number of secondary phytomers per primary internode.
 
@@ -622,7 +629,7 @@ def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
             order = g.Class(vid).split('in')[1]
             if order == 'I':
                 in_order = int(fatherI.index()) if not fatherI.label[-1].isalpha() else int(findall('\d+',str(fatherI.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
-                NFII = VineNFII(in_order, pruning_type,N_init,N_max,N_max_order,in_order_max,slope_nfii,phyto_type)
+                NFII = vine_NFII(in_order, pruning_type,N_init,N_max,N_max_order,in_order_max,slope_nfii,phyto_type)
                 tot_len = 0.1*VineLII(NFII, pruning_type, a_L, b_L, a_P, b_P, c_P)
                 length = VineInL(NFII, tot_len)
 
