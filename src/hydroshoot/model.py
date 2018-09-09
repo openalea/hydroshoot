@@ -456,7 +456,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         
         # Add a date index to g
 #        g.date = date.to_julian_date()
-        g.date = dt.datetime.strftime(date, "%Y-%m-%d %H:%M:%S")
+        g.date = dt.datetime.strftime(date, "%Y%m%d%H%M%S")
 
         # Read soil water potntial at midnight
         if 'psi_soil' in kwargs:
