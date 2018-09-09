@@ -105,6 +105,10 @@ def soil0(l=1.):
 #==============================================================================
 
 def VineMTG(file_path):
+    raise DeprecationWarning('This function must be replaced by vine_mtg()')
+    return vine_mtg(file_path)
+
+def vine_mtg(file_path):
     """
     Constructs a MultiScale Tree Graph (MTG) for digitilized grapvines.
     The data structure must be as follows:
