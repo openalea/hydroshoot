@@ -1441,8 +1441,8 @@ def mtg_save(g, scene, file_path):
     
 def mtg_load(wd, index):
     
-    fgeom = wd + '%s.bgeom'%(index)
-    fg = wd + '%s.pckl'%(index)
+    fgeom = wd + 'geometry.bgeom'
+    fg = wd + 'mtg%s.pckl'%(index)
     
     scene = pgl.Scene()
     scene.read(fgeom, 'BGEOM')
@@ -1455,7 +1455,7 @@ def mtg_load(wd, index):
     g2.add_property('geometry')
     g2.property('geometry').update(geom)
     
-    return g2, TT
+    return g2, scene
 
 def mtg_save_geometry(scene, file_path):
     """
