@@ -32,7 +32,7 @@ import openalea.plantgl.all as pgl
 #==============================================================================
 def XyzToPol (coordxy) :
     """
-    Converts carthesian coordinates (x,y,z) to polar corrdinates (r,azi,incli).
+    Converts cartesian coordinates (x,y,z) to polar corrdinates (r,azi,incli).
     """
 
     x,y,z = coordxy[0], coordxy[1], coordxy[2]
