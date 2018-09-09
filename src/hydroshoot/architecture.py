@@ -476,7 +476,13 @@ def vine_NFII(in_order, pruning_type='avg_field_model',N_init=0.18,N_max=2.25,N_
     return NFII
 
 
-def VineLII(NFII, pruning_type='avg_field_model', a_L=43.718, b_L=-37.663, a_P=1.722, b_P=10.136, c_P=-5.435):
+def VineLII(NFII, pruning_type='avg_field_model', a_L=43.718, b_L=-37.663,
+            a_P=1.722, b_P=10.136, c_P=-5.435):
+    raise DeprecationWarning("This function must be replaced by vine_LII()")
+    return vine_LII(NFII, pruning_type, a_L, b_L, a_P, b_P, c_P)
+
+
+def vine_LII(NFII, pruning_type='avg_field_model', a_L=43.718, b_L=-37.663, a_P=1.722, b_P=10.136, c_P=-5.435):
     """
     Returns LII [mm], the total length of secondary axis.
 
@@ -630,7 +636,7 @@ def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
             if order == 'I':
                 in_order = int(fatherI.index()) if not fatherI.label[-1].isalpha() else int(findall('\d+',str(fatherI.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
                 NFII = vine_NFII(in_order, pruning_type,N_init,N_max,N_max_order,in_order_max,slope_nfii,phyto_type)
-                tot_len = 0.1*VineLII(NFII, pruning_type, a_L, b_L, a_P, b_P, c_P)
+                tot_len = 0.1*vine_LII(NFII, pruning_type, a_L, b_L, a_P, b_P, c_P)
                 length = VineInL(NFII, tot_len)
 
 #               Generation of secondary internodes
