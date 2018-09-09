@@ -1421,28 +1421,28 @@ def mtg_output(g, wd):
     f.close()
     return
 
-def mtg_save(g, scene, wd, folder_name='mtg'):
-    file_path = wd+folder_name+'/'
+def mtg_save(g, scene, file_path):
+
     if not path.exists(file_path):
         mkdir(file_path)
-#    geom = {sh.id:sh.geometry for sh in scene}
+
     geom = {vid:g.node(vid).geometry for vid in g.property('geometry')}
     g.remove_property('geometry')
-    fgeom = file_path + g.date + '.bgeom'
-    fg = file_path + g.date + '.pckl'
-    scene.save(fgeom, 'BGEOM')
+
+    fg = file_path + 'mtg' + g.date + '.pckl'
+
     f = open(fg, 'w')
     dump([g,scene], f)
     f.close()
     #restore geometry
     g.add_property('geometry')
     g.property('geometry').update(geom)
-    return fgeom,fg
+    return
     
 def mtg_load(wd, index):
     
-    fgeom = wd + '%s.bgeom'%(index)
-    fg = wd + '%s.pckl'%(index)
+    fgeom = wd + 'geometry.bgeom'
+    fg = wd + 'mtg%s.pckl'%(index)
     
     scene = pgl.Scene()
     scene.read(fgeom, 'BGEOM')
@@ -1455,4 +1455,22 @@ def mtg_load(wd, index):
     g2.add_property('geometry')
     g2.property('geometry').update(geom)
     
-    return g2, TT
+    return g2, scene
+
+def mtg_save_geometry(scene, file_path):
+    """
+    Saves the geometry of a scene in an external file.
+
+    :Parameters:
+    - **scene**: scene object
+    - **file_path**: path string for saving the scene object
+    """
+
+    if not path.exists(file_path):
+        mkdir(file_path)
+
+    fgeom = file_path + 'geometry.bgeom'
+
+    scene.save(fgeom, 'BGEOM')
+
+    return
