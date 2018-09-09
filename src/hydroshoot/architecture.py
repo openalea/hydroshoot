@@ -51,7 +51,7 @@ def cart_to_pol (coordxy) :
     return scipy.array([r,azi,incli])
 
 
-def PolToXyz (coordpol) :
+def pol_to_cart (coordpol) :
     """
     Converts polar corrdinates (r,azi,incli) to carthesian coordinates (x,y,z).
     """
@@ -560,7 +560,7 @@ def VineAxeIIinsert(inI_vector, insert_angle=46.,insert_angle_CI=4.6,rot_range=1
     rand_rotate = rot_range*scipy.rand()
 #    azi_init = azi_I + a_insert*scipy.sin(rand_rotate)
 #    incli_init = incli_I + a_insert*scipy.cos(rand_rotate)
-    dx, dy, dz = PolToXyz((len_I, azi_I, incli_I))
+    dx, dy, dz = pol_to_cart((len_I, azi_I, incli_I))
     rot_axis_1 = scipy.cross((dx, dy, dz),(0.,0.,1.))
     vec_2 = vector_rotation((dx, dy, dz), rot_axis_1, a_insert)
     vec_2 = vector_rotation(vec_2, (dx, dy, dz), rand_rotate)
@@ -664,7 +664,7 @@ def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
                                 else:
                                     phyllo_angle = phyllo_angle*scipy.sign(incli_f)
 
-                                vector = PolToXyz((length,azi_tempo1,incli_tempo1))
+                                vector = pol_to_cart((length,azi_tempo1,incli_tempo1))
                                 axis_I = (dx_f, dy_f, dz_f)
                                 phyllotaxis = phyllo_angle*(1.+0.1*min(1,max(-1,scipy.randn()/2.96))) # the confidence interval 0.1 is to be confirmed.
 
@@ -691,7 +691,7 @@ def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
 
                             father_vec = (len_f,azi_f,incli_f)
                             azi_init, incli_init = VineAxeIIinsert(father_vec)#,insert_angle,insert_angle_CI)
-                            dx, dy, dz = PolToXyz((length,azi_init, incli_init))
+                            dx, dy, dz = pol_to_cart((length,azi_init, incli_init))
 
                     else:
                         vidII = g.node(en_c)
