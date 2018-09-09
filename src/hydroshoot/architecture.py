@@ -1425,19 +1425,19 @@ def mtg_save(g, scene, wd, folder_name='mtg'):
     file_path = wd+folder_name+'/'
     if not path.exists(file_path):
         mkdir(file_path)
-#    geom = {sh.id:sh.geometry for sh in scene}
+
     geom = {vid:g.node(vid).geometry for vid in g.property('geometry')}
     g.remove_property('geometry')
-    fgeom = file_path + g.date + '.bgeom'
+
     fg = file_path + g.date + '.pckl'
-    scene.save(fgeom, 'BGEOM')
+
     f = open(fg, 'w')
     dump([g,scene], f)
     f.close()
     #restore geometry
     g.add_property('geometry')
     g.property('geometry').update(geom)
-    return fgeom,fg
+    return
     
 def mtg_load(wd, index):
     
@@ -1456,3 +1456,14 @@ def mtg_load(wd, index):
     g2.property('geometry').update(geom)
     
     return g2, TT
+
+def mtg_save_geometry(scene, wd, folder_name='mtg'):
+    file_path = wd+folder_name+'/'
+    if not path.exists(file_path):
+        mkdir(file_path)
+
+    fgeom = file_path + 'geometry.bgeom'
+
+    scene.save(fgeom, 'BGEOM')
+
+    return
