@@ -359,6 +359,12 @@ def vine_mtg(file_path):
 
 
 def VinePhytoModular(g,v, *args):
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_phyto_modular()")
+    return vine_phyto_modular(g,v, *args)
+
+
+def vine_phyto_modular(g,v, *args):
     """
     Identifies the type of phytometer according to Louarn et al. (2007).
     If not provided, 'P0 to P1' and 'P1 to P2' probabilites are given as:
