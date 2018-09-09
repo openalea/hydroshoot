@@ -30,7 +30,7 @@ import openalea.plantgl.all as pgl
 #==============================================================================
 # Functions from TopVine package
 #==============================================================================
-def XyzToPol (coordxy) :
+def cart_to_pol (coordxy) :
     """
     Converts cartesian coordinates (x,y,z) to polar corrdinates (r,azi,incli).
     """
@@ -564,7 +564,7 @@ def VineAxeIIinsert(inI_vector, insert_angle=46.,insert_angle_CI=4.6,rot_range=1
     rot_axis_1 = scipy.cross((dx, dy, dz),(0.,0.,1.))
     vec_2 = vector_rotation((dx, dy, dz), rot_axis_1, a_insert)
     vec_2 = vector_rotation(vec_2, (dx, dy, dz), rand_rotate)
-    len_init, azi_init, incli_init = XyzToPol(vec_2)
+    len_init, azi_init, incli_init = cart_to_pol(vec_2)
 
     return azi_init, incli_init
 
@@ -638,19 +638,19 @@ def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
                                 BotPos_sg = grandpa.TopPosition
                                 TopPos_sg = sibling.TopPosition
                                 dx_sg, dy_sg, dz_sg = [round(float(i),2) for i in scipy.subtract(TopPos_sg,BotPos_sg)]
-                                len_sg,azi_sg,incli_sg = XyzToPol((dx_sg,dy_sg,dz_sg))
+                                len_sg,azi_sg,incli_sg = cart_to_pol((dx_sg,dy_sg,dz_sg))
 
 #                               Getting the vector of the primary internode holding the previous axisII
                                 TopPos_gp = grandpa.TopPosition
                                 BotPos_gp = grandpa.parent().TopPosition
                                 dx_gp, dy_gp, dz_gp = [round(float(i),2) for i in scipy.subtract(TopPos_gp,BotPos_gp)]
-                                len_gp,azi_gp,incli_gp = XyzToPol((dx_gp,dy_gp,dz_gp))
+                                len_gp,azi_gp,incli_gp = cart_to_pol((dx_gp,dy_gp,dz_gp))
 
                                 # Getting the vector of the primary internode holding the actual axisII
                                 TopPos_f = fatherI.TopPosition
                                 BotPos_f = grandpa.TopPosition
                                 dx_f, dy_f, dz_f = [round(float(i),2) for i in scipy.subtract(TopPos_f,BotPos_f)]
-                                len_f,azi_f,incli_f = XyzToPol((dx_f,dy_f,dz_f))
+                                len_f,azi_f,incli_f = cart_to_pol((dx_f,dy_f,dz_f))
 
 #                               First correction azi and incli follow the dirction of the holding primary internode.
                                 dazi = azi_f - azi_gp
@@ -670,7 +670,7 @@ def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
 
 #                               Second correction: the axisII insertion internode must adhere to phyllotaxis rule.
                                 dx, dy, dz = vector_rotation(vector,axis_I,phyllotaxis)
-                                #len_init,azi_init,incli_init = XyzToPol((dx,dy,dz))
+                                #len_init,azi_init,incli_init = cart_to_pol((dx,dy,dz))
 
 #                               Third correction: Considering the uncertainty in the insertion angle
                                 ins_min = insert_angle - insert_angle_CI
@@ -681,13 +681,13 @@ def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
                                 rot_range = scipy.rand()*(sup_range - inf_range) + inf_range
                                 normal_vec = scipy.cross((dx, dy, dz),(axis_I)) # the normal vector to the plane defined by the primary internode and the insertion secondary internode
                                 dx, dy, dz = vector_rotation((dx, dy, dz),normal_vec,rot_range)
-                                len_init,azi_init,incli_init = XyzToPol((dx,dy,dz))
+                                len_init,azi_init,incli_init = cart_to_pol((dx,dy,dz))
 
                         if counter ==0:
                             TopPos_f = fatherI.TopPosition
                             BotPos_f = grandpa.TopPosition
                             dx_f, dy_f, dz_f = [round(float(i),2) for i in scipy.subtract(TopPos_f,BotPos_f)]
-                            len_f,azi_f,incli_f = XyzToPol((dx_f,dy_f,dz_f))
+                            len_f,azi_f,incli_f = cart_to_pol((dx_f,dy_f,dz_f))
 
                             father_vec = (len_f,azi_f,incli_f)
                             azi_init, incli_init = VineAxeIIinsert(father_vec)#,insert_angle,insert_angle_CI)
@@ -699,7 +699,7 @@ def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
                         grandpaII = fatherII.parent()
                         dx_prec,dy_prec,dz_prec = [round(float(i),2) for i in scipy.subtract(fatherII.TopPosition,grandpaII.TopPosition)]
                         vector_prec = (dx_prec,dy_prec,dz_prec)
-                        len_prec,azi_prec,incli_prec = XyzToPol(vector_prec)
+                        len_prec,azi_prec,incli_prec = cart_to_pol(vector_prec)
 
                         curv_tot = VineAxisCurv(incli_init, tot_len*10., Fifty_cent, slope_curv,curv_type)
 
@@ -782,10 +782,10 @@ def VinePetiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
             len_petI = VinePetLen(in_order, len_max, Fifty_cent,sig_slope)
 
             vec_f = scipy.subtract(father.TopPosition,grandpa.TopPosition)
-            len_f,azi_f,incli_f = XyzToPol(vec_f)
+            len_f,azi_f,incli_f = cart_to_pol(vec_f)
 
             vec_gp = scipy.subtract(grandpa.TopPosition,grandgrandpa.TopPosition)
-            len_gp,azi_gp,incli_gp = XyzToPol(vec_gp)
+            len_gp,azi_gp,incli_gp = cart_to_pol(vec_gp)
 
             if in_order == 1:
                 # Generating first petiole
@@ -799,7 +799,7 @@ def VinePetiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
                         BotPos_sg = grandpa.TopPosition
                         TopPos_sg = sibling.TopPosition
                         vec_sg = scipy.subtract(TopPos_sg,BotPos_sg)
-                        len_sg,azi_sg,incli_sg = XyzToPol(vec_sg)
+                        len_sg,azi_sg,incli_sg = cart_to_pol(vec_sg)
                 rotation_axis1 = scipy.cross(vec_f, vec_sg)
                 arb = 1.
 
@@ -1296,7 +1296,7 @@ def VineMTGGeom(g, vid):
 
                 length = n.properties()['Length']
                 leaf_vec = scipy.subtract(n.TopPosition, n.parent().TopPosition)
-                leaf_len, leaf_azi, leaf_incli = XyzToPol(leaf_vec)
+                leaf_len, leaf_azi, leaf_incli = cart_to_pol(leaf_vec)
 #                theta_1 = -scipy.pi/2.
 #                theta_2 = 0. #scipy.pi*(1.+(theta_2_cv/100.)*min(1,max(-1,scipy.randn()/2.96)))
                 mesh = transformation(leaf_mesh, length, length, 1., 0., 0.,0.,0.,0.,0.)
@@ -1344,7 +1344,7 @@ def VineTransform(g, vid):
                 x_bot,y_bot,z_bot = [n.BotPosition[i] for i in [0,1,2]]
                 mesh = n.geometry
                 vec_lim = scipy.subtract(n.TopPosition, n.BotPosition)
-                len_lim, azi_lim, incli_lim = XyzToPol(vec_lim)
+                len_lim, azi_lim, incli_lim = cart_to_pol(vec_lim)
                 mesh = transformation(mesh, len_lim, len_lim, 1., azi_lim, -1*incli_lim,0.,x_bot,y_bot,z_bot)
                 g.node(vid).geometry = mesh
 
