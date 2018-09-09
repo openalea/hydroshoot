@@ -1457,8 +1457,15 @@ def mtg_load(wd, index):
     
     return g2, TT
 
-def mtg_save_geometry(scene, wd, folder_name='mtg'):
-    file_path = wd+folder_name+'/'
+def mtg_save_geometry(scene, file_path):
+    """
+    Saves the geometry of a scene in an external file.
+
+    :Parameters:
+    - **scene**: scene object
+    - **file_path**: path string for saving the scene object
+    """
+
     if not path.exists(file_path):
         mkdir(file_path)
 
