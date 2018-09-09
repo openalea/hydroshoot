@@ -525,7 +525,16 @@ def vine_internode_length(phyto_num, tot_len):
     return inL
 
 
-def VineAxisCurv(incli_init, length, Fifty_cent=400., sig_slope=70.,curv_type='convexe'):
+def VineAxisCurv(incli_init, length, Fifty_cent=400., sig_slope=70.,
+                 curv_type='convexe'):
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_axis_curvature()")
+    return vine_axis_curvature(incli_init, length, Fifty_cent, sig_slope,
+                               curv_type)
+
+
+def vine_axis_curvature(incli_init, length, Fifty_cent=400., sig_slope=70.,
+                        curv_type='convexe'):
     """
     Returns the total curvature [radian] of an axis based on its initial inlination and its length.
 
@@ -730,7 +739,7 @@ def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
                         vector_prec = (dx_prec,dy_prec,dz_prec)
                         len_prec,azi_prec,incli_prec = cart_to_pol(vector_prec)
 
-                        curv_tot = VineAxisCurv(incli_init, tot_len*10., Fifty_cent, slope_curv,curv_type)
+                        curv_tot = vine_axis_curvature(incli_init, tot_len*10., Fifty_cent, slope_curv,curv_type)
 
                         PT = PT_init #+ ((scipy.pi - curv_tot)/scipy.pi)*(1-PT_init)
 
