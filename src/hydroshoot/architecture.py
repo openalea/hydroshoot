@@ -1278,7 +1278,7 @@ def leaf_obs(points):
     return f
 
 
-def VineDiam(g, vid, D_trunk=5.06, D_arm=3.77, D_Cx=2.91, D_3y=1.75,
+def vine_diam(g, vid, D_trunk=5.06, D_arm=3.77, D_Cx=2.91, D_3y=1.75,
              D_spur=1.15, D_cane=0.99, Fifty_cent=5.,sig_slope=10.,D_pet=0.35):
     """
     Returns the diameter [cm] of an internode or a structural element.
@@ -1339,12 +1339,12 @@ def VineMTGProp(g, vid):
 
     n = g.node(vid)
     if vid>0:
-        if n.label.startswith(('sh','G')): VineDiam(g,vid) # Sets the initial diameters of the primary and secondary axes.
+        if n.label.startswith(('sh','G')): vine_diam(g,vid) # Sets the initial diameters of the primary and secondary axes.
 
 #       Setting the properties of internodes, pruning complices and petioles
         if n.label.startswith(('in','cx','Pet')):
             TopPosition = n.TopPosition
-            TopDiameter = n.TopDiameter if n.TopDiameter != None else max(0.05,VineDiam(g,vid))
+            TopDiameter = n.TopDiameter if n.TopDiameter != None else max(0.05,vine_diam(g,vid))
             p = n.parent()
             try:
                 p == None # First phytomere at the basis of the trunk
