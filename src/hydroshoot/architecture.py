@@ -580,6 +580,13 @@ def vector_rotation(vector,axis, theta):
 
 
 def VineAxeIIinsert(inI_vector, insert_angle=46.,insert_angle_CI=4.6,rot_range=180.):
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_axeII_insert()")
+    return vine_axeII_insert(inI_vector, insert_angle, insert_angle_CI,
+                             rot_range)
+
+
+def vine_axeII_insert(inI_vector, insert_angle=46.,insert_angle_CI=4.6,rot_range=180.):
     """
     Returns the azimut and inclination [rad] of the insertion unit vector of the first secondary internode
 
@@ -728,7 +735,7 @@ def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
                             len_f,azi_f,incli_f = cart_to_pol((dx_f,dy_f,dz_f))
 
                             father_vec = (len_f,azi_f,incli_f)
-                            azi_init, incli_init = VineAxeIIinsert(father_vec)#,insert_angle,insert_angle_CI)
+                            azi_init, incli_init = vine_axeII_insert(father_vec)#,insert_angle,insert_angle_CI)
                             dx, dy, dz = pol_to_cart((length,azi_init, incli_init))
 
                     else:
@@ -788,7 +795,7 @@ def VinePetiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
                 Fifty_cent=30., sig_slope=4.2):
 
     #VinePetiole(in_order, len_max=80.,Fifty_cent=30.,sig_slope=4.2):
-    #VineAxeIIinsert(vec_f,insert_angle,insert_angle_CI))
+    #vine_axeII_insert(vec_f,insert_angle,insert_angle_CI))
     """
     Adds petiols to an existing MTG.
 
