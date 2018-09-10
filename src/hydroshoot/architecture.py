@@ -1062,7 +1062,7 @@ def vine_lobes_tips(pPet, lobes_tips):
     return points
 
 
-def MTGbase(g, vtx_label='inT'):
+def mtg_base(g, vtx_label='inT'):
     """
     Returns the basal vertex of a given vertex user-defined type.
 
@@ -1173,7 +1173,7 @@ def add_soil_components(g, cylinders_number, cylinders_radii, soil_dimensions,
     assert (len(cylinders_radii) == cylinders_number), 'Soil cylinders number (%d) and radii elements (%d) do not match.'%(len(cylinders_radii),cylinders_number)
 
     depth = soil_dimensions[2]*100. #[m]
-    child = g.node(MTGbase(g,vtx_label=vtx_label))
+    child = g.node(mtg_base(g,vtx_label=vtx_label))
     Length = 0.
     radius_prev = 0.
 
