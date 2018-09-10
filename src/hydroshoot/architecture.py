@@ -1329,6 +1329,14 @@ def vine_diam(g, vid, D_trunk=5.06, D_arm=3.77, D_Cx=2.91, D_3y=1.75,
 
 
 def VineMTGProp(g, vid):
+
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_mtg_properties()")
+
+    return vine_mtg_properties(g, vid)
+
+
+def vine_mtg_properties(g, vid):
     """
     Attaches geometric properties to MTG vertices.
 
