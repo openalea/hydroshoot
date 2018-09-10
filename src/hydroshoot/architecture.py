@@ -790,6 +790,14 @@ def vine_axeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
 
 
 def VinePetLen(in_order, len_max=8.,Fifty_cent=30.,sig_slope=4.2):
+
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_petiole_length()")
+
+    return vine_petiole_length(in_order, len_max, Fifty_cent, sig_slope)
+
+
+def vine_petiole_length(in_order, len_max=8.,Fifty_cent=30.,sig_slope=4.2):
     """
     Returns petiole length (def in cm) of an internode or a pruning complex.
 
@@ -840,7 +848,7 @@ def VinePetiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
 
             len_max = len_max_I if g.Class(vid).split('in')[1] == 'I' else len_max_II
             len_max = VineLeafLen(in_order, len_max, len_max/10.) # TODO: insert parameters
-            len_petI = VinePetLen(in_order, len_max, Fifty_cent,sig_slope)
+            len_petI = vine_petiole_length(in_order, len_max, Fifty_cent,sig_slope)
 
             vec_f = scipy.subtract(father.TopPosition,grandpa.TopPosition)
             len_f,azi_f,incli_f = cart_to_pol(vec_f)
