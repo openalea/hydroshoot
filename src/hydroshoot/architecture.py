@@ -620,6 +620,22 @@ def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
               phyto_type='P0', a_L=43.718, b_L=-37.663, a_P=1.722, b_P=10.136,
               c_P=-5.435, Fifty_cent=400., slope_curv=70.,curv_type='convexe'):
 
+    raise DeprecationWarning("This function must be replaced by vine_axeII()")
+
+    return vine_axeII(g, vid, phyllo_angle, PT_init, insert_angle,
+                      insert_angle_CI, pruning_type, N_init, N_max,
+                      N_max_order, in_order_max, slope_nfii, phyto_type,
+                      a_L, b_L, a_P, b_P, c_P, Fifty_cent, slope_curv,
+                      curv_type)
+    
+
+def vine_axeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
+               insert_angle_CI=4.6, pruning_type='avg_field_model',
+               N_init=0.18, N_max=2.25, N_max_order=4, in_order_max=25,
+               slope_nfii=5.7, phyto_type='P0', a_L=43.718, b_L=-37.663,
+               a_P=1.722, b_P=10.136, c_P=-5.435, Fifty_cent=400.,
+               slope_curv=70., curv_type='convexe'):
+
     """
     Adds secondary phytomers to an existing MTG.
 
