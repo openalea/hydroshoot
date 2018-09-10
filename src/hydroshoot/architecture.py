@@ -1487,9 +1487,10 @@ def vine_transform(g, vid):
 
 def VineOrient(g, vid, theta, v_axis=[0.,0.,1.], local_rotation=False):
 
-    raise DeprecationWarning("This function must be replaced by vine_orient()")
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_orientation()")
     
-    return vine_orient(g, vid, theta, v_axis, local_rotation)
+    return vine_orientation(g, vid, theta, v_axis, local_rotation)
 
 
 def vine_orientation(g, vid, theta, v_axis=[0.,0.,1.], local_rotation=False):
