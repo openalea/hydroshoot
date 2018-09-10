@@ -368,9 +368,9 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     if 'Soil' not in g.properties()['label'].values():
         if 'soil_size' in kwargs:
             if kwargs['soil_size'] > 0.:
-                HSArc.AddSoil(g,kwargs['soil_size'])
+                HSArc.add_soil(g,kwargs['soil_size'])
         else:
-            HSArc.AddSoil(g,500.)
+            HSArc.add_soil(g,500.)
 
 #   Suppression of undesired geometry for light and energy calculations
     geom_prop = g.properties()['geometry']

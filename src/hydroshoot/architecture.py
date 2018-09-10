@@ -982,7 +982,7 @@ def vine_leaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
                 vec_pet = scipy.subtract(n.TopPosition, n.parent().TopPosition)
                 rotation_axis = scipy.cross([0.,0.,1.],vec_pet)
             else:
-                rotation_axis = Leaf_RotationAxis(n.TopPosition,cordon_vector)
+                rotation_axis = leaf_rotation_axis(n.TopPosition,cordon_vector)
             rotation_angle = scipy.pi/2. - leaf_inc *(1.+(leaf_inc_cv/100.)*min(1,max(-1,scipy.randn()/2.96)))
             dx_limbe, dy_limbe, dz_limbe = vector_rotation(limbe_vec,rotation_axis,rotation_angle)
 
@@ -1111,7 +1111,7 @@ def cordon_vector(g):
     return linepts, scipy.array([linepts[0][i]-linepts[1][i] for i in range(2)] + [0.])
 
 
-def Leaf_RotationAxis(petiole_tip,rotation_axis):
+def leaf_rotation_axis(petiole_tip,rotation_axis):
     """
     Returns the signed rotation axis of petiole around a given axis.
 
@@ -1126,7 +1126,7 @@ def Leaf_RotationAxis(petiole_tip,rotation_axis):
     return scipy.sign(det((v1,v2))) * rotation_axis
 
 
-def AddSoil(g, side_length=10.):
+def add_soil(g, side_length=10.):
     """
     Adds a soil element to an existing MTG.
 
