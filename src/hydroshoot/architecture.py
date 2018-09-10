@@ -996,6 +996,14 @@ def vine_leaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
 
 
 def VineLobesTips(pPet, lobes_tips):
+
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_lobes_tips()")
+
+    return vine_lobes_tips(pPet, lobes_tips)
+
+
+def vine_lobes_tips(pPet, lobes_tips):
     """
     Returns the cartesian coordinates of vine leaf tips.
 
@@ -1391,7 +1399,7 @@ def VineMTGGeom(g, vid):
         elif n.label.startswith('LI'):
             if hasattr(n, 'TopPositionPoints'): # If leaf tips are digitized
                 pPet = n.parent().TopPosition
-                points = VineLobesTips(pPet, n.TopPositionPoints)
+                points = vine_lobes_tips(pPet, n.TopPositionPoints)
                 mesh = leaf_obs(points)
             else:
                 leaf_mesh = transformation(leaf0(1), 1., 1., 1., -scipy.pi/2.,0.,0.,0.,0.,0.)
