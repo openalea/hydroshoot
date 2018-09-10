@@ -1083,7 +1083,7 @@ def mtg_base(g, vtx_label='inT'):
     return vid_base
 
 
-def Cordon_vector(g):
+def cordon_vector(g):
     """
     Returns the vector of a **single vine** cordon axis.
     """
