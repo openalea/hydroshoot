@@ -818,7 +818,19 @@ def VinePetiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
                 phyllo_angle_cv=10., len_max_I=8., len_max_II=4.,
                 Fifty_cent=30., sig_slope=4.2):
 
-    #VinePetiole(in_order, len_max=80.,Fifty_cent=30.,sig_slope=4.2):
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_petiole()")
+    
+    return vine_petiole(g, vid, pet_ins, pet_ins_cv, phyllo_angle,
+                        phyllo_angle_cv, len_max_I, len_max_II, Fifty_cent,
+                        sig_slope)
+
+
+def vine_petiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
+                 phyllo_angle_cv=10., len_max_I=8., len_max_II=4.,
+                 Fifty_cent=30., sig_slope=4.2):
+
+    #vine_petiole(in_order, len_max=80.,Fifty_cent=30.,sig_slope=4.2):
     #vine_axeII_insert(vec_f,insert_angle,insert_angle_CI))
     """
     Adds petiols to an existing MTG.
@@ -847,7 +859,7 @@ def VinePetiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
             in_order = int(father.index()) if not father.label[-1].isalpha() else int(findall('\d+',str(father.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
 
             len_max = len_max_I if g.Class(vid).split('in')[1] == 'I' else len_max_II
-            len_max = VineLeafLen(in_order, len_max, len_max/10.) # TODO: insert parameters
+            len_max = vine_midrib_length(in_order, len_max, len_max/10.) # TODO: insert parameters
             len_petI = vine_petiole_length(in_order, len_max, Fifty_cent,sig_slope)
 
             vec_f = scipy.subtract(father.TopPosition,grandpa.TopPosition)
@@ -895,7 +907,17 @@ def VinePetiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
     return g
 
 
-def VineLeafLen(in_order, lim_max=15., lim_min=5.1, order_lim_max=7, max_order=40):
+def VineLeafLen(in_order, lim_max=15., lim_min=5.1, order_lim_max=7,
+                max_order=40):
+    
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_midrib_length()")
+
+    return vine_midrib_length(in_order, lim_max, lim_min, order_lim_max,
+                              max_order)
+
+
+def vine_midrib_length(in_order, lim_max=15., lim_min=5.1, order_lim_max=7, max_order=40):
     """
     Returns the length of a leaf based on the order of the holding internode.
 
@@ -942,7 +964,7 @@ def VineLeaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
             leaf_label = 'L' + order + '_' + str(in_order)
             leaf = g.add_child(vid, label=leaf_label, edge_type='+')
 
-            limbe_len = VineLeafLen(in_order, lim_max, lim_min, order_lim_max, max_order)
+            limbe_len = vine_midrib_length(in_order, lim_max, lim_min, order_lim_max, max_order)
             limbe_vec = scipy.array([0.,0.,1.])*limbe_len
 
             if cordon_vector is None:
