@@ -939,6 +939,17 @@ def vine_midrib_length(in_order, lim_max=15., lim_min=5.1, order_lim_max=7, max_
 def VineLeaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
              lim_max=15., lim_min=5.1, order_lim_max=7, max_order=40,
              cordon_vector=None):
+    
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_leaf()")
+    
+    return vine_leaf(g, vid, leaf_inc, leaf_inc_cv, rand_rot_angle, lim_max,
+                     lim_min, order_lim_max, max_order, cordon_vector)
+
+
+def vine_leaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
+             lim_max=15., lim_min=5.1, order_lim_max=7, max_order=40,
+             cordon_vector=None):
     """
     Determines both the length and 3D orientation of a leaf based on the order of its holding internode.
 
