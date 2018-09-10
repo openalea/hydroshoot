@@ -1486,6 +1486,13 @@ def vine_transform(g, vid):
 
 
 def VineOrient(g, vid, theta, v_axis=[0.,0.,1.], local_rotation=False):
+
+    raise DeprecationWarning("This function must be replaced by vine_orient()")
+    
+    return vine_orient(g, vid, theta, v_axis, local_rotation)
+
+
+def vine_orientation(g, vid, theta, v_axis=[0.,0.,1.], local_rotation=False):
     """
     Rotates an MTG around an axis by a given angle.
 
