@@ -1436,6 +1436,14 @@ def vine_mtg_geometry(g, vid):
 
 
 def VineTransform(g, vid):
+
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_transform()")
+
+    return vine_transform(g, vid)
+
+
+def vine_transform(g, vid):
     """
     Transforms all elements of an MTG to their real position.
     """
