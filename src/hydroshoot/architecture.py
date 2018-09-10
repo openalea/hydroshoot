@@ -1384,6 +1384,14 @@ def vine_mtg_properties(g, vid):
 
 
 def VineMTGGeom(g, vid):
+    
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_mtg_geometry()")
+
+    return vine_mtg_geometry(g, vid)
+
+
+def vine_mtg_geometry(g, vid):
     """
     Adds geometry to elements of an MTG object.
 

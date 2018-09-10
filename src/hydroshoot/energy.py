@@ -23,7 +23,7 @@ import alinea.astk.icosphere as ico
 
 from hydroshoot import meteo_utils as mutils
 from hydroshoot import irradiance as HSCaribu
-from hydroshoot.architecture import VineOrient, VineMTGProp, VineMTGGeom, VineTransform
+from hydroshoot.architecture import VineOrient, vine_mtg_properties, vine_mtg_geometry, VineTransform
 
 
 #def energy_params(a_PAR=0.87, a_NIR=0.35, a_glob=0.6, e_sky=1.0, e_leaf=0.96,
@@ -152,8 +152,8 @@ def form_factors_simplified(g, pattern, leaf_lbl_prefix='L',
             VineOrient(g,v,180., v_axis=[1.,0.,0.], local_rotation = False)
         
         for v in traversal.iter_mtg2(g,g.root):
-            VineMTGProp(g,v)
-            VineMTGGeom(g,v)
+            vine_mtg_properties(g,v)
+            vine_mtg_geometry(g,v)
             VineTransform(g,v)
         
         
