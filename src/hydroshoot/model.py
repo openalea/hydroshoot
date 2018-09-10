@@ -330,7 +330,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     if rhyzo_solution:
         dist_roots, rad_roots = (0.013, .0001) if 'roots' not in kwargs else kwargs['roots']
         if not any(item.startswith('rhyzo') for item in g.property('label').values()):
-            vid_collar = HSArc.MTGbase(g,vtx_label=vtx_label)
+            vid_collar = HSArc.mtg_base(g,vtx_label=vtx_label)
             vid_base = HSArc.add_soil_components(g, rhyzo_number, rhyzo_radii,
                                         soil_dimensions, soil_class, vtx_label)
         else:
@@ -353,7 +353,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     else:
         dist_roots, rad_roots = (None, None)
         # Identifying and attaching the base node of a single MTG
-        vid_collar = HSArc.MTGbase(g,vtx_label=vtx_label)
+        vid_collar = HSArc.mtg_base(g,vtx_label=vtx_label)
         vid_base = vid_collar
 
     g.node(g.root).vid_base = vid_base
