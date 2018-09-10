@@ -1234,7 +1234,7 @@ def slim_cylinder(length, radius_base, radius_top):
     return set
 
 
-def StemElement_mesh(length, diameter_base, diameter_top, classic = True):
+def stem_element_mesh(length, diameter_base, diameter_top, classic = True):
     """
     Computes mesh for a stem element (from Adel).
 
@@ -1393,7 +1393,7 @@ def VineMTGGeom(g, vid):
             diameter_base = n.properties()['BotDiameter']
             diameter_top = n.properties()['TopDiameter']
             #mesh = pgl.Cylinder(diameter_base,length,True,6)
-            mesh = StemElement_mesh(length, diameter_base, diameter_top, classic = True)
+            mesh = stem_element_mesh(length, diameter_base, diameter_top, classic = True)
             g.node(vid).geometry = mesh
 
         elif n.label.startswith('LI'):
