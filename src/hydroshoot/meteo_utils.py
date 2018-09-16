@@ -18,7 +18,7 @@ def air_vapor_pressure_deficit(Tac, hs):
     ea = es_a*hs/100 #% vapor pressure in the ambiant air (kPa)
     return es_a-ea #% Vapor pressure deficit at air temperature (Kpa)
 
-def DecliSun (DOY):
+def solar_declination (DOY):
     """ Declinaison (rad) du soleil en fonction du jour de l'annee """
     alpha=2*3.14*(DOY-1)/365
     return (0.006918-0.399912*cos(alpha)+0.070257*sin(alpha))
@@ -27,7 +27,7 @@ def extra (DOY,HU,latitude):
     """ rayonnement extraterrestre horarire """
     hrad=2*3.14/24*(HU-12)
     lat=radians(latitude)
-    dec=DecliSun (DOY)
+    dec=solar_declination (DOY)
     costheta=sin(lat)*sin(dec)+cos(lat)*cos(dec)*cos(hrad)
     Io=1370*(1+0.033*cos(2*3.14*(DOY-4)/366))#eclairement (w/m2) a la limitte de l'atmosphere dans un plan perpendiculaire aux rayons du soleil, fonction du jour
     So=Io*costheta #eclairement dans un plan parallele a la surface du sol
