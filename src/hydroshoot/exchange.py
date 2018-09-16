@@ -487,7 +487,7 @@ def compute_an_analytic(temp, vpd, x1c, x2c, x1j, x2j, x1t, x2t, Rd, psi,
     return An, mutils.cpa2cmol(temp,CC), mutils.cpa2cmol(temp,CI), GSW
 
 
-def AnGsCi(par_photo, meteo_leaf, psi, Tlc, model='misson', g0=0.019,rbt=2./3.,
+def an_gs_ci(par_photo, meteo_leaf, psi, Tlc, model='misson', g0=0.019,rbt=2./3.,
            ca=400., m0=5.278, psi0=-0.1, D0=30., n=1.85):
     """
     Estimates simultaneously the values of net CO2 assimilation rate (An) and
@@ -620,7 +620,7 @@ def VineExchange(g, par_photo, par_photo_N, par_gs, meteo, E_type2, leaf_lbl_pre
                 
                 g0 = g0max#*g0_sensibility(psi, psi_crit=-1, n=4)
 
-                An, Cc, Ci, gs = AnGsCi(node.par_photo, meteo_leaf, psi, Tlc,
+                An, Cc, Ci, gs = an_gs_ci(node.par_photo, meteo_leaf, psi, Tlc,
                                            model, g0, rbt, Ca, m0, psi0, D0, n)
 
                 # Boundary layer conductance
