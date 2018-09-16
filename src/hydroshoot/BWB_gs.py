@@ -34,7 +34,7 @@ def BWB_gs(An, ea, Tac, Ca, gb, m=118.69, g0=15.23, Pa = 101.3):
     R = 0.00831 # Constante des gaz parfaits kJ K-1
     T = 3.743*((exp(9.87-(24.46 /(R*(Tac+273.15)))))) # point de compensation de CO2
     es_a = s_avpd(Tac) #% saturated vapor pressure in the ambiant air (kPa)#saturated vapor pressure in the ambiant air (kPa)
-    hs = HR(ea, es_a)  # Relative humidity (pourcent)
+    hs = relative_humidity(ea, es_a)  # Relative humidity (pourcent)
     Cs = Ca-An*(1.37/gb) # CO2 concentration at the leaf surface, Kim and Lieth 2003
     ##Cs = Ca*Pa*0.001-An*(1.37/gb) # CO2 concentration at the leaf surface, Kim and Lieth 2003   #en Pa, pour lecture en ppm de Ca
     VPD= VPDa(Tac, hs) #Used for Leuning (03-2011)

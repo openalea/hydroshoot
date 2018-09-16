@@ -8,7 +8,7 @@ def s_avpd(Tac):
     """ saturated vapor pressure in the ambiant air (kPa)"""
     return 0.611*exp(17.27*Tac/(237.3+Tac))
  
-def HR(ea, es_a):
+def relative_humidity(ea, es_a):
     """  compute Relative humidity (pourcent)"""
     return (ea/es_a)*100.
 
