@@ -528,7 +528,7 @@ def an_gs_ci(par_photo, meteo_leaf, psi, Tlc, model='misson', g0=0.019,rbt=2./3.
     return An, Cc, Ci, gs
 
 
-def Transpiration_rate(Tlc, ea, gs, gb, Pa = 101.3):
+def transpiration_rate(Tlc, ea, gs, gb, Pa = 101.3):
     """
     Returns E, leaf transpiration in [mol m-2 s-1]
     
@@ -634,7 +634,7 @@ def VineExchange(g, par_photo, par_photo_N, par_gs, meteo, E_type2, leaf_lbl_pre
                 # Transpiration
                 es_a = mutils.s_avpd(Tac)
                 ea = es_a*hs/100.
-                E = Transpiration_rate(Tlc, ea, gs, gb, Pa)
+                E = transpiration_rate(Tlc, ea, gs, gb, Pa)
 
                 node.An = An
                 node.Ci = Ci
