@@ -553,7 +553,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
                     psi_prev = deepcopy(g.property('psi_head'))
         
                     # Computes gas-exchange fluxes. Leaf T and Psi are from prev calc loop
-                    HSExchange.VineExchange(g, par_photo, par_photo_N, par_gs,
+                    HSExchange.gas_exchange_rates(g, par_photo, par_photo_N, par_gs,
                                         imeteo, E_type2, leaf_lbl_prefix,rbt)
     
                     # Computes sapflow and hydraulic properties
@@ -653,7 +653,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
             else:
 #                ipsi = 0
 #               Computes gas-exchange fluxes. Leaf T and Psi are from prev calc loop
-                HSExchange.VineExchange(g, par_photo, par_photo_N, par_gs,
+                HSExchange.gas_exchange_rates(g, par_photo, par_photo_N, par_gs,
                                     imeteo, E_type2, leaf_lbl_prefix,rbt)
 
 #               Computes sapflow and hydraulic properties

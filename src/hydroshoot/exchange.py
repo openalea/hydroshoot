@@ -551,8 +551,8 @@ def transpiration_rate(Tlc, ea, gs, gb, Pa = 101.3):
     return E
 
 
-def VineExchange(g, par_photo, par_photo_N, par_gs, meteo, E_type2, leaf_lbl_prefix='L',
-                 rbt=2./3.):
+def gas_exchange_rates(g, par_photo, par_photo_N, par_gs, meteo, E_type2,
+                       leaf_lbl_prefix='L', rbt=2./3.):
     """
     Calculates gas exchange fluxes at the leaf scale according to the analytical scheme described by Evers et al. (JxBot 2010, 2203–2216).
 
