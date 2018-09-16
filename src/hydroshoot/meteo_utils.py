@@ -4,7 +4,7 @@ from scipy import exp
 R = 8.314510 # L kPa mol-1 K-1
 
 
-def s_avpd(Tac):
+def saturated_air_vapor_pressure(Tac):
     """ saturated vapor pressure in the ambiant air (kPa)"""
     return 0.611*exp(17.27*Tac/(237.3+Tac))
  
@@ -14,7 +14,7 @@ def relative_humidity(ea, es_a):
 
 def VPDa(Tac, hs):
     """ compute air Vapor pressure deficit at air temperature"""
-    es_a = s_avpd(Tac) #% saturated vapor pressure in the ambiant air (kPa)#saturated vapor pressure in the ambiant air (kPa)
+    es_a = saturated_air_vapor_pressure(Tac) #% saturated vapor pressure in the ambiant air (kPa)#saturated vapor pressure in the ambiant air (kPa)
     ea = es_a*hs/100 #% vapor pressure in the ambiant air (kPa)
     return es_a-ea #% Vapor pressure deficit at air temperature (Kpa)
 
@@ -52,7 +52,7 @@ def computeLongwaveNetRadiation(Tac, Rs, Rs0):
     sigma = 2.0412*1e-10 # Stefan-Boltzmann constant per surface area (MJ m-2 K-4 H-1)
 
     ## Compute longwave net radiation
-    es_a = s_avpd(Tac) #% saturated vapor pressure in the ambiant air (kPa)
+    es_a = saturated_air_vapor_pressure(Tac) #% saturated vapor pressure in the ambiant air (kPa)
     Tak = Tac+273.16
     ratio = min(1., Rs/Rs0)
     Rnl= sigma*(Tak**4)*(0.34-0.14*(es_a**0.5))*(1.35*ratio-0.35)
@@ -97,8 +97,8 @@ def VPD_leaf_air(Tac, Tlc, hs):
     -`Tlc`: leaf temperature [degreeC]
     - `hs`: air relative humidity (%)
     """
-    es_l = s_avpd(Tlc) #% saturated vapor pressure in the leaf (kPa)
-    es_a = s_avpd(Tac) #% saturated vapor pressure in the ambiant air (kPa)
+    es_l = saturated_air_vapor_pressure(Tlc) #% saturated vapor pressure in the leaf (kPa)
+    es_a = saturated_air_vapor_pressure(Tac) #% saturated vapor pressure in the ambiant air (kPa)
     ea = es_a*hs/100 #% vapor pressure in the ambiant air (kPa)
     return es_l-ea
 

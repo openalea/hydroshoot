@@ -545,7 +545,7 @@ def transpiration_rate(Tlc, ea, gs, gb, Pa = 101.3):
 
 #    gva = gb*1.37 # boundary layer conductance for water vapour transport [mol m2 s-1] # R: ancienne formule : gb*1.4
     gv = 1./((2./gb)+(1./gs)) # Formulation by Pearcy 1989
-    es_l = mutils.s_avpd(Tlc)  # Saturated vapor pressure at leaf surface [kPa]
+    es_l = mutils.saturated_air_vapor_pressure(Tlc)  # Saturated vapor pressure at leaf surface [kPa]
     E = gv*((es_l-ea)/Pa) # Transpiration rate [mol m-2 s-1]
 
     return E
@@ -632,7 +632,7 @@ def gas_exchange_rates(g, par_photo, par_photo_N, par_gs, meteo, E_type2,
                 gb = Dj*(Pa * 1.e-3) / ((R*1.e-3) * (Tac+273.15) * d_bl) # [mol m-2 s-1] (Nobel, 2009 pp.337)
 
                 # Transpiration
-                es_a = mutils.s_avpd(Tac)
+                es_a = mutils.saturated_air_vapor_pressure(Tac)
                 ea = es_a*hs/100.
                 E = transpiration_rate(Tlc, ea, gs, gb, Pa)
 
