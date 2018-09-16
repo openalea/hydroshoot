@@ -37,7 +37,7 @@ def BWB_gs(An, ea, Tac, Ca, gb, m=118.69, g0=15.23, Pa = 101.3):
     hs = relative_humidity(ea, es_a)  # Relative humidity (pourcent)
     Cs = Ca-An*(1.37/gb) # CO2 concentration at the leaf surface, Kim and Lieth 2003
     ##Cs = Ca*Pa*0.001-An*(1.37/gb) # CO2 concentration at the leaf surface, Kim and Lieth 2003   #en Pa, pour lecture en ppm de Ca
-    VPD= VPDa(Tac, hs) #Used for Leuning (03-2011)
+    VPD= air_vapor_pressure_deficit(Tac, hs) #Used for Leuning (03-2011)
     gs = (0.02 + ((12.5*An)/((1+(VPD/2.86))*(Cs-10*T)))) # Leuning (1995)  #luzerne
     if gs<0.02:
         gs = 0.02    

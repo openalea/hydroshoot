@@ -12,7 +12,7 @@ def relative_humidity(ea, es_a):
     """  compute Relative humidity (pourcent)"""
     return (ea/es_a)*100.
 
-def VPDa(Tac, hs):
+def air_vapor_pressure_deficit(Tac, hs):
     """ compute air Vapor pressure deficit at air temperature"""
     es_a = saturated_air_vapor_pressure(Tac) #% saturated vapor pressure in the ambiant air (kPa)#saturated vapor pressure in the ambiant air (kPa)
     ea = es_a*hs/100 #% vapor pressure in the ambiant air (kPa)
