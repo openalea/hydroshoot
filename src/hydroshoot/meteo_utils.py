@@ -34,11 +34,11 @@ def extraterrestrial_solar_irradiance (DOY,HU,latitude):
     return So
     #extraterrestrial_solar_irradiance (100,11,44)
 
-def Rs0(Ra, z):
+def clear_sky_global_radiation(Ra, z):
     """ compute clear sky global radiation according to extraterestrial radiation and altitude (m)
     eq 37 - FA056, p 51"""
     return Ra*(3600./1e6)*(0.75 + 2e-5*z) #formule pour Ra en MJ.m-2.h-1
-    #Rs0(extraterrestrial_solar_irradiance (100,11,44),10.)
+    #clear_sky_global_radiation(extraterrestrial_solar_irradiance (100,11,44),10.)
 
 
 def computeLongwaveNetRadiation(Tac, Rs, Rs0):
@@ -57,12 +57,12 @@ def computeLongwaveNetRadiation(Tac, Rs, Rs0):
     ratio = min(1., Rs/Rs0)
     Rnl= sigma*(Tak**4)*(0.34-0.14*(es_a**0.5))*(1.35*ratio-0.35)
     return Rnl*1e6/3600. #(en w.m-2)
-    #computeLongwaveNetRadiation(25., 600.*3600./1e6, Rs0(extraterrestrial_solar_irradiance(100,11,44),10.))
+    #computeLongwaveNetRadiation(25., 600.*3600./1e6, clear_sky_global_radiation(extraterrestrial_solar_irradiance(100,11,44),10.))
 
 def computeRabs(Rg, Tac, DOY, HU, latitude = 0.44, altitude = 0., albedo=0.2):
     """ """
     Rextra = extraterrestrial_solar_irradiance(DOY,HU,latitude)
-    Rs0_ = Rs0(Rextra, altitude)
+    Rs0_ = clear_sky_global_radiation(Rextra, altitude)
     Rnl = computeLongwaveNetRadiation(Tac, Rg*3600./1e6, Rs0_)
     Rabs=Rg*(1-albedo)-Rnl
 
