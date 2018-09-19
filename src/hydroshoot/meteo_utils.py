@@ -41,7 +41,7 @@ def clear_sky_global_radiation(Ra, z):
     #clear_sky_global_radiation(extraterrestrial_solar_irradiance (100,11,44),10.)
 
 
-def computeLongwaveNetRadiation(Tac, Rs, Rs0):
+def canopy_net_longwave_radiation_loss(Tac, Rs, Rs0):
     """ compute LongwaveNetRadiation = f(Tk_a,Tac_x, ea, Rs,Rs0) after FA0 56 eq #(39)
     Tak  : absolute air temperature (K)
     es_a : saturated vapor pressure in the ambiant air (kPa)
@@ -57,13 +57,13 @@ def computeLongwaveNetRadiation(Tac, Rs, Rs0):
     ratio = min(1., Rs/Rs0)
     Rnl= sigma*(Tak**4)*(0.34-0.14*(es_a**0.5))*(1.35*ratio-0.35)
     return Rnl*1e6/3600. #(en w.m-2)
-    #computeLongwaveNetRadiation(25., 600.*3600./1e6, clear_sky_global_radiation(extraterrestrial_solar_irradiance(100,11,44),10.))
+    #canopy_net_longwave_radiation_loss(25., 600.*3600./1e6, clear_sky_global_radiation(extraterrestrial_solar_irradiance(100,11,44),10.))
 
 def computeRabs(Rg, Tac, DOY, HU, latitude = 0.44, altitude = 0., albedo=0.2):
     """ """
     Rextra = extraterrestrial_solar_irradiance(DOY,HU,latitude)
     Rs0_ = clear_sky_global_radiation(Rextra, altitude)
-    Rnl = computeLongwaveNetRadiation(Tac, Rg*3600./1e6, Rs0_)
+    Rnl = canopy_net_longwave_radiation_loss(Tac, Rg*3600./1e6, Rs0_)
     Rabs=Rg*(1-albedo)-Rnl
 
     return Rabs
