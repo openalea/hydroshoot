@@ -1,7 +1,7 @@
 from numpy import exp
 from topvine.farquhar.meteo_utils import *
 
-def BWB_m(psi, m0=5.278, psi0=0.37, n_gs=1.85):
+def slope_m(psi, m0=5.278, psi0=0.37, n_gs=1.85):
     '''    compute BWB m parameter according to soil water status
     '''
     """psi : predawn leaf water potential (-MPa)
@@ -53,12 +53,12 @@ def BWB_gs(An, ea, Tac, Ca, gb, m=118.69, g0=15.23, Pa = 101.3):
     #BWB_gs(15.0,2.,25.,360.)
     #avec deficit hydrique
     #psi=0.1
-    #BWB_gs(15.0,2.,30.,360., BWB_m(psi), BWB_g0(psi))
+    #BWB_gs(15.0,2.,30.,360., slope_m(psi), BWB_g0(psi))
     
 def gs_Leuning(An, VPD, Cs, Tx, psi):
     """
     """
-    gs = 0.017 + BWB_m(psi, m0=5.278, psi0=0.37, n_gs=1.85) * An /((1+VPD/30.)*(Cs-Tx))
+    gs = 0.017 + slope_m(psi, m0=5.278, psi0=0.37, n_gs=1.85) * An /((1+VPD/30.)*(Cs-Tx))
     return gs
 
 
