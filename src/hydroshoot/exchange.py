@@ -121,7 +121,7 @@ def leaf_Na(ageTT, PPFD10, aN=-0.0008, bN=3.3, aM=6.471, bM=56.635):
 # compute An
 #==============================================================================
 
-def Arrhenius_1(param,Tlc,par_photo):
+def arrhenius_1(param,Tlc,par_photo):
     """
     Estimates the effect of temperature on the photosynthetic parameters `Tx`, `Kc`, `Ko` as described in Bernacchi et al. (2003)
     
@@ -201,9 +201,9 @@ def dHd_sensibility(psi, Tleaf, dHd_max=200., dHd_min1=195.,dHd_min2=190.,
 #    - **An**: net CO2 assimilation rate [umol m-2 s-1]
 #    """
 #
-#    T = Arrhenius_1('Tx',Tlc,par_photo) # CO2 compensation point in the absence of mitochondrial respiration [umol mol-1]
-#    Kc = Arrhenius_1('Kc',Tlc,par_photo) # Michaelis-Menten constant for the carboxylase [umol mol-1]
-#    Ko = Arrhenius_1('Ko',Tlc,par_photo) # Michaelis-Menten constant for the oxygenase [mmol mol-1]
+#    T = arrhenius_1('Tx',Tlc,par_photo) # CO2 compensation point in the absence of mitochondrial respiration [umol mol-1]
+#    Kc = arrhenius_1('Kc',Tlc,par_photo) # Michaelis-Menten constant for the carboxylase [umol mol-1]
+#    Ko = arrhenius_1('Ko',Tlc,par_photo) # Michaelis-Menten constant for the oxygenase [mmol mol-1]
 #
 #    Vcmax = Arrhenius_2('Vcmax',Tlc,par_photo) # Maximum RuBP-saturated rate of carboxylation [umol m-2 s-1]
 #    Jmax = Arrhenius_2('Jmax',Tlc,par_photo) # Maximum of electron transport [umol m-2 s-1]
@@ -238,9 +238,9 @@ def compute_an_2par(par_photo, PPFD, Tlc):
     - **Tlc**: float, leaf temperature [degreeC]
     """
 
-    T = Arrhenius_1('Tx',Tlc,par_photo)
-    Kc = Arrhenius_1('Kc',Tlc,par_photo)
-    Ko = Arrhenius_1('Ko',Tlc,par_photo)
+    T = arrhenius_1('Tx',Tlc,par_photo)
+    Kc = arrhenius_1('Kc',Tlc,par_photo)
+    Ko = arrhenius_1('Ko',Tlc,par_photo)
 
     Vcmax = Arrhenius_2('Vcmax',Tlc,par_photo)
     Jmax = Arrhenius_2('Jmax',Tlc,par_photo)
