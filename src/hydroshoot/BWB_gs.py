@@ -21,7 +21,7 @@ def cuticular_conductance(psi, psi0=0.34999999999999998, m0=41.700000000000003, 
 
     return m0/(1.+(psi/psi0)**n_cut)
 
-def BWB_gs(An, ea, Tac, Ca, gb, m=118.69, g0=15.23, Pa = 101.3):
+def stomatal_conductance_bwb(An, ea, Tac, Ca, gb, m=118.69, g0=15.23, Pa = 101.3):
     '''    Ball Woodrow & Berry stomatal conductance model
     '''
     """ compute stomatal conductance = f(An, ea, Tac, Ca, gb, psi) after ball and Berry (1987)
@@ -50,10 +50,10 @@ def BWB_gs(An, ea, Tac, Ca, gb, m=118.69, g0=15.23, Pa = 101.3):
     #   gs=g0/1000.
 
     return gs
-    #BWB_gs(15.0,2.,25.,360.)
+    #stomatal_conductance_bwb(15.0,2.,25.,360.)
     #avec deficit hydrique
     #psi=0.1
-    #BWB_gs(15.0,2.,30.,360., slope_m(psi), cuticular_conductance(psi))
+    #stomatal_conductance_bwb(15.0,2.,30.,360., slope_m(psi), cuticular_conductance(psi))
     
 def gs_Leuning(An, VPD, Cs, Tx, psi):
     """
