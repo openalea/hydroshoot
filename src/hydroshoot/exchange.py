@@ -146,7 +146,7 @@ def arrhenius_1(param,Tlc,par_photo):
     return p
 
 
-def Arrhenius_2(param,Tlc,par_photo):
+def arrhenius_2(param,Tlc,par_photo):
     """
     Estimates the effect of temperature on the photosynthetic parameters `Vcmax`, `Jmax`, `TPUmax`, `Rdmax` as described in Bernacchi et al. (2003)
 
@@ -205,10 +205,10 @@ def dHd_sensibility(psi, Tleaf, dHd_max=200., dHd_min1=195.,dHd_min2=190.,
 #    Kc = arrhenius_1('Kc',Tlc,par_photo) # Michaelis-Menten constant for the carboxylase [umol mol-1]
 #    Ko = arrhenius_1('Ko',Tlc,par_photo) # Michaelis-Menten constant for the oxygenase [mmol mol-1]
 #
-#    Vcmax = Arrhenius_2('Vcmax',Tlc,par_photo) # Maximum RuBP-saturated rate of carboxylation [umol m-2 s-1]
-#    Jmax = Arrhenius_2('Jmax',Tlc,par_photo) # Maximum of electron transport [umol m-2 s-1]
-#    TPU = Arrhenius_2('TPUmax',Tlc,par_photo) # The rate of triose phosphate transport [umol m-2 s-1]
-#    Rd = Arrhenius_2('Rdmax',Tlc,par_photo) # Mitochondrial respiration rate in the light [umol m-2 s-1]
+#    Vcmax = arrhenius_2('Vcmax',Tlc,par_photo) # Maximum RuBP-saturated rate of carboxylation [umol m-2 s-1]
+#    Jmax = arrhenius_2('Jmax',Tlc,par_photo) # Maximum of electron transport [umol m-2 s-1]
+#    TPU = arrhenius_2('TPUmax',Tlc,par_photo) # The rate of triose phosphate transport [umol m-2 s-1]
+#    Rd = arrhenius_2('Rdmax',Tlc,par_photo) # Mitochondrial respiration rate in the light [umol m-2 s-1]
 #
 #    alpha = par_photo['alpha'][0] # Leaf absorptance to photosynthetic photon flux [-]
 #    for i in range(1,len(par_photo['alpha'])):
@@ -242,10 +242,10 @@ def compute_an_2par(par_photo, PPFD, Tlc):
     Kc = arrhenius_1('Kc',Tlc,par_photo)
     Ko = arrhenius_1('Ko',Tlc,par_photo)
 
-    Vcmax = Arrhenius_2('Vcmax',Tlc,par_photo)
-    Jmax = Arrhenius_2('Jmax',Tlc,par_photo)
-    TPU = Arrhenius_2('TPUmax',Tlc,par_photo)
-    Rd = Arrhenius_2('Rdmax',Tlc,par_photo)
+    Vcmax = arrhenius_2('Vcmax',Tlc,par_photo)
+    Jmax = arrhenius_2('Jmax',Tlc,par_photo)
+    TPU = arrhenius_2('TPUmax',Tlc,par_photo)
+    Rd = arrhenius_2('Rdmax',Tlc,par_photo)
 
 #    alpha = par_photo['alpha'][0] # Leaf absorptance to photosynthetic photon flux [-]
 #    for i in range(1,len(par_photo['alpha'])):
