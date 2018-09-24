@@ -121,7 +121,7 @@ def leaf_Na(ageTT, PPFD10, aN=-0.0008, bN=3.3, aM=6.471, bM=56.635):
 # compute An
 #==============================================================================
 
-def Arrhenius_1(param,Tlc,par_photo):
+def arrhenius_1(param,Tlc,par_photo):
     """
     Estimates the effect of temperature on the photosynthetic parameters `Tx`, `Kc`, `Ko` as described in Bernacchi et al. (2003)
     
@@ -136,7 +136,7 @@ def Arrhenius_1(param,Tlc,par_photo):
     'Kc':('Kc25','RespT_Kc'),
     'Ko':('Ko25','RespT_Ko')}
 
-    Tak = mutils.Kelvin(Tlc)
+    Tak = mutils.celsius_to_kelvin(Tlc)
 #    indice1 = param_list[param][0]
     indice2 = param_list[param][1]
 #    p25 = par_photo[indice1]
@@ -146,7 +146,7 @@ def Arrhenius_1(param,Tlc,par_photo):
     return p
 
 
-def Arrhenius_2(param,Tlc,par_photo):
+def arrhenius_2(param,Tlc,par_photo):
     """
     Estimates the effect of temperature on the photosynthetic parameters `Vcmax`, `Jmax`, `TPUmax`, `Rdmax` as described in Bernacchi et al. (2003)
 
@@ -165,7 +165,7 @@ def Arrhenius_2(param,Tlc,par_photo):
     'TPUmax':('TPU25','RespT_TPU'),
     'Rdmax': ('Rd','RespT_Rd')}
 
-    Tak = mutils.Kelvin(Tlc)
+    Tak = mutils.celsius_to_kelvin(Tlc)
     indice1 = param_list[param][0]
     indice2 = param_list[param][1]
     p25 = par_photo[indice1]
@@ -201,14 +201,14 @@ def dHd_sensibility(psi, Tleaf, dHd_max=200., dHd_min1=195.,dHd_min2=190.,
 #    - **An**: net CO2 assimilation rate [umol m-2 s-1]
 #    """
 #
-#    T = Arrhenius_1('Tx',Tlc,par_photo) # CO2 compensation point in the absence of mitochondrial respiration [umol mol-1]
-#    Kc = Arrhenius_1('Kc',Tlc,par_photo) # Michaelis-Menten constant for the carboxylase [umol mol-1]
-#    Ko = Arrhenius_1('Ko',Tlc,par_photo) # Michaelis-Menten constant for the oxygenase [mmol mol-1]
+#    T = arrhenius_1('Tx',Tlc,par_photo) # CO2 compensation point in the absence of mitochondrial respiration [umol mol-1]
+#    Kc = arrhenius_1('Kc',Tlc,par_photo) # Michaelis-Menten constant for the carboxylase [umol mol-1]
+#    Ko = arrhenius_1('Ko',Tlc,par_photo) # Michaelis-Menten constant for the oxygenase [mmol mol-1]
 #
-#    Vcmax = Arrhenius_2('Vcmax',Tlc,par_photo) # Maximum RuBP-saturated rate of carboxylation [umol m-2 s-1]
-#    Jmax = Arrhenius_2('Jmax',Tlc,par_photo) # Maximum of electron transport [umol m-2 s-1]
-#    TPU = Arrhenius_2('TPUmax',Tlc,par_photo) # The rate of triose phosphate transport [umol m-2 s-1]
-#    Rd = Arrhenius_2('Rdmax',Tlc,par_photo) # Mitochondrial respiration rate in the light [umol m-2 s-1]
+#    Vcmax = arrhenius_2('Vcmax',Tlc,par_photo) # Maximum RuBP-saturated rate of carboxylation [umol m-2 s-1]
+#    Jmax = arrhenius_2('Jmax',Tlc,par_photo) # Maximum of electron transport [umol m-2 s-1]
+#    TPU = arrhenius_2('TPUmax',Tlc,par_photo) # The rate of triose phosphate transport [umol m-2 s-1]
+#    Rd = arrhenius_2('Rdmax',Tlc,par_photo) # Mitochondrial respiration rate in the light [umol m-2 s-1]
 #
 #    alpha = par_photo['alpha'][0] # Leaf absorptance to photosynthetic photon flux [-]
 #    for i in range(1,len(par_photo['alpha'])):
@@ -238,14 +238,14 @@ def compute_an_2par(par_photo, PPFD, Tlc):
     - **Tlc**: float, leaf temperature [degreeC]
     """
 
-    T = Arrhenius_1('Tx',Tlc,par_photo)
-    Kc = Arrhenius_1('Kc',Tlc,par_photo)
-    Ko = Arrhenius_1('Ko',Tlc,par_photo)
+    T = arrhenius_1('Tx',Tlc,par_photo)
+    Kc = arrhenius_1('Kc',Tlc,par_photo)
+    Ko = arrhenius_1('Ko',Tlc,par_photo)
 
-    Vcmax = Arrhenius_2('Vcmax',Tlc,par_photo)
-    Jmax = Arrhenius_2('Jmax',Tlc,par_photo)
-    TPU = Arrhenius_2('TPUmax',Tlc,par_photo)
-    Rd = Arrhenius_2('Rdmax',Tlc,par_photo)
+    Vcmax = arrhenius_2('Vcmax',Tlc,par_photo)
+    Jmax = arrhenius_2('Jmax',Tlc,par_photo)
+    TPU = arrhenius_2('TPUmax',Tlc,par_photo)
+    Rd = arrhenius_2('Rdmax',Tlc,par_photo)
 
 #    alpha = par_photo['alpha'][0] # Leaf absorptance to photosynthetic photon flux [-]
 #    for i in range(1,len(par_photo['alpha'])):
@@ -315,8 +315,8 @@ def compute_an_2par(par_photo, PPFD, Tlc):
 #    hs = meteo_leaf['hs'] 
 #    Ca = meteo_leaf['Ca']
 #    
-#    VPD = mutils.VPD_leaf_air(Tac,Tlc,hs)
-#    gb = mutils.computeBoundaryLayerConductance(meteo_leaf['u'], w)
+#    VPD = mutils.vapor_pressure_deficit(Tac,Tlc,hs)
+#    gb = mutils.boundary_layer_conductance(meteo_leaf['u'], w)
 #    
 #    i = 0
 #    while i<iterCi :
@@ -325,7 +325,7 @@ def compute_an_2par(par_photo, PPFD, Tlc):
 #        Cs = Ca-An*(1.37/gb)
 #        x1c,x2c,x1j,x2j,x1t,x2t,Rd = compute_an_2par(par_photo, PPFD, Tlc)
 #        Tx = x2j/2.
-#        gs = BWB_gs.gs_Leuning(An,VPD,Cs,Tx,psi)
+#        gs = BWB_gs.stomatal_conductance_leuning(An,VPD,Cs,Tx,psi)
 #
 #        Cinew = Ca-An*(1.6/gs+1.37/gb)
 #        
@@ -487,7 +487,7 @@ def compute_an_analytic(temp, vpd, x1c, x2c, x1j, x2j, x1t, x2t, Rd, psi,
     return An, mutils.cpa2cmol(temp,CC), mutils.cpa2cmol(temp,CI), GSW
 
 
-def AnGsCi(par_photo, meteo_leaf, psi, Tlc, model='misson', g0=0.019,rbt=2./3.,
+def an_gs_ci(par_photo, meteo_leaf, psi, Tlc, model='misson', g0=0.019,rbt=2./3.,
            ca=400., m0=5.278, psi0=-0.1, D0=30., n=1.85):
     """
     Estimates simultaneously the values of net CO2 assimilation rate (An) and
@@ -519,7 +519,7 @@ def AnGsCi(par_photo, meteo_leaf, psi, Tlc, model='misson', g0=0.019,rbt=2./3.,
     
     PPFD = max(1.e-6, PPFD) # To avoid numerical instability at PPFD=0 (Eq. S9 from Evers et al., 2010 JxBot,61:2203–2216)
 
-    VPD = mutils.VPD_leaf_air(Tac,Tlc,hs)
+    VPD = mutils.vapor_pressure_deficit(Tac,Tlc,hs)
 
     x1c,x2c,x1j,x2j,x1t,x2t,Rd = compute_an_2par(par_photo, PPFD, Tlc)
 
@@ -528,7 +528,7 @@ def AnGsCi(par_photo, meteo_leaf, psi, Tlc, model='misson', g0=0.019,rbt=2./3.,
     return An, Cc, Ci, gs
 
 
-def Transpiration_rate(Tlc, ea, gs, gb, Pa = 101.3):
+def transpiration_rate(Tlc, ea, gs, gb, Pa = 101.3):
     """
     Returns E, leaf transpiration in [mol m-2 s-1]
     
@@ -545,14 +545,14 @@ def Transpiration_rate(Tlc, ea, gs, gb, Pa = 101.3):
 
 #    gva = gb*1.37 # boundary layer conductance for water vapour transport [mol m2 s-1] # R: ancienne formule : gb*1.4
     gv = 1./((2./gb)+(1./gs)) # Formulation by Pearcy 1989
-    es_l = mutils.s_avpd(Tlc)  # Saturated vapor pressure at leaf surface [kPa]
+    es_l = mutils.saturated_air_vapor_pressure(Tlc)  # Saturated vapor pressure at leaf surface [kPa]
     E = gv*((es_l-ea)/Pa) # Transpiration rate [mol m-2 s-1]
 
     return E
 
 
-def VineExchange(g, par_photo, par_photo_N, par_gs, meteo, E_type2, leaf_lbl_prefix='L',
-                 rbt=2./3.):
+def gas_exchange_rates(g, par_photo, par_photo_N, par_gs, meteo, E_type2,
+                       leaf_lbl_prefix='L', rbt=2./3.):
     """
     Calculates gas exchange fluxes at the leaf scale according to the analytical scheme described by Evers et al. (JxBot 2010, 2203–2216).
 
@@ -620,11 +620,11 @@ def VineExchange(g, par_photo, par_photo_N, par_gs, meteo, E_type2, leaf_lbl_pre
                 
                 g0 = g0max#*g0_sensibility(psi, psi_crit=-1, n=4)
 
-                An, Cc, Ci, gs = AnGsCi(node.par_photo, meteo_leaf, psi, Tlc,
+                An, Cc, Ci, gs = an_gs_ci(node.par_photo, meteo_leaf, psi, Tlc,
                                            model, g0, rbt, Ca, m0, psi0, D0, n)
 
                 # Boundary layer conductance
-#                gb = mutils.computeBoundaryLayerConductance(u, w)
+#                gb = mutils.boundary_layer_conductance(u, w)
                 l_w = node.Length/100.*0.72 # leaf length in the downwind direction [m]
                 d_bl = 4.*(l_w/max(1.e-3,u))**0.5 /1000. # Boundary layer thikness in [m] (Nobel, 2009 pp.337)
                 Dj0 = 2.13*1.e-5 #[m2 s-1] at P=1. atm and t=0. °C (Nobel, pp.545)
@@ -632,9 +632,9 @@ def VineExchange(g, par_photo, par_photo_N, par_gs, meteo, E_type2, leaf_lbl_pre
                 gb = Dj*(Pa * 1.e-3) / ((R*1.e-3) * (Tac+273.15) * d_bl) # [mol m-2 s-1] (Nobel, 2009 pp.337)
 
                 # Transpiration
-                es_a = mutils.s_avpd(Tac)
+                es_a = mutils.saturated_air_vapor_pressure(Tac)
                 ea = es_a*hs/100.
-                E = Transpiration_rate(Tlc, ea, gs, gb, Pa)
+                E = transpiration_rate(Tlc, ea, gs, gb, Pa)
 
                 node.An = An
                 node.Ci = Ci

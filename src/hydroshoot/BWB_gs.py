@@ -1,7 +1,7 @@
 from numpy import exp
 from topvine.farquhar.meteo_utils import *
 
-def BWB_m(psi, m0=5.278, psi0=0.37, n_gs=1.85):
+def slope_m(psi, m0=5.278, psi0=0.37, n_gs=1.85):
     '''    compute BWB m parameter according to soil water status
     '''
     """psi : predawn leaf water potential (-MPa)
@@ -11,7 +11,7 @@ def BWB_m(psi, m0=5.278, psi0=0.37, n_gs=1.85):
 
     return m0/(1.+(psi/psi0)**n_gs)
 
-def BWB_g0(psi, psi0=0.34999999999999998, m0=41.700000000000003, n_cut=1.1799999999999999):
+def cuticular_conductance(psi, psi0=0.34999999999999998, m0=41.700000000000003, n_cut=1.1799999999999999):
     '''    compute cuticular conductance according to soil water status
     '''
     """psi : predawn leaf water potential (-MPa)
@@ -21,7 +21,7 @@ def BWB_g0(psi, psi0=0.34999999999999998, m0=41.700000000000003, n_cut=1.1799999
 
     return m0/(1.+(psi/psi0)**n_cut)
 
-def BWB_gs(An, ea, Tac, Ca, gb, m=118.69, g0=15.23, Pa = 101.3):
+def stomatal_conductance_bwb(An, ea, Tac, Ca, gb, m=118.69, g0=15.23, Pa = 101.3):
     '''    Ball Woodrow & Berry stomatal conductance model
     '''
     """ compute stomatal conductance = f(An, ea, Tac, Ca, gb, psi) after ball and Berry (1987)
@@ -33,11 +33,11 @@ def BWB_gs(An, ea, Tac, Ca, gb, m=118.69, g0=15.23, Pa = 101.3):
 
     R = 0.00831 # Constante des gaz parfaits kJ K-1
     T = 3.743*((exp(9.87-(24.46 /(R*(Tac+273.15)))))) # point de compensation de CO2
-    es_a = s_avpd(Tac) #% saturated vapor pressure in the ambiant air (kPa)#saturated vapor pressure in the ambiant air (kPa)
-    hs = HR(ea, es_a)  # Relative humidity (pourcent)
+    es_a = saturated_air_vapor_pressure(Tac) #% saturated vapor pressure in the ambiant air (kPa)#saturated vapor pressure in the ambiant air (kPa)
+    hs = relative_humidity(ea, es_a)  # Relative humidity (pourcent)
     Cs = Ca-An*(1.37/gb) # CO2 concentration at the leaf surface, Kim and Lieth 2003
     ##Cs = Ca*Pa*0.001-An*(1.37/gb) # CO2 concentration at the leaf surface, Kim and Lieth 2003   #en Pa, pour lecture en ppm de Ca
-    VPD= VPDa(Tac, hs) #Used for Leuning (03-2011)
+    VPD= air_vapor_pressure_deficit(Tac, hs) #Used for Leuning (03-2011)
     gs = (0.02 + ((12.5*An)/((1+(VPD/2.86))*(Cs-10*T)))) # Leuning (1995)  #luzerne
     if gs<0.02:
         gs = 0.02    
@@ -50,15 +50,15 @@ def BWB_gs(An, ea, Tac, Ca, gb, m=118.69, g0=15.23, Pa = 101.3):
     #   gs=g0/1000.
 
     return gs
-    #BWB_gs(15.0,2.,25.,360.)
+    #stomatal_conductance_bwb(15.0,2.,25.,360.)
     #avec deficit hydrique
     #psi=0.1
-    #BWB_gs(15.0,2.,30.,360., BWB_m(psi), BWB_g0(psi))
+    #stomatal_conductance_bwb(15.0,2.,30.,360., slope_m(psi), cuticular_conductance(psi))
     
-def gs_Leuning(An, VPD, Cs, Tx, psi):
+def stomatal_conductance_leuning(An, VPD, Cs, Tx, psi):
     """
     """
-    gs = 0.017 + BWB_m(psi, m0=5.278, psi0=0.37, n_gs=1.85) * An /((1+VPD/30.)*(Cs-Tx))
+    gs = 0.017 + slope_m(psi, m0=5.278, psi0=0.37, n_gs=1.85) * An /((1+VPD/30.)*(Cs-Tx))
     return gs
 
 

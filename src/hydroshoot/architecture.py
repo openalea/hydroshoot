@@ -30,9 +30,9 @@ import openalea.plantgl.all as pgl
 #==============================================================================
 # Functions from TopVine package
 #==============================================================================
-def XyzToPol (coordxy) :
+def cart_to_pol (coordxy) :
     """
-    Converts carthesian coordinates (x,y,z) to polar corrdinates (r,azi,incli).
+    Converts cartesian coordinates (x,y,z) to polar corrdinates (r,azi,incli).
     """
 
     x,y,z = coordxy[0], coordxy[1], coordxy[2]
@@ -51,7 +51,7 @@ def XyzToPol (coordxy) :
     return scipy.array([r,azi,incli])
 
 
-def PolToXyz (coordpol) :
+def pol_to_cart (coordpol) :
     """
     Converts polar corrdinates (r,azi,incli) to carthesian coordinates (x,y,z).
     """
@@ -105,6 +105,10 @@ def soil0(l=1.):
 #==============================================================================
 
 def VineMTG(file_path):
+    raise DeprecationWarning('This function must be replaced by vine_mtg()')
+    return vine_mtg(file_path)
+
+def vine_mtg(file_path):
     """
     Constructs a MultiScale Tree Graph (MTG) for digitilized grapvines.
     The data structure must be as follows:
@@ -355,6 +359,12 @@ def VineMTG(file_path):
 
 
 def VinePhytoModular(g,v, *args):
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_phyto_modular()")
+    return vine_phyto_modular(g,v, *args)
+
+
+def vine_phyto_modular(g,v, *args):
     """
     Identifies the type of phytometer according to Louarn et al. (2007).
     If not provided, 'P0 to P1' and 'P1 to P2' probabilites are given as:
@@ -399,7 +409,14 @@ def VinePhytoModular(g,v, *args):
     return g
 
 
-def VineNFII(in_order, pruning_type='avg_field_model',N_init=0.18,N_max=2.25,N_max_order=4,in_order_max=25,sig_slope=5.7,phyto_type='P0'):
+def VineNFII(in_order, pruning_type='avg_field_model', N_init=0.18, N_max=2.25,
+             N_max_order=4, in_order_max=25, sig_slope=5.7, phyto_type='P0'):
+    raise DeprecationWarning("This function must be replaced by vine_NFII()")
+    return vine_NFII(in_order, pruning_type, N_init, N_max, N_max_order,
+                     in_order_max, sig_slope, phyto_type)
+
+
+def vine_NFII(in_order, pruning_type='avg_field_model',N_init=0.18,N_max=2.25,N_max_order=4,in_order_max=25,sig_slope=5.7,phyto_type='P0'):
     """
     Returns NFII, the total number of secondary phytomers per primary internode.
 
@@ -459,7 +476,13 @@ def VineNFII(in_order, pruning_type='avg_field_model',N_init=0.18,N_max=2.25,N_m
     return NFII
 
 
-def VineLII(NFII, pruning_type='avg_field_model', a_L=43.718, b_L=-37.663, a_P=1.722, b_P=10.136, c_P=-5.435):
+def VineLII(NFII, pruning_type='avg_field_model', a_L=43.718, b_L=-37.663,
+            a_P=1.722, b_P=10.136, c_P=-5.435):
+    raise DeprecationWarning("This function must be replaced by vine_LII()")
+    return vine_LII(NFII, pruning_type, a_L, b_L, a_P, b_P, c_P)
+
+
+def vine_LII(NFII, pruning_type='avg_field_model', a_L=43.718, b_L=-37.663, a_P=1.722, b_P=10.136, c_P=-5.435):
     """
     Returns LII [mm], the total length of secondary axis.
 
@@ -479,6 +502,12 @@ def VineLII(NFII, pruning_type='avg_field_model', a_L=43.718, b_L=-37.663, a_P=1
 
 
 def VineInL(phyto_num, tot_len):
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_internode_length()")
+    return vine_internode_length(phyto_num, tot_len)
+
+
+def vine_internode_length(phyto_num, tot_len):
     """
     Returns the length of an individual internode.
 
@@ -496,7 +525,16 @@ def VineInL(phyto_num, tot_len):
     return inL
 
 
-def VineAxisCurv(incli_init, length, Fifty_cent=400., sig_slope=70.,curv_type='convexe'):
+def VineAxisCurv(incli_init, length, Fifty_cent=400., sig_slope=70.,
+                 curv_type='convexe'):
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_axis_curvature()")
+    return vine_axis_curvature(incli_init, length, Fifty_cent, sig_slope,
+                               curv_type)
+
+
+def vine_axis_curvature(incli_init, length, Fifty_cent=400., sig_slope=70.,
+                        curv_type='convexe'):
     """
     Returns the total curvature [radian] of an axis based on its initial inlination and its length.
 
@@ -542,6 +580,13 @@ def vector_rotation(vector,axis, theta):
 
 
 def VineAxeIIinsert(inI_vector, insert_angle=46.,insert_angle_CI=4.6,rot_range=180.):
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_axeII_insert()")
+    return vine_axeII_insert(inI_vector, insert_angle, insert_angle_CI,
+                             rot_range)
+
+
+def vine_axeII_insert(inI_vector, insert_angle=46.,insert_angle_CI=4.6,rot_range=180.):
     """
     Returns the azimut and inclination [rad] of the insertion unit vector of the first secondary internode
 
@@ -560,11 +605,11 @@ def VineAxeIIinsert(inI_vector, insert_angle=46.,insert_angle_CI=4.6,rot_range=1
     rand_rotate = rot_range*scipy.rand()
 #    azi_init = azi_I + a_insert*scipy.sin(rand_rotate)
 #    incli_init = incli_I + a_insert*scipy.cos(rand_rotate)
-    dx, dy, dz = PolToXyz((len_I, azi_I, incli_I))
+    dx, dy, dz = pol_to_cart((len_I, azi_I, incli_I))
     rot_axis_1 = scipy.cross((dx, dy, dz),(0.,0.,1.))
     vec_2 = vector_rotation((dx, dy, dz), rot_axis_1, a_insert)
     vec_2 = vector_rotation(vec_2, (dx, dy, dz), rand_rotate)
-    len_init, azi_init, incli_init = XyzToPol(vec_2)
+    len_init, azi_init, incli_init = cart_to_pol(vec_2)
 
     return azi_init, incli_init
 
@@ -574,6 +619,22 @@ def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
               N_max=2.25, N_max_order=4, in_order_max=25, slope_nfii=5.7,
               phyto_type='P0', a_L=43.718, b_L=-37.663, a_P=1.722, b_P=10.136,
               c_P=-5.435, Fifty_cent=400., slope_curv=70.,curv_type='convexe'):
+
+    raise DeprecationWarning("This function must be replaced by vine_axeII()")
+
+    return vine_axeII(g, vid, phyllo_angle, PT_init, insert_angle,
+                      insert_angle_CI, pruning_type, N_init, N_max,
+                      N_max_order, in_order_max, slope_nfii, phyto_type,
+                      a_L, b_L, a_P, b_P, c_P, Fifty_cent, slope_curv,
+                      curv_type)
+    
+
+def vine_axeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
+               insert_angle_CI=4.6, pruning_type='avg_field_model',
+               N_init=0.18, N_max=2.25, N_max_order=4, in_order_max=25,
+               slope_nfii=5.7, phyto_type='P0', a_L=43.718, b_L=-37.663,
+               a_P=1.722, b_P=10.136, c_P=-5.435, Fifty_cent=400.,
+               slope_curv=70., curv_type='convexe'):
 
     """
     Adds secondary phytomers to an existing MTG.
@@ -612,9 +673,9 @@ def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
             order = g.Class(vid).split('in')[1]
             if order == 'I':
                 in_order = int(fatherI.index()) if not fatherI.label[-1].isalpha() else int(findall('\d+',str(fatherI.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
-                NFII = VineNFII(in_order, pruning_type,N_init,N_max,N_max_order,in_order_max,slope_nfii,phyto_type)
-                tot_len = 0.1*VineLII(NFII, pruning_type, a_L, b_L, a_P, b_P, c_P)
-                length = VineInL(NFII, tot_len)
+                NFII = vine_NFII(in_order, pruning_type,N_init,N_max,N_max_order,in_order_max,slope_nfii,phyto_type)
+                tot_len = 0.1*vine_LII(NFII, pruning_type, a_L, b_L, a_P, b_P, c_P)
+                length = vine_internode_length(NFII, tot_len)
 
 #               Generation of secondary internodes
                 for vtx_id in range(NFII):
@@ -638,19 +699,19 @@ def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
                                 BotPos_sg = grandpa.TopPosition
                                 TopPos_sg = sibling.TopPosition
                                 dx_sg, dy_sg, dz_sg = [round(float(i),2) for i in scipy.subtract(TopPos_sg,BotPos_sg)]
-                                len_sg,azi_sg,incli_sg = XyzToPol((dx_sg,dy_sg,dz_sg))
+                                len_sg,azi_sg,incli_sg = cart_to_pol((dx_sg,dy_sg,dz_sg))
 
 #                               Getting the vector of the primary internode holding the previous axisII
                                 TopPos_gp = grandpa.TopPosition
                                 BotPos_gp = grandpa.parent().TopPosition
                                 dx_gp, dy_gp, dz_gp = [round(float(i),2) for i in scipy.subtract(TopPos_gp,BotPos_gp)]
-                                len_gp,azi_gp,incli_gp = XyzToPol((dx_gp,dy_gp,dz_gp))
+                                len_gp,azi_gp,incli_gp = cart_to_pol((dx_gp,dy_gp,dz_gp))
 
                                 # Getting the vector of the primary internode holding the actual axisII
                                 TopPos_f = fatherI.TopPosition
                                 BotPos_f = grandpa.TopPosition
                                 dx_f, dy_f, dz_f = [round(float(i),2) for i in scipy.subtract(TopPos_f,BotPos_f)]
-                                len_f,azi_f,incli_f = XyzToPol((dx_f,dy_f,dz_f))
+                                len_f,azi_f,incli_f = cart_to_pol((dx_f,dy_f,dz_f))
 
 #                               First correction azi and incli follow the dirction of the holding primary internode.
                                 dazi = azi_f - azi_gp
@@ -664,13 +725,13 @@ def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
                                 else:
                                     phyllo_angle = phyllo_angle*scipy.sign(incli_f)
 
-                                vector = PolToXyz((length,azi_tempo1,incli_tempo1))
+                                vector = pol_to_cart((length,azi_tempo1,incli_tempo1))
                                 axis_I = (dx_f, dy_f, dz_f)
                                 phyllotaxis = phyllo_angle*(1.+0.1*min(1,max(-1,scipy.randn()/2.96))) # the confidence interval 0.1 is to be confirmed.
 
 #                               Second correction: the axisII insertion internode must adhere to phyllotaxis rule.
                                 dx, dy, dz = vector_rotation(vector,axis_I,phyllotaxis)
-                                #len_init,azi_init,incli_init = XyzToPol((dx,dy,dz))
+                                #len_init,azi_init,incli_init = cart_to_pol((dx,dy,dz))
 
 #                               Third correction: Considering the uncertainty in the insertion angle
                                 ins_min = insert_angle - insert_angle_CI
@@ -681,17 +742,17 @@ def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
                                 rot_range = scipy.rand()*(sup_range - inf_range) + inf_range
                                 normal_vec = scipy.cross((dx, dy, dz),(axis_I)) # the normal vector to the plane defined by the primary internode and the insertion secondary internode
                                 dx, dy, dz = vector_rotation((dx, dy, dz),normal_vec,rot_range)
-                                len_init,azi_init,incli_init = XyzToPol((dx,dy,dz))
+                                len_init,azi_init,incli_init = cart_to_pol((dx,dy,dz))
 
                         if counter ==0:
                             TopPos_f = fatherI.TopPosition
                             BotPos_f = grandpa.TopPosition
                             dx_f, dy_f, dz_f = [round(float(i),2) for i in scipy.subtract(TopPos_f,BotPos_f)]
-                            len_f,azi_f,incli_f = XyzToPol((dx_f,dy_f,dz_f))
+                            len_f,azi_f,incli_f = cart_to_pol((dx_f,dy_f,dz_f))
 
                             father_vec = (len_f,azi_f,incli_f)
-                            azi_init, incli_init = VineAxeIIinsert(father_vec)#,insert_angle,insert_angle_CI)
-                            dx, dy, dz = PolToXyz((length,azi_init, incli_init))
+                            azi_init, incli_init = vine_axeII_insert(father_vec)#,insert_angle,insert_angle_CI)
+                            dx, dy, dz = pol_to_cart((length,azi_init, incli_init))
 
                     else:
                         vidII = g.node(en_c)
@@ -699,9 +760,9 @@ def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
                         grandpaII = fatherII.parent()
                         dx_prec,dy_prec,dz_prec = [round(float(i),2) for i in scipy.subtract(fatherII.TopPosition,grandpaII.TopPosition)]
                         vector_prec = (dx_prec,dy_prec,dz_prec)
-                        len_prec,azi_prec,incli_prec = XyzToPol(vector_prec)
+                        len_prec,azi_prec,incli_prec = cart_to_pol(vector_prec)
 
-                        curv_tot = VineAxisCurv(incli_init, tot_len*10., Fifty_cent, slope_curv,curv_type)
+                        curv_tot = vine_axis_curvature(incli_init, tot_len*10., Fifty_cent, slope_curv,curv_type)
 
                         PT = PT_init #+ ((scipy.pi - curv_tot)/scipy.pi)*(1-PT_init)
 
@@ -729,6 +790,14 @@ def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
 
 
 def VinePetLen(in_order, len_max=8.,Fifty_cent=30.,sig_slope=4.2):
+
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_petiole_length()")
+
+    return vine_petiole_length(in_order, len_max, Fifty_cent, sig_slope)
+
+
+def vine_petiole_length(in_order, len_max=8.,Fifty_cent=30.,sig_slope=4.2):
     """
     Returns petiole length (def in cm) of an internode or a pruning complex.
 
@@ -749,8 +818,20 @@ def VinePetiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
                 phyllo_angle_cv=10., len_max_I=8., len_max_II=4.,
                 Fifty_cent=30., sig_slope=4.2):
 
-    #VinePetiole(in_order, len_max=80.,Fifty_cent=30.,sig_slope=4.2):
-    #VineAxeIIinsert(vec_f,insert_angle,insert_angle_CI))
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_petiole()")
+    
+    return vine_petiole(g, vid, pet_ins, pet_ins_cv, phyllo_angle,
+                        phyllo_angle_cv, len_max_I, len_max_II, Fifty_cent,
+                        sig_slope)
+
+
+def vine_petiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
+                 phyllo_angle_cv=10., len_max_I=8., len_max_II=4.,
+                 Fifty_cent=30., sig_slope=4.2):
+
+    #vine_petiole(in_order, len_max=80.,Fifty_cent=30.,sig_slope=4.2):
+    #vine_axeII_insert(vec_f,insert_angle,insert_angle_CI))
     """
     Adds petiols to an existing MTG.
 
@@ -778,14 +859,14 @@ def VinePetiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
             in_order = int(father.index()) if not father.label[-1].isalpha() else int(findall('\d+',str(father.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
 
             len_max = len_max_I if g.Class(vid).split('in')[1] == 'I' else len_max_II
-            len_max = VineLeafLen(in_order, len_max, len_max/10.) # TODO: insert parameters
-            len_petI = VinePetLen(in_order, len_max, Fifty_cent,sig_slope)
+            len_max = vine_midrib_length(in_order, len_max, len_max/10.) # TODO: insert parameters
+            len_petI = vine_petiole_length(in_order, len_max, Fifty_cent,sig_slope)
 
             vec_f = scipy.subtract(father.TopPosition,grandpa.TopPosition)
-            len_f,azi_f,incli_f = XyzToPol(vec_f)
+            len_f,azi_f,incli_f = cart_to_pol(vec_f)
 
             vec_gp = scipy.subtract(grandpa.TopPosition,grandgrandpa.TopPosition)
-            len_gp,azi_gp,incli_gp = XyzToPol(vec_gp)
+            len_gp,azi_gp,incli_gp = cart_to_pol(vec_gp)
 
             if in_order == 1:
                 # Generating first petiole
@@ -799,7 +880,7 @@ def VinePetiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
                         BotPos_sg = grandpa.TopPosition
                         TopPos_sg = sibling.TopPosition
                         vec_sg = scipy.subtract(TopPos_sg,BotPos_sg)
-                        len_sg,azi_sg,incli_sg = XyzToPol(vec_sg)
+                        len_sg,azi_sg,incli_sg = cart_to_pol(vec_sg)
                 rotation_axis1 = scipy.cross(vec_f, vec_sg)
                 arb = 1.
 
@@ -826,7 +907,17 @@ def VinePetiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
     return g
 
 
-def VineLeafLen(in_order, lim_max=15., lim_min=5.1, order_lim_max=7, max_order=40):
+def VineLeafLen(in_order, lim_max=15., lim_min=5.1, order_lim_max=7,
+                max_order=40):
+    
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_midrib_length()")
+
+    return vine_midrib_length(in_order, lim_max, lim_min, order_lim_max,
+                              max_order)
+
+
+def vine_midrib_length(in_order, lim_max=15., lim_min=5.1, order_lim_max=7, max_order=40):
     """
     Returns the length of a leaf based on the order of the holding internode.
 
@@ -846,6 +937,17 @@ def VineLeafLen(in_order, lim_max=15., lim_min=5.1, order_lim_max=7, max_order=4
 
 
 def VineLeaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
+             lim_max=15., lim_min=5.1, order_lim_max=7, max_order=40,
+             cordon_vector=None):
+    
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_leaf()")
+    
+    return vine_leaf(g, vid, leaf_inc, leaf_inc_cv, rand_rot_angle, lim_max,
+                     lim_min, order_lim_max, max_order, cordon_vector)
+
+
+def vine_leaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
              lim_max=15., lim_min=5.1, order_lim_max=7, max_order=40,
              cordon_vector=None):
     """
@@ -873,14 +975,14 @@ def VineLeaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
             leaf_label = 'L' + order + '_' + str(in_order)
             leaf = g.add_child(vid, label=leaf_label, edge_type='+')
 
-            limbe_len = VineLeafLen(in_order, lim_max, lim_min, order_lim_max, max_order)
+            limbe_len = vine_midrib_length(in_order, lim_max, lim_min, order_lim_max, max_order)
             limbe_vec = scipy.array([0.,0.,1.])*limbe_len
 
             if cordon_vector is None:
                 vec_pet = scipy.subtract(n.TopPosition, n.parent().TopPosition)
                 rotation_axis = scipy.cross([0.,0.,1.],vec_pet)
             else:
-                rotation_axis = Leaf_RotationAxis(n.TopPosition,cordon_vector)
+                rotation_axis = leaf_rotation_axis(n.TopPosition,cordon_vector)
             rotation_angle = scipy.pi/2. - leaf_inc *(1.+(leaf_inc_cv/100.)*min(1,max(-1,scipy.randn()/2.96)))
             dx_limbe, dy_limbe, dz_limbe = vector_rotation(limbe_vec,rotation_axis,rotation_angle)
 
@@ -894,6 +996,14 @@ def VineLeaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
 
 
 def VineLobesTips(pPet, lobes_tips):
+
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_lobes_tips()")
+
+    return vine_lobes_tips(pPet, lobes_tips)
+
+
+def vine_lobes_tips(pPet, lobes_tips):
     """
     Returns the cartesian coordinates of vine leaf tips.
 
@@ -952,7 +1062,7 @@ def VineLobesTips(pPet, lobes_tips):
     return points
 
 
-def MTGbase(g, vtx_label='inT'):
+def mtg_base(g, vtx_label='inT'):
     """
     Returns the basal vertex of a given vertex user-defined type.
 
@@ -973,7 +1083,7 @@ def MTGbase(g, vtx_label='inT'):
     return vid_base
 
 
-def Cordon_vector(g):
+def cordon_vector(g):
     """
     Returns the vector of a **single vine** cordon axis.
     """
@@ -1001,7 +1111,7 @@ def Cordon_vector(g):
     return linepts, scipy.array([linepts[0][i]-linepts[1][i] for i in range(2)] + [0.])
 
 
-def Leaf_RotationAxis(petiole_tip,rotation_axis):
+def leaf_rotation_axis(petiole_tip,rotation_axis):
     """
     Returns the signed rotation axis of petiole around a given axis.
 
@@ -1016,7 +1126,7 @@ def Leaf_RotationAxis(petiole_tip,rotation_axis):
     return scipy.sign(det((v1,v2))) * rotation_axis
 
 
-def AddSoil(g, side_length=10.):
+def add_soil(g, side_length=10.):
     """
     Adds a soil element to an existing MTG.
 
@@ -1063,7 +1173,7 @@ def add_soil_components(g, cylinders_number, cylinders_radii, soil_dimensions,
     assert (len(cylinders_radii) == cylinders_number), 'Soil cylinders number (%d) and radii elements (%d) do not match.'%(len(cylinders_radii),cylinders_number)
 
     depth = soil_dimensions[2]*100. #[m]
-    child = g.node(MTGbase(g,vtx_label=vtx_label))
+    child = g.node(mtg_base(g,vtx_label=vtx_label))
     Length = 0.
     radius_prev = 0.
 
@@ -1124,7 +1234,7 @@ def slim_cylinder(length, radius_base, radius_top):
     return set
 
 
-def StemElement_mesh(length, diameter_base, diameter_top, classic = True):
+def stem_element_mesh(length, diameter_base, diameter_top, classic = True):
     """
     Computes mesh for a stem element (from Adel).
 
@@ -1168,7 +1278,7 @@ def leaf_obs(points):
     return f
 
 
-def VineDiam(g, vid, D_trunk=5.06, D_arm=3.77, D_Cx=2.91, D_3y=1.75,
+def vine_diam(g, vid, D_trunk=5.06, D_arm=3.77, D_Cx=2.91, D_3y=1.75,
              D_spur=1.15, D_cane=0.99, Fifty_cent=5.,sig_slope=10.,D_pet=0.35):
     """
     Returns the diameter [cm] of an internode or a structural element.
@@ -1219,6 +1329,14 @@ def VineDiam(g, vid, D_trunk=5.06, D_arm=3.77, D_Cx=2.91, D_3y=1.75,
 
 
 def VineMTGProp(g, vid):
+
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_mtg_properties()")
+
+    return vine_mtg_properties(g, vid)
+
+
+def vine_mtg_properties(g, vid):
     """
     Attaches geometric properties to MTG vertices.
 
@@ -1229,12 +1347,12 @@ def VineMTGProp(g, vid):
 
     n = g.node(vid)
     if vid>0:
-        if n.label.startswith(('sh','G')): VineDiam(g,vid) # Sets the initial diameters of the primary and secondary axes.
+        if n.label.startswith(('sh','G')): vine_diam(g,vid) # Sets the initial diameters of the primary and secondary axes.
 
 #       Setting the properties of internodes, pruning complices and petioles
         if n.label.startswith(('in','cx','Pet')):
             TopPosition = n.TopPosition
-            TopDiameter = n.TopDiameter if n.TopDiameter != None else max(0.05,VineDiam(g,vid))
+            TopDiameter = n.TopDiameter if n.TopDiameter != None else max(0.05,vine_diam(g,vid))
             p = n.parent()
             try:
                 p == None # First phytomere at the basis of the trunk
@@ -1266,6 +1384,14 @@ def VineMTGProp(g, vid):
 
 
 def VineMTGGeom(g, vid):
+    
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_mtg_geometry()")
+
+    return vine_mtg_geometry(g, vid)
+
+
+def vine_mtg_geometry(g, vid):
     """
     Adds geometry to elements of an MTG object.
 
@@ -1283,20 +1409,20 @@ def VineMTGGeom(g, vid):
             diameter_base = n.properties()['BotDiameter']
             diameter_top = n.properties()['TopDiameter']
             #mesh = pgl.Cylinder(diameter_base,length,True,6)
-            mesh = StemElement_mesh(length, diameter_base, diameter_top, classic = True)
+            mesh = stem_element_mesh(length, diameter_base, diameter_top, classic = True)
             g.node(vid).geometry = mesh
 
         elif n.label.startswith('LI'):
             if hasattr(n, 'TopPositionPoints'): # If leaf tips are digitized
                 pPet = n.parent().TopPosition
-                points = VineLobesTips(pPet, n.TopPositionPoints)
+                points = vine_lobes_tips(pPet, n.TopPositionPoints)
                 mesh = leaf_obs(points)
             else:
                 leaf_mesh = transformation(leaf0(1), 1., 1., 1., -scipy.pi/2.,0.,0.,0.,0.,0.)
 
                 length = n.properties()['Length']
                 leaf_vec = scipy.subtract(n.TopPosition, n.parent().TopPosition)
-                leaf_len, leaf_azi, leaf_incli = XyzToPol(leaf_vec)
+                leaf_len, leaf_azi, leaf_incli = cart_to_pol(leaf_vec)
 #                theta_1 = -scipy.pi/2.
 #                theta_2 = 0. #scipy.pi*(1.+(theta_2_cv/100.)*min(1,max(-1,scipy.randn()/2.96)))
                 mesh = transformation(leaf_mesh, length, length, 1., 0., 0.,0.,0.,0.,0.)
@@ -1310,6 +1436,14 @@ def VineMTGGeom(g, vid):
 
 
 def VineTransform(g, vid):
+
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_transform()")
+
+    return vine_transform(g, vid)
+
+
+def vine_transform(g, vid):
     """
     Transforms all elements of an MTG to their real position.
     """
@@ -1344,7 +1478,7 @@ def VineTransform(g, vid):
                 x_bot,y_bot,z_bot = [n.BotPosition[i] for i in [0,1,2]]
                 mesh = n.geometry
                 vec_lim = scipy.subtract(n.TopPosition, n.BotPosition)
-                len_lim, azi_lim, incli_lim = XyzToPol(vec_lim)
+                len_lim, azi_lim, incli_lim = cart_to_pol(vec_lim)
                 mesh = transformation(mesh, len_lim, len_lim, 1., azi_lim, -1*incli_lim,0.,x_bot,y_bot,z_bot)
                 g.node(vid).geometry = mesh
 
@@ -1352,6 +1486,14 @@ def VineTransform(g, vid):
 
 
 def VineOrient(g, vid, theta, v_axis=[0.,0.,1.], local_rotation=False):
+
+    raise DeprecationWarning("This function must be replaced by \
+                             vine_orientation()")
+    
+    return vine_orientation(g, vid, theta, v_axis, local_rotation)
+
+
+def vine_orientation(g, vid, theta, v_axis=[0.,0.,1.], local_rotation=False):
     """
     Rotates an MTG around an axis by a given angle.
 

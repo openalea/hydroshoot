@@ -18,7 +18,7 @@ import openalea.plantgl.all as pgl
 
 mpl.style.use('ggplot')
 
-#from hydroshoot.architecture import MTGbase
+#from hydroshoot.architecture import mtg_base
 from hydroshoot.hydraulic import def_param_soil
 
 

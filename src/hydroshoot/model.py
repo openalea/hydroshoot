@@ -330,7 +330,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     if rhyzo_solution:
         dist_roots, rad_roots = (0.013, .0001) if 'roots' not in kwargs else kwargs['roots']
         if not any(item.startswith('rhyzo') for item in g.property('label').values()):
-            vid_collar = HSArc.MTGbase(g,vtx_label=vtx_label)
+            vid_collar = HSArc.mtg_base(g,vtx_label=vtx_label)
             vid_base = HSArc.add_soil_components(g, rhyzo_number, rhyzo_radii,
                                         soil_dimensions, soil_class, vtx_label)
         else:
@@ -353,7 +353,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     else:
         dist_roots, rad_roots = (None, None)
         # Identifying and attaching the base node of a single MTG
-        vid_collar = HSArc.MTGbase(g,vtx_label=vtx_label)
+        vid_collar = HSArc.mtg_base(g,vtx_label=vtx_label)
         vid_base = vid_collar
 
     g.node(g.root).vid_base = vid_base
@@ -368,9 +368,9 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     if 'Soil' not in g.properties()['label'].values():
         if 'soil_size' in kwargs:
             if kwargs['soil_size'] > 0.:
-                HSArc.AddSoil(g,kwargs['soil_size'])
+                HSArc.add_soil(g,kwargs['soil_size'])
         else:
-            HSArc.AddSoil(g,500.)
+            HSArc.add_soil(g,500.)
 
 #   Suppression of undesired geometry for light and energy calculations
     geom_prop = g.properties()['geometry']
@@ -553,7 +553,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
                     psi_prev = deepcopy(g.property('psi_head'))
         
                     # Computes gas-exchange fluxes. Leaf T and Psi are from prev calc loop
-                    HSExchange.VineExchange(g, par_photo, par_photo_N, par_gs,
+                    HSExchange.gas_exchange_rates(g, par_photo, par_photo_N, par_gs,
                                         imeteo, E_type2, leaf_lbl_prefix,rbt)
     
                     # Computes sapflow and hydraulic properties
@@ -653,7 +653,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
             else:
 #                ipsi = 0
 #               Computes gas-exchange fluxes. Leaf T and Psi are from prev calc loop
-                HSExchange.VineExchange(g, par_photo, par_photo_N, par_gs,
+                HSExchange.gas_exchange_rates(g, par_photo, par_photo_N, par_gs,
                                     imeteo, E_type2, leaf_lbl_prefix,rbt)
 
 #               Computes sapflow and hydraulic properties
