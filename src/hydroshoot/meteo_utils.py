@@ -59,7 +59,7 @@ def canopy_net_longwave_radiation_loss(Tac, Rs, Rs0):
     return Rnl*1e6/3600. #(en w.m-2)
     #canopy_net_longwave_radiation_loss(25., 600.*3600./1e6, clear_sky_global_radiation(extraterrestrial_solar_irradiance(100,11,44),10.))
 
-def computeRabs(Rg, Tac, DOY, HU, latitude = 0.44, altitude = 0., albedo=0.2):
+def net_absorbed_radiation(Rg, Tac, DOY, HU, latitude = 0.44, altitude = 0., albedo=0.2):
     """ """
     Rextra = extraterrestrial_solar_irradiance(DOY,HU,latitude)
     Rs0_ = clear_sky_global_radiation(Rextra, altitude)
@@ -67,7 +67,7 @@ def computeRabs(Rg, Tac, DOY, HU, latitude = 0.44, altitude = 0., albedo=0.2):
     Rabs=Rg*(1-albedo)-Rnl
 
     return Rabs
-    #computeRabs(600., 25., 100, 11)
+    #net_absorbed_radiation(600., 25., 100, 11)
 
 
 def computeBoundaryLayerConductance(u, w=0.1):
