@@ -384,7 +384,7 @@ def soil_temperature(g, meteo, T_sky, soil_lbl_prefix='other'):
         E_SW = (1-0.25)*E_glob # 0.25 is rough estimation of albedo of a bare soil
         delta_E_LW = e_soil*sigma*(1.*e_sky*(T_sky)**4 + 1.*e_leaf*T_leaf**4- ((T_soil)**4)) # hack: 0% loss to deeper soil layers
 #                             k_leaves*e_leaf*sigma*(T_leaf)**4)
-        E_Y = -lambda_* 0.06 * mutils.VPD_leaf_air(t_air, T_soil-273.15,hs)/Pa # 0.06 is gM from Bailey 2016 AFM 218-219:146-160
+        E_Y = -lambda_* 0.06 * mutils.vapor_pressure_deficit(t_air, T_soil-273.15,hs)/Pa # 0.06 is gM from Bailey 2016 AFM 218-219:146-160
         E_H = -0.5 * Cp * (T_soil-T_air) # 0.5 is gH from Bailey 2016 AFM 218-219:146-160
         E_error = E_SW + delta_E_LW + E_Y + E_H
         return E_error

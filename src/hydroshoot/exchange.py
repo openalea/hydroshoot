@@ -136,7 +136,7 @@ def arrhenius_1(param,Tlc,par_photo):
     'Kc':('Kc25','RespT_Kc'),
     'Ko':('Ko25','RespT_Ko')}
 
-    Tak = mutils.Kelvin(Tlc)
+    Tak = mutils.celsius_to_kelvin(Tlc)
 #    indice1 = param_list[param][0]
     indice2 = param_list[param][1]
 #    p25 = par_photo[indice1]
@@ -165,7 +165,7 @@ def arrhenius_2(param,Tlc,par_photo):
     'TPUmax':('TPU25','RespT_TPU'),
     'Rdmax': ('Rd','RespT_Rd')}
 
-    Tak = mutils.Kelvin(Tlc)
+    Tak = mutils.celsius_to_kelvin(Tlc)
     indice1 = param_list[param][0]
     indice2 = param_list[param][1]
     p25 = par_photo[indice1]
@@ -315,7 +315,7 @@ def compute_an_2par(par_photo, PPFD, Tlc):
 #    hs = meteo_leaf['hs'] 
 #    Ca = meteo_leaf['Ca']
 #    
-#    VPD = mutils.VPD_leaf_air(Tac,Tlc,hs)
+#    VPD = mutils.vapor_pressure_deficit(Tac,Tlc,hs)
 #    gb = mutils.boundary_layer_conductance(meteo_leaf['u'], w)
 #    
 #    i = 0
@@ -519,7 +519,7 @@ def an_gs_ci(par_photo, meteo_leaf, psi, Tlc, model='misson', g0=0.019,rbt=2./3.
     
     PPFD = max(1.e-6, PPFD) # To avoid numerical instability at PPFD=0 (Eq. S9 from Evers et al., 2010 JxBot,61:2203–2216)
 
-    VPD = mutils.VPD_leaf_air(Tac,Tlc,hs)
+    VPD = mutils.vapor_pressure_deficit(Tac,Tlc,hs)
 
     x1c,x2c,x1j,x2j,x1t,x2t,Rd = compute_an_2par(par_photo, PPFD, Tlc)
 

@@ -81,14 +81,14 @@ def boundary_layer_conductance(u, w=0.1):
     return gb
     #boundary_layer_conductance(2.)
 
-def Kelvin(T):
+def celsius_to_kelvin(T):
     """
     Converts from Celsius to absolute temperature.
     """
     Tak = T + 273.
     return Tak
     
-def VPD_leaf_air(Tac, Tlc, hs):
+def vapor_pressure_deficit(Tac, Tlc, hs):
     """
     Returns leaf to air vapour pressure deficit [kPa].
     
