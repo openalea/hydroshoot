@@ -70,7 +70,7 @@ def net_absorbed_radiation(Rg, Tac, DOY, HU, latitude = 0.44, altitude = 0., alb
     #net_absorbed_radiation(600., 25., 100, 11)
 
 
-def computeBoundaryLayerConductance(u, w=0.1):
+def boundary_layer_conductance(u, w=0.1):
     """ compute Boundary layer conductance for CO2= f(u, w) after Kim and Lieth (2003)
     u : wind speed m s-1
     w : leaf Characteristic dimension in relation to wind speed (m)"""
@@ -79,7 +79,7 @@ def computeBoundaryLayerConductance(u, w=0.1):
     gb = 0.147*(u/d)**0.5  # boundary layer conductance (mol m2 s-1)
     # gb = 3.33 #  pour les simulations a niveau de feuille, il faut introduire la valeur de gb du LcPro (rb =0.33 mol m-2 s-1)
     return gb
-    #computeBoundaryLayerConductance(2.)
+    #boundary_layer_conductance(2.)
 
 def Kelvin(T):
     """

@@ -316,7 +316,7 @@ def compute_an_2par(par_photo, PPFD, Tlc):
 #    Ca = meteo_leaf['Ca']
 #    
 #    VPD = mutils.VPD_leaf_air(Tac,Tlc,hs)
-#    gb = mutils.computeBoundaryLayerConductance(meteo_leaf['u'], w)
+#    gb = mutils.boundary_layer_conductance(meteo_leaf['u'], w)
 #    
 #    i = 0
 #    while i<iterCi :
@@ -624,7 +624,7 @@ def gas_exchange_rates(g, par_photo, par_photo_N, par_gs, meteo, E_type2,
                                            model, g0, rbt, Ca, m0, psi0, D0, n)
 
                 # Boundary layer conductance
-#                gb = mutils.computeBoundaryLayerConductance(u, w)
+#                gb = mutils.boundary_layer_conductance(u, w)
                 l_w = node.Length/100.*0.72 # leaf length in the downwind direction [m]
                 d_bl = 4.*(l_w/max(1.e-3,u))**0.5 /1000. # Boundary layer thikness in [m] (Nobel, 2009 pp.337)
                 Dj0 = 2.13*1.e-5 #[m2 s-1] at P=1. atm and t=0. °C (Nobel, pp.545)
