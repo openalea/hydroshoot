@@ -11,7 +11,7 @@ def slope_m(psi, m0=5.278, psi0=0.37, n_gs=1.85):
 
     return m0/(1.+(psi/psi0)**n_gs)
 
-def BWB_g0(psi, psi0=0.34999999999999998, m0=41.700000000000003, n_cut=1.1799999999999999):
+def cuticular_conductance(psi, psi0=0.34999999999999998, m0=41.700000000000003, n_cut=1.1799999999999999):
     '''    compute cuticular conductance according to soil water status
     '''
     """psi : predawn leaf water potential (-MPa)
@@ -53,7 +53,7 @@ def BWB_gs(An, ea, Tac, Ca, gb, m=118.69, g0=15.23, Pa = 101.3):
     #BWB_gs(15.0,2.,25.,360.)
     #avec deficit hydrique
     #psi=0.1
-    #BWB_gs(15.0,2.,30.,360., slope_m(psi), BWB_g0(psi))
+    #BWB_gs(15.0,2.,30.,360., slope_m(psi), cuticular_conductance(psi))
     
 def gs_Leuning(An, VPD, Cs, Tx, psi):
     """
