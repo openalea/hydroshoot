@@ -325,7 +325,7 @@ def compute_an_2par(par_photo, PPFD, Tlc):
 #        Cs = Ca-An*(1.37/gb)
 #        x1c,x2c,x1j,x2j,x1t,x2t,Rd = compute_an_2par(par_photo, PPFD, Tlc)
 #        Tx = x2j/2.
-#        gs = BWB_gs.gs_Leuning(An,VPD,Cs,Tx,psi)
+#        gs = BWB_gs.stomatal_conductance_leuning(An,VPD,Cs,Tx,psi)
 #
 #        Cinew = Ca-An*(1.6/gs+1.37/gb)
 #        

@@ -55,7 +55,7 @@ def stomatal_conductance_bwb(An, ea, Tac, Ca, gb, m=118.69, g0=15.23, Pa = 101.3
     #psi=0.1
     #stomatal_conductance_bwb(15.0,2.,30.,360., slope_m(psi), cuticular_conductance(psi))
     
-def gs_Leuning(An, VPD, Cs, Tx, psi):
+def stomatal_conductance_leuning(An, VPD, Cs, Tx, psi):
     """
     """
     gs = 0.017 + slope_m(psi, m0=5.278, psi0=0.37, n_gs=1.85) * An /((1+VPD/30.)*(Cs-Tx))
