@@ -1,0 +1,138 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "HydroShootParameters",
+  "description": "The schema for HydroShoot parameters",
+  "type": "object",
+  "properties": {
+    "simulation": {
+      "type": "object",
+      "description": "Simulation configuration parameters",
+      "properties": {
+        "sdate": {
+          "type": "string",
+          "format": "date_time",
+          "description": "starting date of the simulation"
+        },
+        "edate": {
+          "type": "string",
+          "format": "date_time",
+          "description": "end date of the simulation"
+        },
+        "latitude": {
+          "type": "number",
+          "description": "[decimal degrees] latitude of location"
+        },
+        "longitude": {
+          "type": "number",
+          "description": "[decimal degrees] longitude of location"
+        },
+        "elevation": {
+          "type": "number",
+          "description": "[m.a.s.l] latitude of location"
+        },
+        "tzone": {
+          "type": "string",
+          "description": "Area/Location timezone according to the Olson timezone database"
+        },
+        "output_index": {
+          "type": "string",
+          "description": "Index to be added to the name of the simulation outputs folder"
+        },
+        "unit_scene_length": {
+          "type": "string",
+          "description": "Unit length of scene elements"
+          "oneOf": ["mm", "cm", "m"]
+        },
+        "simplified_form_factors": {
+          "type": "boolean",
+          "description": "`true` to use the simplified form factors method"
+        },
+        "hydraulic_structure": {
+          "type": "boolean",
+          "description": "`true` to calculate shoot hydraulic structure: leaf water potential is calculated and used in stomatal conductance model; `false` to use leaf-to-air vapor pressure deficit"
+        },
+        "negligible_shoot_resistance": {
+          "type": "boolean",
+          "description": "`true` to omit shoot hydraulic resistance: leaf water potential is equal to soil water potential; `false` to calculate leaf water potential as part of the hydraulic structure"
+        },
+        "energy_budget": {
+          "type": "boolean",
+          "description": "`true` to calculate leaf temperature from leaf energy budget; `false` to set leaf temperature equal to air temperature"
+        },
+        "soil_water_deficit": {
+          "type": "boolean",
+          "description": "`true` to allow simulating soil water deficit; `false` to prevent soil water from dropping below a given threshold"
+        }
+      },
+      "required": [
+        "sdate",
+        "edate",
+        "latitude",
+        "longitude",
+        "elevation",
+        "tzone",
+        "output_index",
+        "unit_scene_length",
+        "simplified_form_factors",
+        "hydraulic_structure",
+        "negligible_shoot_resistance",
+        "energy_budget",
+        "soil_water_deficit"
+      ]
+
+    },
+    "phenology": {
+      "type": "object",
+      "description": "Parameters required for calculating cumulative degree-day temperature since budbreak"
+      "properties": {
+        "emdate": {
+          "type": "string",
+          "format": "date_time",
+          "description": "Observed date of budbreak"
+        },
+        "t_base": {
+          "type": "number",
+          "description": "[degrees] base temperature for cumulative degree-days calculations",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "emdate",
+        "t_base"
+      ]
+    },
+    "mtg_api": {
+      "type": "object",
+      "description": "API in order to allow HydroShoot to identify the different shoot hydraulic segments",
+      "properties": {
+        "collar_label": {
+          "type": "string",
+          "description": "Label prefix of the collar internode (required to identify the first segment of the hydraulic structure)"
+        },
+        "leaf_lbl_prefix": {
+          "type": "string",
+          "description": "Label prefix of the leaf"
+        },
+        "stem_lbl_prefix": {
+          "type": "array",
+          "description": "Label prefices of the internodes, petioles, and complex-nodes resulting from pruning over successive years",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "collar_label",
+        "leaf_lbl_prefix",
+        "stem_lbl_prefix"
+      ]
+    }
+  },
+  "required": [
+    "simulation",
+    "phenology",
+    "mtg_api"
+  ]
+}
