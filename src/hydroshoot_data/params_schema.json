@@ -40,8 +40,8 @@
         },
         "unit_scene_length": {
           "type": "string",
-          "description": "Unit length of scene elements"
-          "oneOf": ["mm", "cm", "m"]
+          "description": "Unit length of scene elements",
+          "enum": ["mm", "cm", "m"]
         },
         "simplified_form_factors": {
           "type": "boolean",
@@ -83,7 +83,7 @@
     },
     "phenology": {
       "type": "object",
-      "description": "Parameters required for calculating cumulative degree-day temperature since budbreak"
+      "description": "Parameters required for calculating cumulative degree-day temperature since budbreak",
       "properties": {
         "emdate": {
           "type": "string",
@@ -135,14 +135,16 @@
       "properties": {
         "max_iter": {
           "type": "integer",
-          "description": "Maximum number of iterations (for both hydraulic and energy-balance calculations)"
-          "exclusiveMinimum": 0,
+          "description": "Maximum number of iterations (for both hydraulic and energy-balance calculations)",
+          "minimum": 0,
+          "exclusiveMinimum": true,
           "maximum": 200
         },
         "psi_step": {
           "type": "number",
           "description": "Reduction factor to the xylem water potential step value between two consecutive iterations in the case of non convergence",
-          "exclusiveMinimum": 0,
+          "minimum": 0,
+          "exclusiveMinimum": true,
           "maximum": 1
         },
         "psi_error_threshold": {
@@ -153,7 +155,8 @@
         "t_step": {
           "type": "number",
           "description": "Reduction factor to the leaf temperature step value between two consecutive iterations in the case of non convergence",
-          "exclusiveMinimum": 0,
+          "minimum": 0,
+          "exclusiveMinimum": true,
           "maximum": 1
         },
         "t_error_crit": {
@@ -177,25 +180,144 @@
         "E_type": {
           "type": "string",
           "description": "Unit of the irradiance flux density used in the simulation",
-          "oneOf": ["Rg_Watt/m2", "RgPAR_Watt/m2", "PPFD_umol/m2/s"]
+          "enum": ["Rg_Watt/m2", "RgPAR_Watt/m2", "PPFD_umol/m2/s"]
         },
         "E_type2": {
           "type": "string",
           "description": "Unit of the desired simulated irradiance flux density output",
-          "oneOf": ["Ei", "Eabs"]
+          "enum": ["Ei", "Eabs"]
         },
         "opt_prop": {
           "type": "object",
           "description": "Optical properties od scene elements",
-          "properties":
+          "properties": {
+            "SW": {
+              "type": "object",
+              "description": "Optical properties in the shortwave band",
+              "properties": {
+                "leaf": {
+                  "type": "array",
+                  "description": "(reflectance, transmittance) of a single leaf",
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "stem": {
+                  "type": "array",
+                  "description": "(reflectance, ) of a stem",
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "minItems": 1,
+                  "maxItems": 1
+                },
+                "other": {
+                  "type": "array",
+                  "description": "(reflectance, transmittance) of a given element",
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                }
+              },
+              "required": [
+                "leaf",
+                "stem"
+              ]
+            },
+            "LW": {
+              "type": "object",
+              "description": "Optical properties in the longwave band",
+              "properties": {
+                "leaf": {
+                  "type": "array",
+                  "description": "(reflectance, transmittance) of a single leaf",
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "stem": {
+                  "type": "array",
+                  "description": "(reflectance, ) of a stem",
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "minItems": 1,
+                  "maxItems": 1
+                },
+                "other": {
+                  "type": "array",
+                  "description": "(reflectance, transmittance) of a given element",
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                }
+              },
+              "required": [
+                "leaf",
+                "stem"
+              ]
+            }
+          },
+          "required": [
+            "SW",
+            "LW"
+          ]
+        },
+        "scene_rotation": {
+          "type": "number",
+          "description": "[degrees] Counter clockwise angle between the default X-axis direction (South) and the real direction of X-axis."
+        },
+        "turtle_format": {
+          "type": "string",
+          "description": "Irradiance distribution over the celestial dome (sky overcast or uniform overcast)",
+          "enum": ["soc", "uoc"]
+        },
+        "turtle_sectors": {
+          "type": "string",
+          "description": "String number of turtle sectors",
+          "enum": ["16", "46"]
+        },
+        "icosphere_level": {
+          "type": "string",
+          "description": "The level of refinement of the dual icosphere."
         }
-      }
+      },
+      "required": [
+        "E_type",
+        "E_type2",
+        "opt_prop",
+        "scene_rotation",
+        "turtle_format",
+        "turtle_sectors",
+        "icosphere_level"
+      ]
     }
   },
   "required": [
     "simulation",
     "phenology",
     "mtg_api",
-    "numerical_resolution"
+    "numerical_resolution",
+    "irradiance"
   ]
 }
