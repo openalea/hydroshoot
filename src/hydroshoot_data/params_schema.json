@@ -128,11 +128,74 @@
         "leaf_lbl_prefix",
         "stem_lbl_prefix"
       ]
+    },
+    "numerical_resolution": {
+      "type": "object",
+      "description": "Requirements for the numerical resolution of the hydraulic and energy-balance systems",
+      "properties": {
+        "max_iter": {
+          "type": "integer",
+          "description": "Maximum number of iterations (for both hydraulic and energy-balance calculations)"
+          "exclusiveMinimum": 0,
+          "maximum": 200
+        },
+        "psi_step": {
+          "type": "number",
+          "description": "Reduction factor to the xylem water potential step value between two consecutive iterations in the case of non convergence",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "psi_error_threshold": {
+          "type": "number",
+          "description": "[MPa] Maximum allowable cumulative squared difference in xylem water potential between two consecutive iterations",
+          "minimum": 0
+        },
+        "t_step": {
+          "type": "number",
+          "description": "Reduction factor to the leaf temperature step value between two consecutive iterations in the case of non convergence",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "t_error_crit": {
+          "type": "number",
+          "description": "[degrees Celsius] Maximum allowable cumulative squared difference in leaf temperature between two consecutive iterations",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "max_iter",
+        "psi_step",
+        "psi_error_threshold",
+        "t_step",
+        "t_error_crit"
+      ]
+    },
+    "irradiance": {
+      "type": "object",
+      "description": "Irradiance interception parameters to be used in the Caribu model (Chelle et al. 1998, Ecol. Model. 111, 75  91)",
+      "properties": {
+        "E_type": {
+          "type": "string",
+          "description": "Unit of the irradiance flux density used in the simulation",
+          "oneOf": ["Rg_Watt/m2", "RgPAR_Watt/m2", "PPFD_umol/m2/s"]
+        },
+        "E_type2": {
+          "type": "string",
+          "description": "Unit of the desired simulated irradiance flux density output",
+          "oneOf": ["Ei", "Eabs"]
+        },
+        "opt_prop": {
+          "type": "object",
+          "description": "Optical properties od scene elements",
+          "properties":
+        }
+      }
     }
   },
   "required": [
     "simulation",
     "phenology",
-    "mtg_api"
+    "mtg_api",
+    "numerical_resolution"
   ]
 }
