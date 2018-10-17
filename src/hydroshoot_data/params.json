@@ -54,7 +54,7 @@
     "icosphere_level": "None"
   },
   "energy":{
-    "solo": "True",
+    "solo": true,
     "limit": -0.000000001,
     "t_cloud": 2.0,
     "t_sky": -20.0
