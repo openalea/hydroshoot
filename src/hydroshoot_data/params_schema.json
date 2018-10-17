@@ -92,7 +92,7 @@
         },
         "t_base": {
           "type": "number",
-          "description": "[degrees] base temperature for cumulative degree-days calculations",
+          "description": "[°C] base temperature for cumulative degree-days calculations",
           "minimum": 0
         }
       },
@@ -161,7 +161,7 @@
         },
         "t_error_crit": {
           "type": "number",
-          "description": "[degrees Celsius] Maximum allowable cumulative squared difference in leaf temperature between two consecutive iterations",
+          "description": "[°C] Maximum allowable cumulative squared difference in leaf temperature between two consecutive iterations",
           "minimum": 0
         }
       },
@@ -311,6 +311,113 @@
         "turtle_sectors",
         "icosphere_level"
       ]
+    },
+    "energy": {
+      "type": "object",
+      "description": "Energy exchange paramaters",
+      "properties": {
+        "solo": {
+          "type": "boolean",
+          "description": " if `true` calculates energy budget for each element assuming the temperatures of surrounding leaves constant (from previous calculation step), if `false` computes simultaneously all temperatures using `sympy.solvers.nsolve` (**very costly!!!**)"
+        },
+        "limit": {
+          "type": "number",
+          "description": "(negative), a threshold below which form factor values are ignored",
+          "maximum": 0.0,
+          "exclusiveMaximum": true
+        },
+        "t_cloud": {
+          "type": "number",
+          "description": "[°C] Cloud temperature"
+        },
+        "t_sky": {
+          "type": "number",
+          "description": "[°C] Sky temperature"
+        }
+      },
+      "required": [
+        "solo",
+        "limit",
+        "t_cloud",
+        "t_sky"
+      ]
+    },
+    "hydraulic": {
+      "type": "object",
+      "description": "Parameters of the hydraulic module",
+      "properties": {
+        "MassConv": {
+          "type": "number",
+          "description": "[g mol-1] Molar mass of pure water",
+          "minimum": 0.0,
+          "exclusiveMinimum": true
+        },
+        "psi_min": {
+          "type": "number",
+          "description": "[MPa] Minimum allowable xylem water potential",
+          "maximum": 0.0
+        },
+        "Kx_dict": {
+          "type": "object",
+          "description": "Parameters of the allometric relationship between the diameter of the hydraulic segment and its maximum hydraulic conductivity (K_max=a*D^b)",
+          "properties": {
+            "a": {
+              "type": "number",
+              "description": "[kg s-1 m-3 MPa-1] The slope of the allometric relationship",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "b": {
+              "type": "number",
+              "description": "[-] The power of the allometric relationship",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "min_kmax": {
+              "type": "number",
+              "description": "[kg s-1 m-3 MPa-1] The minimum allowable (or observed) value of maximum hydraulic conductivity",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            }
+          },
+          "required": [
+            "a",
+            "b",
+            "min_kmax"
+          ]
+        },
+        "par_K_vul": {
+          "type": "object",
+          "description": "Parameters of the vulnerability function of the hydraulic conductivity",
+          "properties": {
+            "model": {
+              "type": "string",
+              "description": "Vulnerability model name",
+              "enum": ["misson", "tuzet", "linear"]
+            },
+            "fifty_cent": {
+              "type": "number",
+              "description": "[MPa] Water potential at which the conductivity of the hydraulic segment is reduced by 50% reltive to its maximum value",
+              "minimum": 0.0
+            },
+            "sig_slope": {
+              "type": "number",
+              "description": "Shape parameter controlling the slope of the S-curve"
+            }
+          },
+          "required": [
+            "model",
+            "fifty_cent",
+            "sig_slope"
+          ]
+        }
+      },
+      "required": [
+        "MassConv",
+        "psi_min",
+        "Kx_dict",
+        "par_K_vul"
+      ]
     }
   },
   "required": [
@@ -318,6 +425,8 @@
     "phenology",
     "mtg_api",
     "numerical_resolution",
-    "irradiance"
+    "irradiance",
+    "energy",
+    "hydraulic"
   ]
 }
