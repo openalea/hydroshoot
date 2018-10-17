@@ -60,6 +60,7 @@
     "t_sky": -20.0
   },
   "hydraulic":{
+    "MassConv": 18.01528,
     "psi_min": -3.0,
     "Kx_dict":
     {
@@ -75,7 +76,6 @@
     }
   },
   "exchange":{
-    "MassConv": 18.01528,
     "rbt": 0.6667,
     "ca": 360.0,
     "Na_dict":
