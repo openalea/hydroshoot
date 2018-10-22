@@ -41,7 +41,11 @@
         "unit_scene_length": {
           "type": "string",
           "description": "Unit length of scene elements",
-          "enum": ["mm", "cm", "m"]
+          "enum": [
+            "mm",
+            "cm",
+            "m"
+          ]
         },
         "simplified_form_factors": {
           "type": "boolean",
@@ -79,7 +83,6 @@
         "energy_budget",
         "soil_water_deficit"
       ]
-
     },
     "phenology": {
       "type": "object",
@@ -175,17 +178,24 @@
     },
     "irradiance": {
       "type": "object",
-      "description": "Irradiance interception parameters to be used in the Caribu model (Chelle et al. 1998, Ecol. Model. 111, 75  91)",
+      "description": "Parameters of the `irradiance` module, to be used in the Caribu model (Chelle et al. 1998, Ecol. Model. 111, 75  91)",
       "properties": {
         "E_type": {
           "type": "string",
           "description": "Unit of the irradiance flux density used in the simulation",
-          "enum": ["Rg_Watt/m2", "RgPAR_Watt/m2", "PPFD_umol/m2/s"]
+          "enum": [
+            "Rg_Watt/m2",
+            "RgPAR_Watt/m2",
+            "PPFD_umol/m2/s"
+          ]
         },
         "E_type2": {
           "type": "string",
           "description": "Unit of the desired simulated irradiance flux density output",
-          "enum": ["Ei", "Eabs"]
+          "enum": [
+            "Ei",
+            "Eabs"
+          ]
         },
         "opt_prop": {
           "type": "object",
@@ -290,12 +300,18 @@
         "turtle_format": {
           "type": "string",
           "description": "Irradiance distribution over the celestial dome (sky overcast or uniform overcast)",
-          "enum": ["soc", "uoc"]
+          "enum": [
+            "soc",
+            "uoc"
+          ]
         },
         "turtle_sectors": {
           "type": "string",
           "description": "String number of turtle sectors",
-          "enum": ["16", "46"]
+          "enum": [
+            "16",
+            "46"
+          ]
         },
         "icosphere_level": {
           "type": "string",
@@ -314,7 +330,7 @@
     },
     "energy": {
       "type": "object",
-      "description": "Energy exchange paramaters",
+      "description": "Parameters of the `energy` module",
       "properties": {
         "solo": {
           "type": "boolean",
@@ -344,7 +360,7 @@
     },
     "hydraulic": {
       "type": "object",
-      "description": "Parameters of the hydraulic module",
+      "description": "Parameters of the `hydraulic` module",
       "properties": {
         "MassConv": {
           "type": "number",
@@ -393,7 +409,11 @@
             "model": {
               "type": "string",
               "description": "Vulnerability model name",
-              "enum": ["misson", "tuzet", "linear"]
+              "enum": [
+                "misson",
+                "tuzet",
+                "linear"
+              ]
             },
             "fifty_cent": {
               "type": "number",
@@ -418,6 +438,96 @@
         "Kx_dict",
         "par_K_vul"
       ]
+    },
+    "exchange": {
+      "type": "object",
+      "description": "Parameters of the `exchange` module",
+      "properties": {
+        "rbt": {
+          "type": "number",
+          "description": "[m2 s ubar umol-1] Combined turbulance and boundary layer resistance for CO2 transport",
+          "minimum": 0.0,
+          "exclusiveMinimum": true
+        },
+        "ca": {
+          "type": "number",
+          "description": "[ubar] CO2 partial pressure of the air",
+          "minimum": 0.0
+        },
+        "Na_dict": {
+          "type": "object",
+          "description": "Parameters of the linear relationship between Nitrogen content per area and leaf mass per area according to Prieto et al. 2012 (doi: 10.1111/j.1365-3040.2012.02491.x)",
+          "properties": {
+            "aN": {
+              "type": "number",
+              "description": "[gN gDM-1 °Cd-1] Slope of the linear relationship between leaf massic Nitrogen content and cumulative degree-days temperature"
+            },
+            "bN": {
+              "type": "number",
+              "description": "[gN gDM-1] Intercept of the linear relationship between leaf massic Nitrogen content and cumulative degree-days temperature"
+            },
+            "aM": {
+              "type": "number",
+              "description": "[gDM m-2 umol-1 m2 s] Slope of the linear relationship between leaf mass per area and the log of the cumulative photosynthetic photon flux density over the last 10 days"
+            },
+            "bM": {
+              "type": "number",
+              "description": "[gDM m-2 umol-1 m2 s] Intercept of the linear relationship between leaf mass per area and the log of the cumulative photosynthetic photon flux density over the last 10 days"
+            }
+          },
+          "required": [
+            "aN",
+            "bN",
+            "aM",
+            "bM"
+          ]
+        },
+        "par_gs": {
+          "type": "object",
+          "description": "Parameters of the stomatal conductance model",
+          "properties": {
+            "model": {
+              "type": "string",
+              "description": "Model name for the response function of stomata to leaf water status",
+              "enum": ["misson", "tuzet", "linear"]
+            },
+            "g0": {
+              "type": "number",
+              "description": "[umol m-2 s-1] Residual stomatal conductance for CO2 at the light compensation point",
+              "minimum": 0.0
+            },
+            "m0": {
+              "type": "number",
+              "description": "[umol mmol-1] Maximum slope An/gs (absence of water deficit)",
+              "minimum": 0.0
+            },
+            "psi0": {
+              "type": "number",
+              "description": "[MPa] Critical thershold for leaf water potential regulating the reduction trend of stomatal conductance with the drop in leaf water potential"
+            },
+            "D0": {
+              "type": "number",
+              "description": "[kPa] Shape parameter of the stomatal conductance model of Leuning (1995, PCE 18, 339–355)",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "n": {
+              "type": "number",
+              "description": "[-] Shape parameter of the stomatal conductance model of Tuzet et al. (2003, PCE 26, 1097–1116) or Misson et al. (2004, Tree Physiol. 24, 529–541)",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            }
+          },
+          "required": [
+            "model",
+            "g0",
+            "m0",
+            "psi0",
+            "D0",
+            "n"
+          ]
+        }
+      }
     }
   },
   "required": [
