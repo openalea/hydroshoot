@@ -526,8 +526,299 @@
             "D0",
             "n"
           ]
+        },
+        "par_photo": {
+          "type": "object",
+          "description": "Parameters of the photosynthetic capacity (before accounting for the effect of leaf N content",
+          "properties": {
+            "Vcm25": {
+              "type": "number",
+              "description": "[umol m-2 s-1] Maximum RuBP-saturated rate of carboxylation",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "Jm25": {
+              "type": "number",
+              "description": "[umol m-2 s-1] Maximum of electron transport rate",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "cRd": {
+              "type": "number",
+              "description": "[-] Coefficient of mitochondrial respiration to `Vcm25`",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "TPU25": {
+              "type": "number",
+              "description": "[umol m-2 s-1] Maximum rate of triose phosphate transport",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "Kc25": {
+              "type": "number",
+              "description": "[umol mol-1] Michaelis-Menten constant for the carboxylase",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "Ko25": {
+              "type": "number",
+              "description": "[mmol mol-1] Michaelis-Menten constant for the oxygenase",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "Tx25": {
+              "type": "number",
+              "description": "[umol mol-1] CO2 compensation point in the absence of mitochondrial respiration",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "RespT_Kc": {
+              "type": "object",
+              "description": "Parameters for temperature response curve of Michaelis-Menten constant for the carboxylase",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "description": "Temperature response model",
+                  "enum": [Arrhenius]
+                },
+                "c": {
+                  "type": "number",
+                  "description": "[-] Scaling constant"
+                },
+                "deltaHa": {
+                  "type": "number",
+                  "description": "[kJ molCO2-1] Activation energy of the Arrhenius functions",
+                  "minimum": 0.0
+                }
+              },
+              "required": [
+                "model",
+                "c",
+                "deltaHa"
+              ]
+            },
+            "RespT_Ko": {
+              "type": "object",
+              "description": "Parameters for temperature response curve of Michaelis-Menten constant for the oxygenase",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "description": "Temperature response model",
+                  "enum": [Arrhenius]
+                },
+                "c": {
+                  "type": "number",
+                  "description": "[-] Scaling constant"
+                },
+                "deltaHa": {
+                  "type": "number",
+                  "description": "[kJ molCO2-1] Activation energy of the Arrhenius functions",
+                  "minimum": 0.0
+                }
+              },
+              "required": [
+                "model",
+                "c",
+                "deltaHa"
+              ]
+            },
+            "RespT_Vcm": {
+              "type": "object",
+              "description": "Parameters for temperature response curve of RuBP-saturated rate of carboxylation",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "description": "Temperature response model",
+                  "enum": [Arrhenius]
+                },
+                "c": {
+                  "type": "number",
+                  "description": "[-] Scaling constant"
+                },
+                "deltaHa": {
+                  "type": "number",
+                  "description": "[kJ molCO2-1] Activation energy of the Arrhenius functions",
+                  "minimum": 0.0
+                }
+              },
+              "required": [
+                "model",
+                "c",
+                "deltaHa"
+              ]
+            },
+            "RespT_Jm": {
+              "type": "object",
+              "description": "Parameters for temperature response curve of electron transport rate",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "description": "Temperature response model",
+                  "enum": [Arrhenius]
+                },
+                "c": {
+                  "type": "number",
+                  "description": "[-] Scaling constant"
+                },
+                "deltaHa": {
+                  "type": "number",
+                  "description": "[kJ molCO2-1] Activation energy of the Arrhenius functions",
+                  "minimum": 0.0
+                }
+              },
+              "required": [
+                "model",
+                "c",
+                "deltaHa"
+              ]
+            },
+            "RespT_TPU": {
+              "type": "object",
+              "description": "Parameters for temperature response curve of triose phosphate rate",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "description": "Temperature response model",
+                  "enum": [Arrhenius]
+                },
+                "c": {
+                  "type": "number",
+                  "description": "[-] Scaling constant"
+                },
+                "deltaHa": {
+                  "type": "number",
+                  "description": "[kJ molCO2-1] Activation energy of the Arrhenius functions",
+                  "minimum": 0.0
+                }
+              },
+              "required": [
+                "model",
+                "c",
+                "deltaHa"
+              ]
+            },
+            "RespT_Rd": {
+              "type": "object",
+              "description": "Parameters for temperature response curve of mitochondrial respiration rate",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "description": "Temperature response model",
+                  "enum": [Arrhenius]
+                },
+                "c": {
+                  "type": "number",
+                  "description": "[-] Scaling constant"
+                },
+                "deltaHa": {
+                  "type": "number",
+                  "description": "[kJ molCO2-1] Activation energy of the Arrhenius functions",
+                  "minimum": 0.0
+                }
+              },
+              "required": [
+                "model",
+                "c",
+                "deltaHa"
+              ]
+            },
+            "RespT_Tx": {
+              "type": "object",
+              "description": "Parameters for temperature response curve of CO2 compensation point in the absence of mitochondrial respiration",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "description": "Temperature response model",
+                  "enum": [Arrhenius]
+                },
+                "c": {
+                  "type": "number",
+                  "description": "[-] Scaling constant"
+                },
+                "deltaHa": {
+                  "type": "number",
+                  "description": "[kJ molCO2-1] Activation energy of the Arrhenius functions",
+                  "minimum": 0.0
+                }
+              },
+              "required": [
+                "model",
+                "c",
+                "deltaHa"
+              ]
+            }
+          },
+          "required": [
+            "Vcm25",
+            "Jm25",
+            "cRd",
+            "TPU25",
+            "Kc25",
+            "Ko25",
+            "Tx25",
+            "RespT_Kc",
+            "RespT_Ko",
+            "RespT_Vcm",
+            "RespT_Jm",
+            "RespT_TPU",
+            "RespT_Rd",
+            "RespT_Tx"
+          ]
+        },
+        "par_photo_N": {
+          "type": "object",
+          "description": "(slope, intercept) values of the linear relationship between photosynthetic capacity parameters (Vcmax, Jmax, TPU, Rd) and surface-based leaf Nitrogen content, according to Prieto et al. (2012, doi: 10.1111/j.1365-3040.2012.02491.x)",
+          "properties": {
+            "Vcm25_N": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            },
+            "Jm25_N": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            },
+            "Rd_N": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            },
+            "TPU25_N": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "required": [
+            "Vcm25_N",
+            "Jm25_N",
+            "Rd_N",
+            "TPU25_N"
+          ]
         }
-      }
+      },
+      "required": [
+        "rbt",
+        "ca",
+        "Na_dict",
+        "par_gs",
+        "par_photo",
+        "par_photo_N"
+      ]
     }
   },
   "required": [
@@ -537,6 +828,7 @@
     "numerical_resolution",
     "irradiance",
     "energy",
-    "hydraulic"
+    "hydraulic",
+    "exchange"
   ]
 }
