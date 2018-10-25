@@ -819,6 +819,64 @@
         "par_photo",
         "par_photo_N"
       ]
+    },
+    "soil": {
+      "type": "object",
+      "description": "Parameters of the soil water balance model",
+      "properties": {
+        "soil_class": {
+          "type":"string",
+          "description": "Soil hydrodynamic class as proposed by Carsel and Parrish (1988) DOI: 10.1029/WR024i005p00755",
+          "enum": ["Sand", "Loamy Sand", "Sandy Loam", "Loam", "Silt", "Silty_Loam", "Sandy_Clay_Loam", "Clay_Loam", "Silty_Clay_Loam", "Sandy_Clay", "Silty_Clay", "Clay"]
+        },
+        "soil_dimensions": {
+          "type": "array",
+          "description": "[m] (inter-row spacing, intra-row spacing, effective root depth)",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "number",
+            "minimum": 0.0,
+            "exclusiveMinimum": true
+          }
+        },
+        "rhyzo_solution": {
+          "type": "boolean",
+          "description": "Add rhyzosphere elements to the mtg"
+        },
+        "rhyzo_number": {
+          "type": "integer",
+          "description": "Number of rhyzosphere concentric cylinders",
+          "minimum": 1
+        },
+        "rhyzo_radii": {
+          "type": "array",
+          "description": "[m] Radii of concentric rhyzosphere cylinders",
+          "minItems": 1,
+          "items": {
+            "type": "integer"
+          }
+        },
+        "rhyzo_coeff": {
+          "type": "number",
+          "description": "[-] Fraction of extractable soil water",
+          "minimum": 0,
+          "maxItems": 1
+        },
+        "root": {
+          "type": "array",
+          "description": "[m] (average distance between roots, average radius of roots)",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "required": [
+        "soil_class",
+        "soil_dimensions"
+      ]
     }
   },
   "required": [
@@ -829,6 +887,7 @@
     "irradiance",
     "energy",
     "hydraulic",
-    "exchange"
+    "exchange",
+    "soil"
   ]
 }
