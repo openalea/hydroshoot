@@ -418,7 +418,7 @@
             "fifty_cent": {
               "type": "number",
               "description": "[MPa] Water potential at which the conductivity of the hydraulic segment is reduced by 50% reltive to its maximum value",
-              "minimum": 0.0
+              "maximum": 0.0
             },
             "sig_slope": {
               "type": "number",
@@ -489,7 +489,12 @@
             "model": {
               "type": "string",
               "description": "Model name for the response function of stomata to leaf water status",
-              "enum": ["misson", "tuzet", "linear"]
+              "enum": [
+                "misson",
+                "tuzet",
+                "linear",
+                "vpd"
+              ]
             },
             "g0": {
               "type": "number",
@@ -580,7 +585,9 @@
                 "model": {
                   "type": "string",
                   "description": "Temperature response model",
-                  "enum": [Arrhenius]
+                  "enum": [
+                    "Arrhenius"
+                  ]
                 },
                 "c": {
                   "type": "number",
@@ -605,7 +612,9 @@
                 "model": {
                   "type": "string",
                   "description": "Temperature response model",
-                  "enum": [Arrhenius]
+                  "enum": [
+                    "Arrhenius"
+                  ]
                 },
                 "c": {
                   "type": "number",
@@ -630,7 +639,9 @@
                 "model": {
                   "type": "string",
                   "description": "Temperature response model",
-                  "enum": [Arrhenius]
+                  "enum": [
+                    "Arrhenius"
+                  ]
                 },
                 "c": {
                   "type": "number",
@@ -655,7 +666,9 @@
                 "model": {
                   "type": "string",
                   "description": "Temperature response model",
-                  "enum": [Arrhenius]
+                  "enum": [
+                    "Arrhenius"
+                  ]
                 },
                 "c": {
                   "type": "number",
@@ -680,7 +693,9 @@
                 "model": {
                   "type": "string",
                   "description": "Temperature response model",
-                  "enum": [Arrhenius]
+                  "enum": [
+                    "Arrhenius"
+                  ]
                 },
                 "c": {
                   "type": "number",
@@ -705,7 +720,9 @@
                 "model": {
                   "type": "string",
                   "description": "Temperature response model",
-                  "enum": [Arrhenius]
+                  "enum": [
+                    "Arrhenius"
+                  ]
                 },
                 "c": {
                   "type": "number",
@@ -730,7 +747,9 @@
                 "model": {
                   "type": "string",
                   "description": "Temperature response model",
-                  "enum": [Arrhenius]
+                  "enum": [
+                    "Arrhenius"
+                  ]
                 },
                 "c": {
                   "type": "number",
@@ -825,9 +844,22 @@
       "description": "Parameters of the soil water balance model",
       "properties": {
         "soil_class": {
-          "type":"string",
+          "type": "string",
           "description": "Soil hydrodynamic class as proposed by Carsel and Parrish (1988) DOI: 10.1029/WR024i005p00755",
-          "enum": ["Sand", "Loamy Sand", "Sandy Loam", "Loam", "Silt", "Silty_Loam", "Sandy_Clay_Loam", "Clay_Loam", "Silty_Clay_Loam", "Sandy_Clay", "Silty_Clay", "Clay"]
+          "enum": [
+            "Sand",
+            "Loamy Sand",
+            "Sandy Loam",
+            "Loam",
+            "Silt",
+            "Silty_Loam",
+            "Sandy_Clay_Loam",
+            "Clay_Loam",
+            "Silty_Clay_Loam",
+            "Sandy_Clay",
+            "Silty_Clay",
+            "Clay"
+          ]
         },
         "soil_dimensions": {
           "type": "array",
@@ -854,7 +886,7 @@
           "description": "[m] Radii of concentric rhyzosphere cylinders",
           "minItems": 1,
           "items": {
-            "type": "integer"
+            "type": "number"
           }
         },
         "rhyzo_coeff": {
