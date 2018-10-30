@@ -24,6 +24,11 @@ class Params():
         self.phenology = Phenology(user_params['phenology'])
         self.mtg_api = MTG_API(user_params['mtg_api'])
         self.numerical_resolution = NumericalResolution(user_params['numerical_resolution'])
+        self.irradiance = Irradiance(user_params['irradiance'])
+        self.energy = Energy(user_params['energy'])
+        self.hydraulic = Hydraulic(user_params['hydraulic'])
+        self.exchange = Exchange(user_params['exchange'])
+        self.soil = Soil(user_params['soil'])
 
 
     def _get_user_params(self):
@@ -38,7 +43,7 @@ class Params():
         """
 
         json_file = load(open(self.params_path, mode='r', encoding="utf-8"))
-        json_schm = load(open(json_schm_path, mode='r', encoding="utf-8"))
+        json_schm = load(open(self.json_schm_path, mode='r', encoding="utf-8"))
         validate(json_file, json_schm)
 
         return json_file
@@ -87,184 +92,54 @@ class NumericalResolution():
         self.t_error_crit = numerical_resolution_dict['t_error_crit']
 
 
+class Irradiance():
+
+    def __init__(self, irradiance_dict):
+        self.E_type = irradiance_dict['E_type']
+        self.E_type2 = irradiance_dict['E_type2']
+        self.opt_prop = irradiance_dict['opt_prop']
+        self.scene_rotation = irradiance_dict['scene_rotation']
+        self.turtle_format = irradiance_dict['turtle_format']
+        self.turtle_sectors = irradiance_dict['turtle_sectors']
+        self.icosphere_level = irradiance_dict['icosphere_level']
 
 
-    #     "irradiance": {
-    #         "E_type": "Rg_Watt/m2",
-    #         "E_type2": "Ei",
-    #         "opt_prop": {
-    #             "SW": {
-    #                 "leaf": [
-    #                     0.06,
-    #                     0.07
-    #                 ],
-    #                 "stem": [
-    #                     0.13
-    #                 ],
-    #                 "other": [
-    #                     0.06,
-    #                     0.07
-    #                 ]
-    #             },
-    #             "LW": {
-    #                 "leaf": [
-    #                     0.04,
-    #                     0.07
-    #                 ],
-    #                 "stem": [
-    #                     0.13
-    #                 ],
-    #                 "other": [
-    #                     0.06,
-    #                     0.07
-    #                 ]
-    #             }
-    #         },
-    #         "scene_rotation": 0.0,
-    #         "turtle_format": "soc",
-    #         "turtle_sectors": "46",
-    #         "icosphere_level": "None"
-    #     },
-    #     "energy": {
-    #         "solo": true,
-    #         "limit": -0.000000001,
-    #         "t_cloud": 2.0,
-    #         "t_sky": -20.0
-    #     },
-    #     "hydraulic": {
-    #         "MassConv": 18.01528,
-    #         "psi_min": -3.0,
-    #         "Kx_dict": {
-    #             "a": 1.6,
-    #             "b": 2.0,
-    #             "min_kmax": 0.01
-    #         },
-    #         "par_K_vul": {
-    #             "model": "misson",
-    #             "fifty_cent": -0.51,
-    #             "sig_slope": 1.0
-    #         }
-    #     },
-    #     "exchange": {
-    #         "rbt": 0.6667,
-    #         "ca": 360.0,
-    #         "Na_dict": {
-    #             "aN": -0.0008,
-    #             "bN": 3.3,
-    #             "aM": 6.471,
-    #             "bM": 56.635
-    #         },
-    #         "par_gs": {
-    #             "model": "vpd",
-    #             "g0": 0.0,
-    #             "m0": 5.278,
-    #             "psi0": -1.0,
-    #             "D0": 30.0,
-    #             "n": 4.0
-    #         },
-    #         "par_photo": {
-    #             "Vcm25": 89.0,
-    #             "Jm25": 143.0,
-    #             "cRd": 0.008,
-    #             "TPU25": 10.0,
-    #             "Kc25": 404.9,
-    #             "Ko25": 278.4,
-    #             "Tx25": 42.75,
-    #             "alpha": [
-    #                 0.2,
-    #                 0.2,
-    #                 0.19,
-    #                 0.19,
-    #                 0.14,
-    #                 0.12
-    #             ],
-    #             "alpha_T_limit": [
-    #                 15,
-    #                 20,
-    #                 25,
-    #                 30,
-    #                 34,
-    #                 50
-    #             ],
-    #             "a1": 0.98,
-    #             "a2": 0.98,
-    #             "a3": 0.98,
-    #             "ds": 0.635,
-    #             "dHd": 200.0,
-    #             "RespT_Kc": {
-    #                 "model": "Arrhenius",
-    #                 "c": 38.05,
-    #                 "deltaHa": 79.43
-    #             },
-    #             "RespT_Ko": {
-    #                 "model": "Arrhenius",
-    #                 "c": 20.30,
-    #                 "deltaHa": 36.38
-    #             },
-    #             "RespT_Vcm": {
-    #                 "model": "Arrhenius",
-    #                 "c": 26.35,
-    #                 "deltaHa": 65.33
-    #             },
-    #             "RespT_Jm": {
-    #                 "model": "Arrhenius",
-    #                 "c": 17.57,
-    #                 "deltaHa": 43.54
-    #             },
-    #             "RespT_TPU": {
-    #                 "model": "Arrhenius",
-    #                 "c": 21.46,
-    #                 "deltaHa": 53.1
-    #             },
-    #             "RespT_Rd": {
-    #                 "model": "Arrhenius",
-    #                 "c": 18.72,
-    #                 "deltaHa": 46.39
-    #             },
-    #             "RespT_Tx": {
-    #                 "model": "Arrhenius",
-    #                 "c": 19.02,
-    #                 "deltaHa": 37.83
-    #             }
-    #         },
-    #         "par_photo_N": {
-    #             "Vcm25_N": [
-    #                 34.02,
-    #                 -3.13
-    #             ],
-    #             "Jm25_N": [
-    #                 78.27,
-    #                 -17.3
-    #             ],
-    #             "Rd_N": [
-    #                 0.42,
-    #                 -0.01
-    #             ],
-    #             "TPU25_N": [
-    #                 6.24,
-    #                 -1.92
-    #             ]
-    #         }
-    #     },
-    #     "soil": {
-    #         "soil_class": "Sand",
-    #         "soil_dimensions": [
-    #             3.6,
-    #             1.0,
-    #             1.2
-    #         ],
-    #         "rhyzo_solution": true,
-    #         "rhyzo_number": 3,
-    #         "rhyzo_radii": [
-    #             0.167,
-    #             0.333,
-    #             0.5
-    #         ],
-    #         "rhyzo_coeff": 0.5,
-    #         "roots": [
-    #             0.013,
-    #             0.0001
-    #         ]
-    #     }
-    # }
-    #
+class Energy():
+
+    def __init__(self, energy_dict):
+        self.solo = energy_dict['solo']
+        self.limit = energy_dict['limit']
+        self.t_cloud = energy_dict['t_cloud']
+        self.t_sky = energy_dict['t_sky']
+
+
+class Hydraulic():
+
+    def __init__(self, hydraulic_dict):
+        self.MassConv = hydraulic_dict['MassConv']
+        self.psi_min = hydraulic_dict['psi_min']
+        self.Kx_dict = hydraulic_dict['Kx_dict']
+        self.par_K_vul = hydraulic_dict['par_K_vul']
+
+
+class Exchange():
+
+    def __init__(self, exchange_dict):
+        self.rbt = exchange_dict['']
+        self.ca = exchange_dict['ca']
+        self.Na_dict = exchange_dict['Na_dict']
+        self.par_gs = exchange_dict['par_gs']
+        self.par_photo = exchange_dict['par_photo']
+        self.par_photo_N = exchange_dict['par_photo_N']
+
+
+class Soil():
+
+    def __init__(self, soil_dict):
+        self.soil_class = soil_dict['soil_class']
+        self.soil_dimensions = soil_dict['soil_dimensions']
+        self.rhyzo_solution = soil_dict['rhyzo_solution']
+        self.rhyzo_number = soil_dict['rhyzo_number']
+        self.rhyzo_radii = soil_dict['rhyzo_radii']
+        self.rhyzo_coeff = soil_dict['rhyzo_coeff']
+        self.roots = soil_dict['roots']
