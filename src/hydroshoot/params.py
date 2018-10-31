@@ -42,8 +42,8 @@ class Params():
             - (dict) dictionary of parameters identifiers and values.
         """
 
-        json_file = load(open(self.params_path, mode='r', encoding="utf-8"))
-        json_schm = load(open(self.json_schm_path, mode='r', encoding="utf-8"))
+        json_file = load(open(self.params_path, mode='r'), encoding="utf-8")
+        json_schm = load(open(self.params_schema, mode='r'), encoding="utf-8")
         validate(json_file, json_schm)
 
         return json_file
@@ -125,7 +125,7 @@ class Hydraulic():
 class Exchange():
 
     def __init__(self, exchange_dict):
-        self.rbt = exchange_dict['']
+        self.rbt = exchange_dict['rbt']
         self.ca = exchange_dict['ca']
         self.Na_dict = exchange_dict['Na_dict']
         self.par_gs = exchange_dict['par_gs']
