@@ -29,6 +29,7 @@ import hydroshoot.exchange as HSExchange
 import hydroshoot.hydraulic as HSHyd
 import hydroshoot.energy as HSEnergy
 import hydroshoot.display as HSVisu
+from hydroshoot.params import Params
 
 # TODO: The priority is to introduce a method for adapting the psi_step and t_step values to a some convergence status index.
 def run(g, wd, sdate, edate, emdate, scene, **kwargs):
@@ -92,7 +93,6 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         - **turtle_sectors**
         - **unit_scene_length**
 
-    TODO: replace by a class.
     """
     print '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
     print '+ Project: ', wd.split('/')[-3:-1],'+'
@@ -129,17 +129,22 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         assert (os.path.isfile(wd+'psi_soil.input')), "The 'psi_soil.input' file is missing."
         psi_pd = read_csv(wd+'psi_soil.input',sep=';',decimal='.').set_index('time')
         psi_pd.index = [dt.datetime.strptime(s, "%Y-%m-%d") for s in psi_pd.index]
-    
-    soil_water_deficit = True if not 'soil_water_deficit' in kwargs else kwargs['soil_water_deficit']
+
+    # Read user parameters
+    params_path = wd + 'params.json'
+    params = Params(params_path)
+
+#*    soil_water_deficit = True if not 'soil_water_deficit' in kwargs else kwargs['soil_water_deficit']
+    soil_water_deficit = params.simulation.soil_water_deficit
 
 #   Unit length conversion (from scene unit to the standard [m]) unit)
-    unit_scene_length = 'cm' if 'unit_scene_length' not in kwargs else kwargs['unit_scene_length']
-    LengthConv = {'mm':1.e-3, 'cm':1.e-2, 'm':1.}[unit_scene_length]
-#    LengthConv = 1.e-2 if 'LengthConv' not in kwargs else kwargs['LengthConv']
-
+#*    unit_scene_length = 'cm' if 'unit_scene_length' not in kwargs else kwargs['unit_scene_length']
+    unit_scene_length = params.simulation.unit_scene_length
+    LengthConv = {'mm': 1.e-3, 'cm': 1.e-2, 'm': 1.}[unit_scene_length]
 
 #   Determination of cumulative degree-days parameter
-    t_base = 10 if 't_base' not in kwargs else kwargs['t_base']
+#*    t_base = 10 if 't_base' not in kwargs else kwargs['t_base']
+    t_base = params.phenology.t_base
     if 'tt' in kwargs:
         tt = kwargs['tt']
     elif min(meteo_tab.index) <= emdate:
@@ -161,38 +166,50 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     for vid in g.VtxList(Scale=2) if g.node(vid).label.startswith('arm') }
 
     # Soil reservoir dimensions (inter row, intra row, depth) [m]
-    soil_dimensions = (3.6, 1.0, 1.2) if 'soil_dimensions' not in kwargs else kwargs['soil_dimensions']
+#*    soil_dimensions = (3.6, 1.0, 1.2) if 'soil_dimensions' not in kwargs else kwargs['soil_dimensions']
+    soil_dimensions = params.soil.soil_dimensions
     soil_total_volume = reduce(mul, soil_dimensions)
-    rhyzo_coeff = 0.5 if not 'rhyzo_coeff' in kwargs else kwargs['rhyzo_coeff']
+#*    rhyzo_coeff = 0.5 if not 'rhyzo_coeff' in kwargs else kwargs['rhyzo_coeff']
+    rhyzo_coeff = params.soil.rhyzo_coeff
     rhyzo_total_volume = rhyzo_coeff * np.pi * min(soil_dimensions[:2])**2 / 4. * soil_dimensions[2]
 
 #   Counter clockwise angle between the default X-axis direction (South) and the    
 #    real direction of X-axis.
-    scene_rotation = 0 if 'scene_rotation' not in kwargs else kwargs['scene_rotation']
+#*    scene_rotation = 0 if 'scene_rotation' not in kwargs else kwargs['scene_rotation']
+    scene_rotation = params.irradiance.scene_rotation
 
 #   sky and cloud temperature [degreeC]
-    t_sky = -20. if 't_sky' not in kwargs else kwargs['t_sky']
-    t_cloud = 2. if 't_cloud' not in kwargs else kwargs['t_cloud']
-        
+#*    t_sky = -20. if 't_sky' not in kwargs else kwargs['t_sky']
+    t_sky = params.energy.t_sky
+#*    t_cloud = 2. if 't_cloud' not in kwargs else kwargs['t_cloud']
+    t_cloud = params.energy.t_cloud
 
 #   Topological location
-    latitude = 43.61 if 'latitude' not in kwargs else kwargs['latitude']
-    longitude = 3.87  if 'longitude' not in kwargs else kwargs['longitude']
-    elevation = 44.0 if 'elevation' not in kwargs else kwargs['elevation']
+#*    latitude = 43.61 if 'latitude' not in kwargs else kwargs['latitude']
+    latitude = params.simulation.latitude
+#*    longitude = 3.87  if 'longitude' not in kwargs else kwargs['longitude']
+    longitude = params.simulation.longitude
+#*    elevation = 44.0 if 'elevation' not in kwargs else kwargs['elevation']
+    elevation = params.simulation.elevation
     geo_location = (latitude, longitude, elevation)
 
 #   Maximum number of iterations for both temperature and hydraulic calculations
-    max_iter = 100 if 'max_iter' not in kwargs else kwargs['max_iter']
+#*    max_iter = 100 if 'max_iter' not in kwargs else kwargs['max_iter']
+    max_iter = params.numerical_resolution.max_iter
 
 #   Steps size
-    t_step = 0.5 if not 't_step' in kwargs else kwargs['t_step']
-    psi_step = 0.5 if not 'psi_step' in kwargs else kwargs['psi_step']
+#*    t_step = 0.5 if not 't_step' in kwargs else kwargs['t_step']
+    t_step = params.numerical_resolution.t_step
+#*    psi_step = 0.5 if not 'psi_step' in kwargs else kwargs['psi_step']
+    psi_step = params.numerical_resolution.psi_step
 
 #   Maximum acceptable error threshold in hydraulic calculations
-    psi_error_threshold = 0.05 if 'psi_error_threshold' not in kwargs else kwargs['psi_error_threshold']
-    
+#*    psi_error_threshold = 0.05 if 'psi_error_threshold' not in kwargs else kwargs['psi_error_threshold']
+    psi_error_threshold = params.numerical_resolution.psi_error_threshold
+
 #   Maximum acceptable error threshold in temperature calculations
-    t_error_crit = 0.02 if 't_error_crit' not in kwargs else kwargs['t_error_crit']
+#*    t_error_crit = 0.02 if 't_error_crit' not in kwargs else kwargs['t_error_crit']
+    t_error_crit = params.numerical_resolution.t_error_crit
     
 #   Pattern
     inter_dist, intra_dist, depth = soil_dimensions[:3]
@@ -200,32 +217,47 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     pattern = ((-xmax/2.,-ymax/2.),(xmax/2.,ymax/2.))
 
 #   Label prefix of the collar internode
-    vtx_label = 'inT' if 'collar_label' not in kwargs else kwargs['collar_label']
+#*    vtx_label = 'inT' if 'collar_label' not in kwargs else kwargs['collar_label']
+    vtx_label = params.mtg_api.collar_label
 
 #   Label prefix of the leaves
-    leaf_lbl_prefix = 'L' if 'leaf_lbl_prefix' not in kwargs else kwargs['leaf_lbl_prefix']
+#*    leaf_lbl_prefix = 'L' if 'leaf_lbl_prefix' not in kwargs else kwargs['leaf_lbl_prefix']
+    leaf_lbl_prefix = params.mtg_api.leaf_lbl_prefix
 
 #   Label prefices of stem elements
-    stem_lbl_prefix=('in', 'Pet', 'cx') if 'stem_lbl_prefix' not in kwargs else kwargs['stem_lbl_prefix']
+#*    stem_lbl_prefix=('in', 'Pet', 'cx') if 'stem_lbl_prefix' not in kwargs else kwargs['stem_lbl_prefix']
+    stem_lbl_prefix = params.mtg_api.stem_lbl_prefix
     
-    E_type='Rg_Watt/m2' if 'E_type' not in kwargs else kwargs['E_type']
-    E_type2 = 'Ei' if 'E_type2' not in kwargs else kwargs['E_type2']
-    rbt = 2./3. if 'rbt' not in kwargs else kwargs['rbt']
+#*    E_type='Rg_Watt/m2' if 'E_type' not in kwargs else kwargs['E_type']
+    E_type = params.irradiance.E_type
+#*    E_type2 = 'Ei' if 'E_type2' not in kwargs else kwargs['E_type2']
+    E_type2 = params.irradiance.E_type2
+#*    rbt = 2./3. if 'rbt' not in kwargs else kwargs['rbt']
+    rbt = params.exchange.rbt
 #    ca = 360. if 'ca' not in kwargs else kwargs['ca']
-    tzone='Europe/Paris' if 'tzone' not in kwargs else kwargs['tzone']
-    turtle_sectors='46' if 'turtle_sectors' not in kwargs else kwargs['turtle_sectors']
-    icosphere_level = None if 'icosphere_level' not in kwargs else kwargs['icosphere_level']
+    ca = params.exchange.ca
+#*    tzone='Europe/Paris' if 'tzone' not in kwargs else kwargs['tzone']
+    tzone = params.simulation.tzone
+#*    turtle_sectors='46' if 'turtle_sectors' not in kwargs else kwargs['turtle_sectors']
+    turtle_sectors = params.irradiance.turtle_sectors
+#*    icosphere_level = None if 'icosphere_level' not in kwargs else kwargs['icosphere_level']
+    icosphere_level = params.irradiance.icosphere_level
+#*    turtle_format='soc' if 'turtle_format' not in kwargs else kwargs['turtle_format']    
+    turtle_format = params.irradiance.turtle_format
     
-    turtle_format='soc' if 'turtle_format' not in kwargs else kwargs['turtle_format']
-    
-    MassConv = 18.01528 if 'MassConv' not in kwargs else kwargs['MassConv']
-    limit=-0.000000001 if 'limit' not in kwargs else kwargs['limit']
+#*    MassConv = 18.01528 if 'MassConv' not in kwargs else kwargs['MassConv']
+    MassConv = params.hydraulic.MassConv
+#*    limit=-0.000000001 if 'limit' not in kwargs else kwargs['limit']
+    limit = params.energy.limit
 
-    energy_budget = True if not 'energy_budget' in kwargs else kwargs['energy_budget']
+#*    energy_budget = True if not 'energy_budget' in kwargs else kwargs['energy_budget']
+    energy_budget = params.simulation.energy_budget
     print 'Energy_budget: %s'%energy_budget
     if energy_budget:
-        solo = True if 'solo' not in kwargs else kwargs['solo']
-        simplified_form_factors = True if 'simplified_form_factors' not in kwargs else kwargs['simplified_form_factors']
+#*        solo = True if 'solo' not in kwargs else kwargs['solo']
+        solo = params.energy.solo
+#*        simplified_form_factors = True if 'simplified_form_factors' not in kwargs else kwargs['simplified_form_factors']
+        simplified_form_factors = params.simulation.simplified_form_factors
     
 #   Optical properties
     if 'opt_prop' not in kwargs:
