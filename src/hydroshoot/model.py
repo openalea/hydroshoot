@@ -260,69 +260,93 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         simplified_form_factors = params.simulation.simplified_form_factors
     
 #   Optical properties
-    if 'opt_prop' not in kwargs:
-        opt_prop={'SW':{'leaf':(0.06,0.07),'stem':(0.13,),'other':(0.06,0.07)},
-                'LW':{'leaf':(0.04,0.07),'stem':(0.13,),'other':(0.06,0.07)}}
-    else:
-        opt_prop = kwargs['opt_prop']
-    
+#*    if 'opt_prop' not in kwargs:
+#*        opt_prop={'SW':{'leaf':(0.06,0.07),'stem':(0.13,),'other':(0.06,0.07)},
+#*                'LW':{'leaf':(0.04,0.07),'stem':(0.13,),'other':(0.06,0.07)}}
+#*    else:
+#*        opt_prop = kwargs['opt_prop']
+    opt_prop = params.irradiance.opt_prop
+
 #   Farquhar parameters
-    if 'par_photo' not in kwargs:
-        par_photo = HSExchange.par_photo_default()
-    else:
-        par_photo = kwargs['par_photo']
+#*    if 'par_photo' not in kwargs:
+#*        par_photo = HSExchange.par_photo_default()
+#*    else:
+#*        par_photo = kwargs['par_photo']
+    par_photo = params.exchange.par_photo
 
 #   Shoot hydraulic resistance
-    negligible_shoot_resistance = False if not 'negligible_shoot_resistance' in kwargs else kwargs['negligible_shoot_resistance']
+#*    negligible_shoot_resistance = False if not 'negligible_shoot_resistance' in kwargs else kwargs['negligible_shoot_resistance']
+    negligible_shoot_resistance = params.simulation.negligible_shoot_resistance
 
 
 #   Stomatal conductance parameters
-    hydraulic_structure = True if not 'hydraulic_structure' in kwargs else kwargs['hydraulic_structure']
+    par_gs = params.exchange.par_gs
+#*    hydraulic_structure = True if not 'hydraulic_structure' in kwargs else kwargs['hydraulic_structure']
+    hydraulic_structure = params.simulation.hydraulic_structure
     print 'Hydraulic structure: %s'%hydraulic_structure
     if hydraulic_structure:
-        if 'par_gs' not in kwargs:
-            par_gs = {'model':'misson', 'g0':0.0, 'm0':5.278,
-                       'psi0':-1.,'D0':30.,'n':4.}
-        else:
-            par_gs = kwargs['par_gs']
+#*        if 'par_gs' not in kwargs:
+#*            par_gs = {'model':'misson', 'g0':0.0, 'm0':5.278,
+#*                       'psi0':-1.,'D0':30.,'n':4.}
+#*        else:
+#*            par_gs = kwargs['par_gs']
+#*
+#*    else:
+#*        if 'par_gs' not in kwargs:
+#*            par_gs = {'model':'vpd', 'g0':0.0, 'm0':5.278, 'psi0':None,
+#*                      'D0':30.,'n':4.}
+#*        else:
+#*            par_gs0 = kwargs['par_gs']
+#*            par_gs = {'model':'vpd', 'g0':par_gs0['g0'], 'm0':par_gs0['m0'],
+#*                      'psi0':None, 'D0':par_gs0['D0'],'n':par_gs0['n']}
+#*            negligible_shoot_resistance = True
+#*            
+#*            print "par_gs: 'model', 'psi0', 'D0' and 'n' are forced to 'vpd', None, None, None."
+#*            print "negligible_shoot_resistance is forced to True."
 
+    if hydraulic_structure:
+        assert (par_gs['model'] != 'vpd'), \
+        'Stomatal conductance model should be linked to the hydraulic strucutre'
     else:
         if 'par_gs' not in kwargs:
             par_gs = {'model':'vpd', 'g0':0.0, 'm0':5.278, 'psi0':None,
                       'D0':30.,'n':4.}
         else:
-            par_gs0 = kwargs['par_gs']
-            par_gs = {'model':'vpd', 'g0':par_gs0['g0'], 'm0':par_gs0['m0'],
-                      'psi0':None, 'D0':par_gs0['D0'],'n':par_gs0['n']}
+            par_gs['model'] = 'vpd'
             negligible_shoot_resistance = True
             
-            print "par_gs: 'model', 'psi0', 'D0' and 'n' are forced to 'vpd', None, None, None."
+            print "par_gs: 'model' is forced to 'vpd'
             print "negligible_shoot_resistance is forced to True."
 
 #   Parameters of maximum stem conductivity allometric relationship
-    if 'Kx_dict' not in kwargs:
-        Kx_dict = {'a':1.6,'b':2., 'min_kmax':0.}
-    else:
-        Kx_dict = kwargs['Kx_dict']
+#*    if 'Kx_dict' not in kwargs:
+#*        Kx_dict = {'a':1.6,'b':2., 'min_kmax':0.}
+#*    else:
+#*        Kx_dict = kwargs['Kx_dict']
+    Kx_dict = params.hydraulic.Kx_dict
 
-    psi_min = -3.0 if 'psi_min' not in kwargs else kwargs['psi_min']
+#    psi_min = -3.0 if 'psi_min' not in kwargs else kwargs['psi_min']
+    psi_min = params.hydraulic.psi_min
 
 #   Parameters of stem water conductivty's vulnerability to cavitation
-    if 'par_K_vul' not in kwargs:
-        par_K_vul = {'model': 'misson', 'fifty_cent': -0.51, 'sig_slope': 1.}
-    else:
-        par_K_vul = kwargs['par_K_vul']
+#*    if 'par_K_vul' not in kwargs:
+#*        par_K_vul = {'model': 'misson', 'fifty_cent': -0.51, 'sig_slope': 1.}
+#*    else:
+#*        par_K_vul = kwargs['par_K_vul']
+    par_K_vul = params.hydraulic.par_K_vul
 
 #   Parameters of leaf Nitrogen content-related models
-    if 'Na_dict' in kwargs:
-        aN, bN, aM, bM = [kwargs['Na_dict'][ikey] for ikey in ('aN','bN','aM','bM')]
-    else:
-        aN, bN, aM, bM = -0.0008, 3.3, 6.471, 56.635
+#*    if 'Na_dict' in kwargs:
+#*        aN, bN, aM, bM = [kwargs['Na_dict'][ikey] for ikey in ('aN','bN','aM','bM')]
+#*    else:
+#*        aN, bN, aM, bM = -0.0008, 3.3, 6.471, 56.635
+    Na_dict = params.exchange.Na_dict
 
-    if 'par_photo_N' not in kwargs:
-        par_photo_N = HSExchange.par_25_N_dict()
-    else:
-        par_photo_N = kwargs['par_photo_N']
+#*    if 'par_photo_N' not in kwargs:
+#*        par_photo_N = HSExchange.par_25_N_dict()
+#*    else:
+#*        par_photo_N = kwargs['par_photo_N']
+    par_photo_N = params.exchange.par_photo_N
 
 
     modelx, psi_critx, slopex = [par_K_vul[ikey] for ikey in ('model', 'fifty_cent', 'sig_slope')]
@@ -343,30 +367,62 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
                                 unit_scene_length)
 
     # Soil class
-    soil_class = 'Sandy_Loam' if not 'soil_class' in kwargs else kwargs['soil_class']
+#*    soil_class = 'Sandy_Loam' if not 'soil_class' in kwargs else kwargs['soil_class']
+    soil_class = params.soil.soil_class
     print 'Soil class: %s'%soil_class
 
     # Rhyzosphere concentric radii determination
-    if not 'rhyzo_radii' in kwargs:
-        rhyzo_number = 3
-        max_radius = 0.5*min(soil_dimensions[:2])/LengthConv
-        rhyzo_radii = [max_radius*perc for perc in np.array(range(1,rhyzo_number+1))/float(rhyzo_number)]
-    else:
-        rhyzo_radii = kwargs['rhyzo_radii']
-        rhyzo_number = len(rhyzo_radii)
+#*    if not 'rhyzo_radii' in kwargs:
+#*        rhyzo_number = 3
+#*        max_radius = 0.5*min(soil_dimensions[:2])/LengthConv
+#*        rhyzo_radii = [max_radius*perc for perc in np.array(range(1,rhyzo_number+1))/float(rhyzo_number)]
+#*    else:
+#*        rhyzo_radii = kwargs['rhyzo_radii']
+#*        rhyzo_number = len(rhyzo_radii)
+    rhyzo_radii = params.soil.rhyzo_radii
+    rhyzo_number = len(rhyzo_radii)
 
     # Add rhyzosphere elements to mtg
-    rhyzo_solution = True if 'rhyzo_solution' not in kwargs else kwargs['rhyzo_solution']
+#*    rhyzo_solution = True if 'rhyzo_solution' not in kwargs else kwargs['rhyzo_solution']
+    rhyzo_solution = params.soil.rhyzo_solution
     print 'rhyzo_solution: %s'%rhyzo_solution
 
+#*    if rhyzo_solution:
+#*        dist_roots, rad_roots = (0.013, .0001) if 'roots' not in kwargs else kwargs['roots']
+#*        if not any(item.startswith('rhyzo') for item in g.property('label').values()):
+#*            vid_collar = HSArc.mtg_base(g,vtx_label=vtx_label)
+#*            vid_base = HSArc.add_soil_components(g, rhyzo_number, rhyzo_radii,
+#*                                        soil_dimensions, soil_class, vtx_label)
+#*        else:
+#*
+#*            vid_collar = g.node(g.root).vid_collar
+#*            vid_base = g.node(g.root).vid_base
+#*
+#*            radius_prev = 0.
+#*
+#*            for ivid, vid in enumerate(g.Ancestors(vid_collar)[1:]):
+#*                radius = rhyzo_radii[ivid]
+#*                g.node(vid).Length = radius - radius_prev
+#*                g.node(vid).depth = soil_dimensions[2]/LengthConv #[m]
+#*                g.node(vid).TopDiameter = radius*2.
+#*                g.node(vid).BotDiameter = radius*2.
+#*                g.node(vid).soil_class = soil_class
+#*                radius_prev = radius
+#*
+#*
+#*    else:
+#*        dist_roots, rad_roots = (None, None)
+#*        # Identifying and attaching the base node of a single MTG
+#*        vid_collar = HSArc.mtg_base(g,vtx_label=vtx_label)
+#*        vid_base = vid_collar
+
     if rhyzo_solution:
-        dist_roots, rad_roots = (0.013, .0001) if 'roots' not in kwargs else kwargs['roots']
+        dist_roots, rad_roots = params.soil.roots
         if not any(item.startswith('rhyzo') for item in g.property('label').values()):
             vid_collar = HSArc.mtg_base(g,vtx_label=vtx_label)
             vid_base = HSArc.add_soil_components(g, rhyzo_number, rhyzo_radii,
                                         soil_dimensions, soil_class, vtx_label)
         else:
-
             vid_collar = g.node(g.root).vid_collar
             vid_base = g.node(g.root).vid_base
 
@@ -375,17 +431,16 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
             for ivid, vid in enumerate(g.Ancestors(vid_collar)[1:]):
                 radius = rhyzo_radii[ivid]
                 g.node(vid).Length = radius - radius_prev
-                g.node(vid).depth = soil_dimensions[2]/LengthConv #[m]
+                g.node(vid).depth = soil_dimensions[2] / LengthConv  # [m]
                 g.node(vid).TopDiameter = radius*2.
                 g.node(vid).BotDiameter = radius*2.
                 g.node(vid).soil_class = soil_class
                 radius_prev = radius
 
-
     else:
-        dist_roots, rad_roots = (None, None)
+        dist_roots, rad_roots = None, None
         # Identifying and attaching the base node of a single MTG
-        vid_collar = HSArc.mtg_base(g,vtx_label=vtx_label)
+        vid_collar = HSArc.mtg_base(g, vtx_label=vtx_label)
         vid_base = vid_collar
 
     g.node(g.root).vid_base = vid_base
