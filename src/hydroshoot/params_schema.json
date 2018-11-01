@@ -314,7 +314,7 @@
           ]
         },
         "icosphere_level": {
-          "type": "string",
+          "type": "null",
           "description": "The level of refinement of the dual icosphere."
         }
       },
