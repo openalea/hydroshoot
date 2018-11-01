@@ -315,7 +315,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
             par_gs['model'] = 'vpd'
             negligible_shoot_resistance = True
             
-            print "par_gs: 'model' is forced to 'vpd'
+            print "par_gs: 'model' is forced to 'vpd'"
             print "negligible_shoot_resistance is forced to True."
 
 #   Parameters of maximum stem conductivity allometric relationship
