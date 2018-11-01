@@ -30,7 +30,6 @@ class Params():
         self.exchange = Exchange(user_params['exchange'])
         self.soil = Soil(user_params['soil'])
 
-
     def _get_user_params(self):
         """
         Get parameters values defined by the user.
@@ -47,6 +46,7 @@ class Params():
         validate(json_file, json_schm)
 
         return json_file
+
 
 class Simulation():
 
