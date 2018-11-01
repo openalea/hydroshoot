@@ -14,8 +14,8 @@ from jsonschema import validate, validators
 class Params():
 
     def __init__(self, params_path):
-        self.params_path = params_path
-        self.params_schema = os.path.abspath(
+        self._params_path = params_path
+        self._params_schema = os.path.abspath(
             os.path.join(os.path.dirname(__file__), '../hydroshoot/params_schema.json'))
 
         user_params = self._get_user_params()
@@ -42,8 +42,8 @@ class Params():
             - (dict) dictionary of parameters identifiers and values.
         """
 
-        json_file = load(open(self.params_path, mode='r'), encoding="utf-8")
-        json_schm = load(open(self.params_schema, mode='r'), encoding="utf-8")
+        json_file = load(open(self._params_path, mode='r'), encoding="utf-8")
+        json_schm = load(open(self._params_schema, mode='r'), encoding="utf-8")
         validate(json_file, json_schm)
 
         return json_file
