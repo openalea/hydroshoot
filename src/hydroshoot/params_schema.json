@@ -876,11 +876,6 @@
           "type": "boolean",
           "description": "Add rhyzosphere elements to the mtg"
         },
-        "rhyzo_number": {
-          "type": "integer",
-          "description": "Number of rhyzosphere concentric cylinders",
-          "minimum": 1
-        },
         "rhyzo_radii": {
           "type": "array",
           "description": "[m] Radii of concentric rhyzosphere cylinders",

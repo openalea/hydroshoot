@@ -139,7 +139,6 @@ class Soil():
         self.soil_class = soil_dict['soil_class']
         self.soil_dimensions = soil_dict['soil_dimensions']
         self.rhyzo_solution = soil_dict['rhyzo_solution']
-        self.rhyzo_number = soil_dict['rhyzo_number']
         self.rhyzo_radii = soil_dict['rhyzo_radii']
         self.rhyzo_coeff = soil_dict['rhyzo_coeff']
         self.roots = soil_dict['roots']
