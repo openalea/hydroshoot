@@ -284,7 +284,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 #*    hydraulic_structure = True if not 'hydraulic_structure' in kwargs else kwargs['hydraulic_structure']
     hydraulic_structure = params.simulation.hydraulic_structure
     print 'Hydraulic structure: %s'%hydraulic_structure
-    if hydraulic_structure:
+#*    if hydraulic_structure:
 #*        if 'par_gs' not in kwargs:
 #*            par_gs = {'model':'misson', 'g0':0.0, 'm0':5.278,
 #*                       'psi0':-1.,'D0':30.,'n':4.}
