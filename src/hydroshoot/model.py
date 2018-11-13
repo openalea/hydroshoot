@@ -98,7 +98,13 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     print '+ Project: ', wd.split('/')[-3:-1],'+'
     print '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
     total_time_ON = time.time()
-    output_index = 'results' if 'output_index' not in kwargs else kwargs['output_index']
+    
+    # Read user parameters
+    params_path = wd + 'params.json'
+    params = Params(params_path)
+
+    output_index = params.simulation.output_index
+    
 #==============================================================================
 # Initialisation
 #==============================================================================
@@ -130,9 +136,6 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         psi_pd = read_csv(wd+'psi_soil.input',sep=';',decimal='.').set_index('time')
         psi_pd.index = [dt.datetime.strptime(s, "%Y-%m-%d") for s in psi_pd.index]
 
-    # Read user parameters
-    params_path = wd + 'params.json'
-    params = Params(params_path)
 
 #*    soil_water_deficit = True if not 'soil_water_deficit' in kwargs else kwargs['soil_water_deficit']
     soil_water_deficit = params.simulation.soil_water_deficit
