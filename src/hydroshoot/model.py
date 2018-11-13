@@ -474,7 +474,7 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
                       stem_lbl_prefix=stem_lbl_prefix, wave_band='SW',
                       opt_prop=opt_prop)
 
-#   Hack wind profile
+#   Wind profile
     if not 'u_coef' in g.property_names():
         z_ls = [g.node(vid).TopPosition[2] for vid in g.VtxList(Scale=3) if g.node(vid).label.startswith('L')]
         z_max, z_min = max(z_ls), min(z_ls)
