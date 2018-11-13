@@ -30,6 +30,10 @@
           "type": "number",
           "description": "[m.a.s.l] latitude of location"
         },
+        "meteo": {
+          "type": "string",
+          "description": "csv file containing the meteo input variables"
+        },
         "tzone": {
           "type": "string",
           "description": "Area/Location timezone according to the Olson timezone database"
@@ -74,6 +78,7 @@
         "latitude",
         "longitude",
         "elevation",
+        "meteo",
         "tzone",
         "output_index",
         "unit_scene_length",
