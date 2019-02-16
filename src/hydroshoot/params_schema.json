@@ -853,8 +853,8 @@
           "description": "Soil hydrodynamic class as proposed by Carsel and Parrish (1988) DOI: 10.1029/WR024i005p00755",
           "enum": [
             "Sand",
-            "Loamy Sand",
-            "Sandy Loam",
+            "Loamy_Sand",
+            "Sandy_Loam",
             "Loam",
             "Silt",
             "Silty_Loam",
