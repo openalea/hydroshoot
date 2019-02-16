@@ -1584,7 +1584,7 @@ def mtg_save(g, scene, file_path):
 def mtg_load(wd, index):
     
     fgeom = wd + 'geometry%s.bgeom'%index
-    fg = wd + 'mtg%s.pckl'%(index)
+    fg = wd + '%s.pckl'%(index)
     
     scene = pgl.Scene()
     scene.read(fgeom, 'BGEOM')
