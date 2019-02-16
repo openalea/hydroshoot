@@ -7,11 +7,12 @@ Created on Thu Oct 25 20:10:00 2018
 """
 
 import os
+from copy import deepcopy
 from json import load
-from jsonschema import validate, validators
+from jsonschema import validate
 
 
-class Params():
+class Params:
 
     def __init__(self, params_path):
         self._params_path = params_path
@@ -22,7 +23,7 @@ class Params():
 
         self.simulation = Simulation(user_params['simulation'])
         self.phenology = Phenology(user_params['phenology'])
-        self.mtg_api = MTG_API(user_params['mtg_api'])
+        self.mtg_api = MtgAPI(user_params['mtg_api'])
         self.numerical_resolution = NumericalResolution(user_params['numerical_resolution'])
         self.irradiance = Irradiance(user_params['irradiance'])
         self.energy = Energy(user_params['energy'])
@@ -48,10 +49,9 @@ class Params():
         return json_file
 
 
-class Simulation():
+class Simulation:
 
     def __init__(self, simulation_dict):
-
         self.sdate = simulation_dict['sdate']
         self.edate = simulation_dict['edate']
         self.latitude = simulation_dict['latitude']
@@ -74,15 +74,15 @@ class Phenology:
         self.t_base = phenology_dict['t_base']
 
 
-class MTG_API():
+class MtgAPI:
 
     def __init__(self, mtg_dict):
         self.collar_label = mtg_dict['collar_label']
         self.leaf_lbl_prefix = mtg_dict['leaf_lbl_prefix']
-        self.stem_lbl_prefix = mtg_dict['stem_lbl_prefix']
+        self.stem_lbl_prefix = tuple(mtg_dict['stem_lbl_prefix'])
 
 
-class NumericalResolution():
+class NumericalResolution:
 
     def __init__(self, numerical_resolution_dict):
         self.max_iter = numerical_resolution_dict['max_iter']
@@ -92,19 +92,19 @@ class NumericalResolution():
         self.t_error_crit = numerical_resolution_dict['t_error_crit']
 
 
-class Irradiance():
+class Irradiance:
 
     def __init__(self, irradiance_dict):
         self.E_type = irradiance_dict['E_type']
         self.E_type2 = irradiance_dict['E_type2']
-        self.opt_prop = irradiance_dict['opt_prop']
+        self.opt_prop = _list2tuple(irradiance_dict['opt_prop'])
         self.scene_rotation = irradiance_dict['scene_rotation']
         self.turtle_format = irradiance_dict['turtle_format']
         self.turtle_sectors = irradiance_dict['turtle_sectors']
         self.icosphere_level = irradiance_dict['icosphere_level']
 
 
-class Energy():
+class Energy:
 
     def __init__(self, energy_dict):
         self.solo = energy_dict['solo']
@@ -113,7 +113,7 @@ class Energy():
         self.t_sky = energy_dict['t_sky']
 
 
-class Hydraulic():
+class Hydraulic:
 
     def __init__(self, hydraulic_dict):
         self.MassConv = hydraulic_dict['MassConv']
@@ -122,7 +122,7 @@ class Hydraulic():
         self.par_K_vul = hydraulic_dict['par_K_vul']
 
 
-class Exchange():
+class Exchange:
 
     def __init__(self, exchange_dict):
         self.rbt = exchange_dict['rbt']
@@ -133,7 +133,7 @@ class Exchange():
         self.par_photo_N = exchange_dict['par_photo_N']
 
 
-class Soil():
+class Soil:
 
     def __init__(self, soil_dict):
         self.soil_class = soil_dict['soil_class']
@@ -142,3 +142,11 @@ class Soil():
         self.rhyzo_radii = soil_dict['rhyzo_radii']
         self.rhyzo_coeff = soil_dict['rhyzo_coeff']
         self.roots = soil_dict['roots']
+
+
+def _list2tuple(dct):
+    _dct = deepcopy(dct)
+    for k_wave, v_wave in dct.items():
+        for k, v in v_wave.items():
+            _dct[k_wave][k] = tuple(v)
+    return _dct
