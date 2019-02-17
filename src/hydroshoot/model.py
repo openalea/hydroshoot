@@ -31,17 +31,14 @@ import hydroshoot.energy as HSEnergy
 import hydroshoot.display as HSVisu
 from hydroshoot.params import Params
 
-# TODO: The priority is to introduce a method for adapting the psi_step and t_step values to a some convergence status index.
-def run(g, wd, sdate, edate, emdate, scene, **kwargs):
+
+def run(g, wd, scene, **kwargs):
     """
     Calculates leaf gas and energy exchange in addition to the hydraulic structure of an individual plant.
 
     :Parameters:
     - **g**: a multiscale tree graph object
     - **wd**: string, working directory
-    - **sdate**: datetime, start date of the simulation period
-    - **edate**: datetime, end date of the simulation period
-    - **emdate**: datetime, emeergence date (for the calculation of the cumulative degree-day temperature)
     - **scene**: PlantGl scene
     - **kwargs** can include:
         - **collar_label**
@@ -120,8 +117,10 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
     if 'Pa' not in meteo_tab.columns:
         meteo_tab['Pa'] = [101.3]*len(meteo_tab)# atmospheric pressure
     
-    
+
     #   Determination of the simulation period
+    sdate = dt.datetime.strptime(params.simulation.sdate, "%Y-%m-%d %H:%M:%S")
+    edate = dt.datetime.strptime(params.simulation.edate, "%Y-%m-%d %H:%M:%S")
     datet = date_range(sdate, edate, freq='H')
     meteo = meteo_tab.ix[datet]
     TimeConv = {'D':86.4e3, 'H':3600., 'T':60., 'S':1.}[datet.freqstr]
@@ -148,10 +147,12 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
 #   Determination of cumulative degree-days parameter
 #*    t_base = 10 if 't_base' not in kwargs else kwargs['t_base']
     t_base = params.phenology.t_base
+    budbreak_date = dt.datetime.strptime(params.phenology.emdate, "%Y-%m-%d %H:%M:%S")
+    
     if 'tt' in kwargs:
         tt = kwargs['tt']
-    elif min(meteo_tab.index) <= emdate:
-        tdays = date_range(emdate, sdate, freq='D')
+    elif min(meteo_tab.index) <= budbreak_date:
+        tdays = date_range(budbreak_date, sdate, freq='D')
         tmeteo = meteo_tab.ix[tdays].Tac.to_frame()
         tmeteo = tmeteo.set_index(DatetimeIndex(tmeteo.index).normalize())
         df_min = tmeteo.groupby(tmeteo.index).aggregate(np.min).Tac
@@ -518,13 +519,17 @@ def run(g, wd, sdate, edate, emdate, scene, **kwargs):
         # Estimation of leaf surface-based nitrogen content:
         for vid in g.VtxList(Scale=3):
             if g.node(vid).label.startswith(leaf_lbl_prefix):
-                g.node(vid).Na= HSExchange.leaf_Na(tt,g.node(vid).Ei10,aN,bN,aM,bM)
+                g.node(vid).Na= HSExchange.leaf_Na(tt,g.node(vid).Ei10,
+                       Na_dict['aN'],
+                       Na_dict['bN'],
+                       Na_dict['aM'],
+                       Na_dict['bM'])
 
         # Define path to folder
         output_path = wd + 'output' + output_index + '/'
         
         # Save geometry in an external file
-        HSArc.mtg_save_geometry(scene, output_path)
+#        HSArc.mtg_save_geometry(scene, output_path)
 
 #==============================================================================
 # Simulations
