@@ -13,7 +13,7 @@ Created on Tue Dec 13 13:07:33 2016
 """
 import datetime as dt
 import os.path
-from pandas import read_csv, DataFrame, date_range, DatetimeIndex #, read_excel
+from pandas import read_csv, DataFrame, date_range, DatetimeIndex
 from copy import deepcopy
 import numpy as np
 from operator import mul
@@ -136,16 +136,13 @@ def run(g, wd, scene, **kwargs):
         psi_pd.index = [dt.datetime.strptime(s, "%Y-%m-%d") for s in psi_pd.index]
 
 
-#*    soil_water_deficit = True if not 'soil_water_deficit' in kwargs else kwargs['soil_water_deficit']
     soil_water_deficit = params.simulation.soil_water_deficit
 
-#   Unit length conversion (from scene unit to the standard [m]) unit)
-#*    unit_scene_length = 'cm' if 'unit_scene_length' not in kwargs else kwargs['unit_scene_length']
+    # Unit length conversion (from scene unit to the standard [m]) unit)
     unit_scene_length = params.simulation.unit_scene_length
     LengthConv = {'mm': 1.e-3, 'cm': 1.e-2, 'm': 1.}[unit_scene_length]
 
-#   Determination of cumulative degree-days parameter
-#*    t_base = 10 if 't_base' not in kwargs else kwargs['t_base']
+    # Determination of cumulative degree-days parameter
     t_base = params.phenology.t_base
     budbreak_date = dt.datetime.strptime(params.phenology.emdate, "%Y-%m-%d %H:%M:%S")
     
@@ -165,267 +162,142 @@ def run(g, wd, scene, **kwargs):
     print 'Cumulative degree-day temperature = %d °C'%tt
 
 
-# Determination of pernial structure arms (for grapevine)
-    arm_vid={g.node(vid).label:g.node(vid).components()[0]._vid \
+    # Determination of perennial structure arms (for grapevine)
+    arm_vid={g.node(vid).label: g.node(vid).components()[0]._vid \
     for vid in g.VtxList(Scale=2) if g.node(vid).label.startswith('arm') }
 
     # Soil reservoir dimensions (inter row, intra row, depth) [m]
-#*    soil_dimensions = (3.6, 1.0, 1.2) if 'soil_dimensions' not in kwargs else kwargs['soil_dimensions']
     soil_dimensions = params.soil.soil_dimensions
     soil_total_volume = reduce(mul, soil_dimensions)
-#*    rhyzo_coeff = 0.5 if not 'rhyzo_coeff' in kwargs else kwargs['rhyzo_coeff']
     rhyzo_coeff = params.soil.rhyzo_coeff
     rhyzo_total_volume = rhyzo_coeff * np.pi * min(soil_dimensions[:2])**2 / 4. * soil_dimensions[2]
 
-#   Counter clockwise angle between the default X-axis direction (South) and the    
-#    real direction of X-axis.
-#*    scene_rotation = 0 if 'scene_rotation' not in kwargs else kwargs['scene_rotation']
+    # Counter clockwise angle between the default X-axis direction (South) and the
+    # real direction of X-axis.
     scene_rotation = params.irradiance.scene_rotation
 
-#   sky and cloud temperature [degreeC]
-#*    t_sky = -20. if 't_sky' not in kwargs else kwargs['t_sky']
+    # Sky and cloud temperature [degreeC]
     t_sky = params.energy.t_sky
-#*    t_cloud = 2. if 't_cloud' not in kwargs else kwargs['t_cloud']
     t_cloud = params.energy.t_cloud
 
-#   Topological location
-#*    latitude = 43.61 if 'latitude' not in kwargs else kwargs['latitude']
+    # Topological location
     latitude = params.simulation.latitude
-#*    longitude = 3.87  if 'longitude' not in kwargs else kwargs['longitude']
     longitude = params.simulation.longitude
-#*    elevation = 44.0 if 'elevation' not in kwargs else kwargs['elevation']
     elevation = params.simulation.elevation
     geo_location = (latitude, longitude, elevation)
 
-#   Maximum number of iterations for both temperature and hydraulic calculations
-#*    max_iter = 100 if 'max_iter' not in kwargs else kwargs['max_iter']
+    # Maximum number of iterations for both temperature and hydraulic calculations
     max_iter = params.numerical_resolution.max_iter
 
-#   Steps size
-#*    t_step = 0.5 if not 't_step' in kwargs else kwargs['t_step']
+    # Steps size
     t_step = params.numerical_resolution.t_step
-#*    psi_step = 0.5 if not 'psi_step' in kwargs else kwargs['psi_step']
     psi_step = params.numerical_resolution.psi_step
 
-#   Maximum acceptable error threshold in hydraulic calculations
-#*    psi_error_threshold = 0.05 if 'psi_error_threshold' not in kwargs else kwargs['psi_error_threshold']
+    # Maximum acceptable error threshold in hydraulic calculations
     psi_error_threshold = params.numerical_resolution.psi_error_threshold
 
-#   Maximum acceptable error threshold in temperature calculations
-#*    t_error_crit = 0.02 if 't_error_crit' not in kwargs else kwargs['t_error_crit']
+    # Maximum acceptable error threshold in temperature calculations
     t_error_crit = params.numerical_resolution.t_error_crit
     
-#   Pattern
-    inter_dist, intra_dist, depth = soil_dimensions[:3]
-    ymax, xmax = map(lambda x: x/ LengthConv, soil_dimensions[:2])
-    pattern = ((-xmax/2.,-ymax/2.),(xmax/2.,ymax/2.))
+    # Pattern
+    ymax, xmax = map(lambda x: x / LengthConv, soil_dimensions[:2])
+    pattern = ((-xmax / 2.0, -ymax / 2.0), (xmax / 2.0, ymax / 2.0))
 
-#   Label prefix of the collar internode
-#*    vtx_label = 'inT' if 'collar_label' not in kwargs else kwargs['collar_label']
+    # Label prefix of the collar internode
     vtx_label = params.mtg_api.collar_label
 
-#   Label prefix of the leaves
-#*    leaf_lbl_prefix = 'L' if 'leaf_lbl_prefix' not in kwargs else kwargs['leaf_lbl_prefix']
+    # Label prefix of the leaves
     leaf_lbl_prefix = params.mtg_api.leaf_lbl_prefix
 
-#   Label prefices of stem elements
-#*    stem_lbl_prefix=('in', 'Pet', 'cx') if 'stem_lbl_prefix' not in kwargs else kwargs['stem_lbl_prefix']
+    # Label prefices of stem elements
     stem_lbl_prefix = params.mtg_api.stem_lbl_prefix
-    
-#*    E_type='Rg_Watt/m2' if 'E_type' not in kwargs else kwargs['E_type']
-    E_type = params.irradiance.E_type
-#*    E_type2 = 'Ei' if 'E_type2' not in kwargs else kwargs['E_type2']
-    E_type2 = params.irradiance.E_type2
-#*    rbt = 2./3. if 'rbt' not in kwargs else kwargs['rbt']
-    rbt = params.exchange.rbt
-#    ca = 360. if 'ca' not in kwargs else kwargs['ca']
-    ca = params.exchange.ca
-#*    tzone='Europe/Paris' if 'tzone' not in kwargs else kwargs['tzone']
-    tzone = params.simulation.tzone
-#*    turtle_sectors='46' if 'turtle_sectors' not in kwargs else kwargs['turtle_sectors']
-    turtle_sectors = params.irradiance.turtle_sectors
-#*    icosphere_level = None if 'icosphere_level' not in kwargs else kwargs['icosphere_level']
-    icosphere_level = params.irradiance.icosphere_level
-#*    turtle_format='soc' if 'turtle_format' not in kwargs else kwargs['turtle_format']    
-    turtle_format = params.irradiance.turtle_format
-    
-#*    MassConv = 18.01528 if 'MassConv' not in kwargs else kwargs['MassConv']
-    MassConv = params.hydraulic.MassConv
-#*    limit=-0.000000001 if 'limit' not in kwargs else kwargs['limit']
-    limit = params.energy.limit
 
-#*    energy_budget = True if not 'energy_budget' in kwargs else kwargs['energy_budget']
+    E_type = params.irradiance.E_type
+    E_type2 = params.irradiance.E_type2
+    rbt = params.exchange.rbt
+    tzone = params.simulation.tzone
+    turtle_sectors = params.irradiance.turtle_sectors
+    icosphere_level = params.irradiance.icosphere_level
+    turtle_format = params.irradiance.turtle_format
+
+    MassConv = params.hydraulic.MassConv
+    limit = params.energy.limit
     energy_budget = params.simulation.energy_budget
-    print 'Energy_budget: %s'%energy_budget
+    print 'Energy_budget: %s' % energy_budget
+
     if energy_budget:
-#*        solo = True if 'solo' not in kwargs else kwargs['solo']
         solo = params.energy.solo
-#*        simplified_form_factors = True if 'simplified_form_factors' not in kwargs else kwargs['simplified_form_factors']
         simplified_form_factors = params.simulation.simplified_form_factors
     
-#   Optical properties
-#*    if 'opt_prop' not in kwargs:
-#*        opt_prop={'SW':{'leaf':(0.06,0.07),'stem':(0.13,),'other':(0.06,0.07)},
-#*                'LW':{'leaf':(0.04,0.07),'stem':(0.13,),'other':(0.06,0.07)}}
-#*    else:
-#*        opt_prop = kwargs['opt_prop']
+    # Optical properties
     opt_prop = params.irradiance.opt_prop
 
-#   Farquhar parameters
-#*    if 'par_photo' not in kwargs:
-#*        par_photo = HSExchange.par_photo_default()
-#*    else:
-#*        par_photo = kwargs['par_photo']
+    # Farquhar parameters
     par_photo = params.exchange.par_photo
 
-#   Shoot hydraulic resistance
-#*    negligible_shoot_resistance = False if not 'negligible_shoot_resistance' in kwargs else kwargs['negligible_shoot_resistance']
+    # Shoot hydraulic resistance
     negligible_shoot_resistance = params.simulation.negligible_shoot_resistance
 
 
 #   Stomatal conductance parameters
     par_gs = params.exchange.par_gs
-#*    hydraulic_structure = True if not 'hydraulic_structure' in kwargs else kwargs['hydraulic_structure']
     hydraulic_structure = params.simulation.hydraulic_structure
-    print 'Hydraulic structure: %s'%hydraulic_structure
-#*    if hydraulic_structure:
-#*        if 'par_gs' not in kwargs:
-#*            par_gs = {'model':'misson', 'g0':0.0, 'm0':5.278,
-#*                       'psi0':-1.,'D0':30.,'n':4.}
-#*        else:
-#*            par_gs = kwargs['par_gs']
-#*
-#*    else:
-#*        if 'par_gs' not in kwargs:
-#*            par_gs = {'model':'vpd', 'g0':0.0, 'm0':5.278, 'psi0':None,
-#*                      'D0':30.,'n':4.}
-#*        else:
-#*            par_gs0 = kwargs['par_gs']
-#*            par_gs = {'model':'vpd', 'g0':par_gs0['g0'], 'm0':par_gs0['m0'],
-#*                      'psi0':None, 'D0':par_gs0['D0'],'n':par_gs0['n']}
-#*            negligible_shoot_resistance = True
-#*            
-#*            print "par_gs: 'model', 'psi0', 'D0' and 'n' are forced to 'vpd', None, None, None."
-#*            print "negligible_shoot_resistance is forced to True."
+    print 'Hydraulic structure: %s' % hydraulic_structure
 
     if hydraulic_structure:
-        assert (par_gs['model'] != 'vpd'), \
-        'Stomatal conductance model should be linked to the hydraulic strucutre'
+        assert (par_gs['model'] != 'vpd'), "Stomatal conductance model should be linked to the hydraulic strucutre"
     else:
-        if 'par_gs' not in kwargs:
-            par_gs = {'model':'vpd', 'g0':0.0, 'm0':5.278, 'psi0':None,
-                      'D0':30.,'n':4.}
-        else:
-            par_gs['model'] = 'vpd'
-            negligible_shoot_resistance = True
-            
-            print "par_gs: 'model' is forced to 'vpd'"
-            print "negligible_shoot_resistance is forced to True."
+        par_gs['model'] = 'vpd'
+        negligible_shoot_resistance = True
 
-#   Parameters of maximum stem conductivity allometric relationship
-#*    if 'Kx_dict' not in kwargs:
-#*        Kx_dict = {'a':1.6,'b':2., 'min_kmax':0.}
-#*    else:
-#*        Kx_dict = kwargs['Kx_dict']
+        print "par_gs: 'model' is forced to 'vpd'"
+        print "negligible_shoot_resistance is forced to True."
+
+    # Parameters of maximum stem conductivity allometric relationship
     Kx_dict = params.hydraulic.Kx_dict
 
-#    psi_min = -3.0 if 'psi_min' not in kwargs else kwargs['psi_min']
     psi_min = params.hydraulic.psi_min
 
-#   Parameters of stem water conductivty's vulnerability to cavitation
-#*    if 'par_K_vul' not in kwargs:
-#*        par_K_vul = {'model': 'misson', 'fifty_cent': -0.51, 'sig_slope': 1.}
-#*    else:
-#*        par_K_vul = kwargs['par_K_vul']
+    # Parameters of stem water conductivty's vulnerability to cavitation
     par_K_vul = params.hydraulic.par_K_vul
 
-#   Parameters of leaf Nitrogen content-related models
-#*    if 'Na_dict' in kwargs:
-#*        aN, bN, aM, bM = [kwargs['Na_dict'][ikey] for ikey in ('aN','bN','aM','bM')]
-#*    else:
-#*        aN, bN, aM, bM = -0.0008, 3.3, 6.471, 56.635
+    # Parameters of leaf Nitrogen content-related models
     Na_dict = params.exchange.Na_dict
-
-#*    if 'par_photo_N' not in kwargs:
-#*        par_photo_N = HSExchange.par_25_N_dict()
-#*    else:
-#*        par_photo_N = kwargs['par_photo_N']
     par_photo_N = params.exchange.par_photo_N
 
 
     modelx, psi_critx, slopex = [par_K_vul[ikey] for ikey in ('model', 'fifty_cent', 'sig_slope')]
 
-#   Computation of the form factor matrix
+    # Computation of the form factor matrix
     if energy_budget:
         if 'k_sky' not in g.property_names():
-
             print 'Computing form factors...'
-    
+
             if not simplified_form_factors:
-#               tstart = time.time()
-               HSEnergy.form_factors_matrix(g, pattern, LengthConv, limit=limit)
-#               print ("---%s minutes ---" % ((time.time()-tstart)/60.))
+                HSEnergy.form_factors_matrix(g, pattern, LengthConv, limit=limit)
             else:
                 HSEnergy.form_factors_simplified(g, pattern, leaf_lbl_prefix,
-                                stem_lbl_prefix, turtle_sectors, icosphere_level,
-                                unit_scene_length)
+                                                 stem_lbl_prefix, turtle_sectors, icosphere_level,
+                                                 unit_scene_length)
 
     # Soil class
-#*    soil_class = 'Sandy_Loam' if not 'soil_class' in kwargs else kwargs['soil_class']
     soil_class = params.soil.soil_class
-    print 'Soil class: %s'%soil_class
+    print 'Soil class: %s' % soil_class
 
     # Rhyzosphere concentric radii determination
-#*    if not 'rhyzo_radii' in kwargs:
-#*        rhyzo_number = 3
-#*        max_radius = 0.5*min(soil_dimensions[:2])/LengthConv
-#*        rhyzo_radii = [max_radius*perc for perc in np.array(range(1,rhyzo_number+1))/float(rhyzo_number)]
-#*    else:
-#*        rhyzo_radii = kwargs['rhyzo_radii']
-#*        rhyzo_number = len(rhyzo_radii)
     rhyzo_radii = params.soil.rhyzo_radii
     rhyzo_number = len(rhyzo_radii)
 
     # Add rhyzosphere elements to mtg
-#*    rhyzo_solution = True if 'rhyzo_solution' not in kwargs else kwargs['rhyzo_solution']
     rhyzo_solution = params.soil.rhyzo_solution
-    print 'rhyzo_solution: %s'%rhyzo_solution
-
-#*    if rhyzo_solution:
-#*        dist_roots, rad_roots = (0.013, .0001) if 'roots' not in kwargs else kwargs['roots']
-#*        if not any(item.startswith('rhyzo') for item in g.property('label').values()):
-#*            vid_collar = HSArc.mtg_base(g,vtx_label=vtx_label)
-#*            vid_base = HSArc.add_soil_components(g, rhyzo_number, rhyzo_radii,
-#*                                        soil_dimensions, soil_class, vtx_label)
-#*        else:
-#*
-#*            vid_collar = g.node(g.root).vid_collar
-#*            vid_base = g.node(g.root).vid_base
-#*
-#*            radius_prev = 0.
-#*
-#*            for ivid, vid in enumerate(g.Ancestors(vid_collar)[1:]):
-#*                radius = rhyzo_radii[ivid]
-#*                g.node(vid).Length = radius - radius_prev
-#*                g.node(vid).depth = soil_dimensions[2]/LengthConv #[m]
-#*                g.node(vid).TopDiameter = radius*2.
-#*                g.node(vid).BotDiameter = radius*2.
-#*                g.node(vid).soil_class = soil_class
-#*                radius_prev = radius
-#*
-#*
-#*    else:
-#*        dist_roots, rad_roots = (None, None)
-#*        # Identifying and attaching the base node of a single MTG
-#*        vid_collar = HSArc.mtg_base(g,vtx_label=vtx_label)
-#*        vid_base = vid_collar
+    print 'rhyzo_solution: %s' % rhyzo_solution
 
     if rhyzo_solution:
         dist_roots, rad_roots = params.soil.roots
         if not any(item.startswith('rhyzo') for item in g.property('label').values()):
             vid_collar = HSArc.mtg_base(g,vtx_label=vtx_label)
             vid_base = HSArc.add_soil_components(g, rhyzo_number, rhyzo_radii,
-                                        soil_dimensions, soil_class, vtx_label)
+                                                 soil_dimensions, soil_class, vtx_label)
         else:
             vid_collar = g.node(g.root).vid_collar
             vid_base = g.node(g.root).vid_base
@@ -450,36 +322,35 @@ def run(g, wd, scene, **kwargs):
     g.node(g.root).vid_base = vid_base
     g.node(g.root).vid_collar = vid_collar
 
-#   Initializing sapflow to 0
-#    if not 'Flux' in g.property_names():
-    for vtx_id in traversal.pre_order2(g,vid_base):
+    # Initializing sapflow to 0
+    for vtx_id in traversal.pre_order2(g, vid_base):
         g.node(vtx_id).Flux = 0.
 
-#   Addition of a soil element
+    # Addition of a soil element
     if 'Soil' not in g.properties()['label'].values():
         if 'soil_size' in kwargs:
             if kwargs['soil_size'] > 0.:
-                HSArc.add_soil(g,kwargs['soil_size'])
+                HSArc.add_soil(g, kwargs['soil_size'])
         else:
-            HSArc.add_soil(g,500.)
+            HSArc.add_soil(g, 500.)
 
-#   Suppression of undesired geometry for light and energy calculations
+    # Suppression of undesired geometry for light and energy calculations
     geom_prop = g.properties()['geometry']
     vidkeys = []
     for vid in g.properties()['geometry']:
         n = g.node(vid)
-        if not n.label.startswith(('L','other','soil')):
+        if not n.label.startswith(('L', 'other', 'soil')):
             vidkeys.append(vid)
     [geom_prop.pop(x) for x in vidkeys]
     g.properties()['geometry'] = geom_prop
 
-#   Attaching optical properties to MTG elements
+    # Attaching optical properties to MTG elements
     g = HSCaribu.optical_prop(g, leaf_lbl_prefix=leaf_lbl_prefix,
-                      stem_lbl_prefix=stem_lbl_prefix, wave_band='SW',
-                      opt_prop=opt_prop)
+                              stem_lbl_prefix=stem_lbl_prefix, wave_band='SW',
+                              opt_prop=opt_prop)
 
-#   Wind profile
-    if not 'u_coef' in g.property_names():
+    # Wind profile
+    if 'u_coef' not in g.property_names():
         z_ls = [g.node(vid).TopPosition[2] for vid in g.VtxList(Scale=3) if g.node(vid).label.startswith('L')]
         z_max, z_min = max(z_ls), min(z_ls)
         z_avg = 0.5*(z_max + z_min)
@@ -488,7 +359,7 @@ def run(g, wd, scene, **kwargs):
                 z_node = g.node(vid).TopPosition[2]
                 g.node(vid).u_coef = 1. #0.2 + 0.8*(abs(z_node-z_avg)/(1.2*(z_max-z_min)/2.))**2.
 
-# Estimation of Nitroen surface-based content according to Prieto et al. (2012)
+    # Estimation of Nitroen surface-based content according to Prieto et al. (2012)
     # Estimation of intercepted irradiance over past 10 days:
     if not 'Na' in g.property_names():
         print 'Computing Nitrogen profile...'
@@ -497,22 +368,22 @@ def run(g, wd, scene, **kwargs):
         ppfd10_date = sdate + dt.timedelta(days=-10)
         ppfd10t = date_range(ppfd10_date, sdate, freq='H')
         ppfd10_meteo = meteo_tab.ix[ppfd10t]
-        caribu_source, RdRsH_ratio = \
-            HSCaribu.irradiance_distribution(ppfd10_meteo, geo_location, E_type,
-                                             tzone, turtle_sectors, turtle_format,
-                                             None, scene_rotation, None)
-    #       Compute irradiance interception and absorbtion
-        g, caribu_scene = HSCaribu.hsCaribu(mtg=g,meteo=ppfd10_meteo,local_date=None,
-                           geo_location=None, E_type=None,
-                           unit_scene_length=unit_scene_length, tzone=tzone,
-                           wave_band='SW', source = caribu_source, direct=False,
-                           infinite=True, nz=50, dz=5, ds=0.5,
-                           pattern=pattern, turtle_sectors=turtle_sectors,
-                           turtle_format=turtle_format,
-                           leaf_lbl_prefix=leaf_lbl_prefix,
-                           stem_lbl_prefix=stem_lbl_prefix,
-                           opt_prop=opt_prop, rotation_angle = scene_rotation,
-                           icosphere_level=None)
+        caribu_source, RdRsH_ratio = HSCaribu.irradiance_distribution(ppfd10_meteo, geo_location, E_type,
+                                                                      tzone, turtle_sectors, turtle_format,
+                                                                      None, scene_rotation, None)
+
+        # Compute irradiance interception and absorbtion
+        g, caribu_scene = HSCaribu.hsCaribu(mtg=g, meteo=ppfd10_meteo, local_date=None,
+                                            geo_location=None, E_type=None,
+                                            unit_scene_length=unit_scene_length, tzone=tzone,
+                                            wave_band='SW', source = caribu_source, direct=False,
+                                            infinite=True, nz=50, dz=5, ds=0.5,
+                                            pattern=pattern, turtle_sectors=turtle_sectors,
+                                            turtle_format=turtle_format,
+                                            leaf_lbl_prefix=leaf_lbl_prefix,
+                                            stem_lbl_prefix=stem_lbl_prefix,
+                                            opt_prop=opt_prop, rotation_angle = scene_rotation,
+                                            icosphere_level=None)
                                              
         g.properties()['Ei10'] = {vid:g.node(vid).Ei*TimeConv/10./1.e6 for vid in g.property('Ei').keys()}
     
@@ -534,13 +405,11 @@ def run(g, wd, scene, **kwargs):
 #==============================================================================
 # Simulations
 #==============================================================================
-#    tstart = time.time()
 
-    sapflow = []; sapEast=[]; sapWest=[]
+    sapflow = []; sapEast = []; sapWest = []
     an_ls = []
-    rg_ls=[]
-#    psi_soil_ls = [];
-    psi_stem={}; Tlc_dict={}; Ei_dict = {}; an_dict = {}; gs_dict = {}
+    rg_ls = []
+    psi_stem = {}; Tlc_dict = {}; Ei_dict = {}; an_dict = {}; gs_dict = {}
 
 # The time loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     for date in meteo.time:
@@ -550,7 +419,6 @@ def run(g, wd, scene, **kwargs):
         imeteo = meteo[meteo.time==date]
         
         # Add a date index to g
-#        g.date = date.to_julian_date()
         g.date = dt.datetime.strftime(date, "%Y%m%d%H%M%S")
 
         # Read soil water potntial at midnight
@@ -563,17 +431,11 @@ def run(g, wd, scene, **kwargs):
                     psi_soil = psi_soil_init
                 except KeyError:
                     pass
-    #     Estimate soil water potntial evolution due to transpiration
+            # Estimate soil water potntial evolution due to transpiration
             else:
                 psi_soil = HSHyd.soil_water_potential(psi_soil,
                                             g.node(vid_collar).Flux*TimeConv,
                                             soil_class, soil_total_volume,psi_min)
-
-#            if not rhyzo_solution:
-#            if 'psi_head' in g.node(vid_collar).properties():
-#                psi_soil = 0.5*(g.node(vid_collar).psi_head + psi_soil)
-
-#        psi_soil_ls.append(psi_soil)
 
         # Initializing all xylem potential values to soil water potential
         for vtx_id in traversal.pre_order2(g,vid_base):
@@ -585,10 +447,9 @@ def run(g, wd, scene, **kwargs):
             sun2scene = HSVisu.visu(g,def_elmnt_color_dict=True,scene=Scene())
 
         # Compute irradiance distribution over the scene
-        caribu_source, RdRsH_ratio = HSCaribu.irradiance_distribution(imeteo,
-                                geo_location, E_type, tzone, turtle_sectors,
-                                turtle_format, sun2scene, scene_rotation,
-                                None)
+        caribu_source, RdRsH_ratio = HSCaribu.irradiance_distribution(imeteo, geo_location, E_type, tzone,
+                                                                      turtle_sectors, turtle_format, sun2scene,
+                                                                      scene_rotation, None)
 
         # Compute irradiance interception and absorbtion
         g, caribu_scene = HSCaribu.hsCaribu(mtg=g,meteo=imeteo,local_date=None,
