@@ -479,18 +479,12 @@ def run(g, wd, scene, **kwargs):
     
         # Climatic data for energy balance module
 # TODO: Change the t_sky_eff formula (cf. Gliah et al., 2011, Heat and Mass Transfer, DOI: 10.1007/s00231-011-0780-1)
-        t_sky_eff = RdRsH_ratio*t_cloud + (1-RdRsH_ratio)*t_sky
-        macro_meteo = {'T_sky':t_sky_eff+273.15, 'T_soil':t_soil+273.15,
-                       'T_air':imeteo.Tac[0]+273.15,'Pa':imeteo.Pa[0],
-                       'u':imeteo.u[0]}
-
-        # Updating the soil water content of the 
+        t_sky_eff = RdRsH_ratio * t_cloud + (1 - RdRsH_ratio) * t_sky
+        macro_meteo = {'T_sky': t_sky_eff + 273.15, 'T_soil': t_soil + 273.15,
+                       'T_air': imeteo.Tac[0] + 273.15, 'Pa': imeteo.Pa[0],
+                       'u': imeteo.u[0]}
 
 # The t loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#        iter_xylem = []
-#        t_error_list = []
-#        t_iter_list = []
-        
         t_error_trace = []
         it_step = t_step
 
@@ -510,112 +504,76 @@ def run(g, wd, scene, **kwargs):
         
                     # Computes gas-exchange fluxes. Leaf T and Psi are from prev calc loop
                     HSExchange.gas_exchange_rates(g, par_photo, par_photo_N, par_gs,
-                                        imeteo, E_type2, leaf_lbl_prefix,rbt)
+                                                  imeteo, E_type2, leaf_lbl_prefix, rbt)
     
                     # Computes sapflow and hydraulic properties
                     HSHyd.hydraulic_prop(g, vtx_label=vtx_label, MassConv=MassConv,
-                                      LengthConv=LengthConv,
-                                      a=Kx_dict['a'],b=Kx_dict['b'],min_kmax=Kx_dict['min_kmax'])
-    
+                                         LengthConv=LengthConv,
+                                         a=Kx_dict['a'], b=Kx_dict['b'], min_kmax=Kx_dict['min_kmax'])
 
-#                    # Updating the soil water status
+                    # Updating the soil water status
+                    psi_collar = HSHyd.soil_water_potential(psi_soil, g.node(vid_collar).Flux * TimeConv,
+                                                            soil_class, rhyzo_total_volume, psi_min)
+
                     if soil_water_deficit:
-#                        N_iter_psi = HSHyd.xylem_water_potential(g, psi_soil,
-#                                      psi_min=psi_min, model=modelx, max_iter=max_iter,
-#                                      psi_error_crit=psi_error_threshold,vtx_label=vtx_label,
-#                                      LengthConv=LengthConv,fifty_cent=psi_critx,
-#                                      sig_slope=slopex, dist_roots=dist_roots,
-#                                      rad_roots=rad_roots,
-#                                      negligible_shoot_resistance = negligible_shoot_resistance,
-#                                      start_vid = vid_base, stop_vid = vid_collar,
-#                                      psi_step = psi_step)
-#                        psi_collar = g.node(vid_collar).psi_head
-
-                        psi_collar = HSHyd.soil_water_potential(psi_soil,g.node(vid_collar).Flux*TimeConv,
-                                  soil_class, rhyzo_total_volume, psi_min)
                         psi_collar = max(-1.3, psi_collar)
-
-#                        psi_collar, psi_soil = \
-#                           HSHyd.soil_rhyzo_water_potential(g.node(vid_collar).Flux*TimeConv,
-#                                                      g.node(vid_collar).psi_head,
-#                                                      psi_soil, psi_error_threshold,
-#                                                      soil_class, datet.freqstr,
-#                                                      rhyzo_radii[0]*LengthConv,
-#                                                      rhyzo_radii[-1]*LengthConv,
-#                                                      depth, psi_min)
-
-#                        print psi_collar, psi_soil
                     else:
-                        psi_collar = HSHyd.soil_water_potential(psi_soil,g.node(vid_collar).Flux*TimeConv,
-                                  soil_class, rhyzo_total_volume, psi_min)
-                        
                         psi_collar = max(-0.7, psi_collar)
 
-#                        psi_collar = psi_soil
                         for vid in g.Ancestors(vid_collar):
                             g.node(vid).psi_head = psi_collar
 
 
                     # Computes xylem water potential
                     N_iter_psi = HSHyd.xylem_water_potential(g, psi_collar,
-                                  psi_min=psi_min, model=modelx, max_iter=max_iter,
-                                  psi_error_crit=psi_error_threshold,vtx_label=vtx_label,
-                                  LengthConv=LengthConv,fifty_cent=psi_critx,
-                                  sig_slope=slopex, dist_roots=dist_roots,
-                                  rad_roots=rad_roots,
-                                  negligible_shoot_resistance = negligible_shoot_resistance,
-                                  start_vid = vid_collar, stop_vid = None,
-                                  psi_step = psi_step)
+                                                             psi_min=psi_min, model=modelx, max_iter=max_iter,
+                                                             psi_error_crit=psi_error_threshold, vtx_label=vtx_label,
+                                                             LengthConv=LengthConv, fifty_cent=psi_critx,
+                                                             sig_slope=slopex, dist_roots=dist_roots,
+                                                             rad_roots=rad_roots,
+                                                             negligible_shoot_resistance=negligible_shoot_resistance,
+                                                             start_vid=vid_collar, stop_vid=None,
+                                                             psi_step=psi_step)
     
                     psi_new = g.property('psi_head')
-    
+
                     # Evaluation of xylem conversion creterion
                     psi_error_dict = {}
                     for vtx_id in g.property('psi_head').keys():
-                        psi_error_dict[vtx_id] = abs(psi_prev[vtx_id]-psi_new[vtx_id])
-    
+                        psi_error_dict[vtx_id] = abs(psi_prev[vtx_id] - psi_new[vtx_id])
+
                     psi_error = max(psi_error_dict.values())
                     psi_error_trace.append(psi_error)
-#                    iter_xylem.append(N_iter_psi)
-#                    print '*******************************************************'
-#                    print [vid for vid in psi_error_dict if psi_error_dict[vid]==max(psi_error_dict.values())]
+
                     print 'psi_error = ',round(psi_error,3), ':: Nb_iter = %d'%N_iter_psi, 'ipsi_step = %f'%ipsi_step
-#                    print 'mean(Psi_x) = ', round(np.mean(g.property('psi_head').values()),3), ':: Flux = %e'%g.node(3).Flux
     
                     if psi_error < psi_error_threshold:
                         break
                     else:
                         try:
-#                            moving_avg_1 = np.mean(psi_error_trace[-5:])
-#                            moving_avg_2 = np.mean(psi_error_trace[-6:-1])
-##                            if abs(moving_avg_1 - moving_avg_2)/moving_avg_1 < psi_error_threshold:
                             if psi_error_trace[-1] >= psi_error_trace[-2] - psi_error_threshold:
-                                ipsi_step = max(0.05, ipsi_step/2.)
-
+                                ipsi_step = max(0.05, ipsi_step / 2.)
                         except:
                             pass
 
                         psi_new_dict = {}
                         for vtx_id in psi_new.keys():
-                            psix = psi_prev[vtx_id] + ipsi_step*(psi_new[vtx_id]-psi_prev[vtx_id])
-                            psi_new_dict[vtx_id]=psix
+                            psix = psi_prev[vtx_id] + ipsi_step * (psi_new[vtx_id] - psi_prev[vtx_id])
+                            psi_new_dict[vtx_id] = psix
                         
                         g.properties()['psi_head'] = psi_new_dict
-    #                    for vtx_id in psi_new.keys():
-    #                        g.node(vtx_id).psi_head = 0.5*(psi_prev[vtx_id]+psi_new[vtx_id])
-    
+
 #                    axpsi=HSVisu.property_map(g,prop='psi_head',add_head_loss=True, ax=axpsi, color='red')
 
             else:
-#                ipsi = 0
-#               Computes gas-exchange fluxes. Leaf T and Psi are from prev calc loop
+                # Computes gas-exchange fluxes. Leaf T and Psi are from prev calc loop
                 HSExchange.gas_exchange_rates(g, par_photo, par_photo_N, par_gs,
-                                    imeteo, E_type2, leaf_lbl_prefix,rbt)
+                                              imeteo, E_type2, leaf_lbl_prefix, rbt)
 
-#               Computes sapflow and hydraulic properties
+                # Computes sapflow and hydraulic properties
                 HSHyd.hydraulic_prop(g, vtx_label=vtx_label, MassConv=MassConv,
-                                  LengthConv=LengthConv,
-                                  a=Kx_dict['a'],b=Kx_dict['b'],min_kmax=Kx_dict['min_kmax'])
+                                     LengthConv=LengthConv,
+                                     a=Kx_dict['a'], b=Kx_dict['b'], min_kmax=Kx_dict['min_kmax'])
 
 
 # End psi loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
