@@ -64,7 +64,6 @@ def run(g, wd, scene, **kwargs):
         - **par_photo_N**
         - **psi_error_threshold**
         - **psi_min**
-        - **psi_soil**
         - **psi_step**
         - **rbt**
         - **rhyzo_solution**
@@ -88,12 +87,14 @@ def run(g, wd, scene, **kwargs):
         - **turtle_format**
         - **turtle_sectors**
         - **unit_scene_length**
+        
+        - **psi_soil**
 
     """
     print '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
-    print '+ Project: ', wd.split('/')[-3:-1], '+'
+    print '+ Project: ', wd
     print '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
-    total_time_on = time.time()
+    time_on = dt.datetime.now()
 
     # Read user parameters
     params_path = wd + 'params.json'
@@ -105,7 +106,7 @@ def run(g, wd, scene, **kwargs):
     # Initialisation
     # ==============================================================================
     #   Climate data
-    meteo_path = wd + 'meteo.input'
+    meteo_path = params.simulation.meteo
     meteo_tab = read_csv(meteo_path, sep=';', decimal='.', header=0)
     meteo_tab.time = DatetimeIndex(meteo_tab.time)
     meteo_tab = meteo_tab.set_index(meteo_tab.time)
@@ -150,7 +151,7 @@ def run(g, wd, scene, **kwargs):
         tmeteo = tmeteo.set_index(DatetimeIndex(tmeteo.index).normalize())
         df_min = tmeteo.groupby(tmeteo.index).aggregate(np.min).Tac
         df_max = tmeteo.groupby(tmeteo.index).aggregate(np.max).Tac
-        df_tt = 0.5 * (df_min + df_max) - t_base
+        df_tt = max(0., 0.5 * (df_min + df_max) - t_base)
         tt = df_tt.cumsum()[-1]
     else:
         raise ValueError('Cumulative degree-days temperature is not provided.')
@@ -158,8 +159,8 @@ def run(g, wd, scene, **kwargs):
     print 'Cumulative degree-day temperature = %d °C' % tt
 
     # Determination of perennial structure arms (for grapevine)
-    arm_vid = {g.node(vid).label: g.node(vid).components()[0]._vid \
-               for vid in g.VtxList(Scale=2) if g.node(vid).label.startswith('arm')}
+#    arm_vid = {g.node(vid).label: g.node(vid).components()[0]._vid \
+#               for vid in g.VtxList(Scale=2) if g.node(vid).label.startswith('arm')}
 
     # Soil reservoir dimensions (inter row, intra row, depth) [m]
     soil_dimensions = params.soil.soil_dimensions
@@ -413,7 +414,8 @@ def run(g, wd, scene, **kwargs):
 
     # The time loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     for date in meteo.time:
-        print '++++++++++++++++++++++Date', date
+        print "=" * 72
+        print 'Date', date, '\n'
 
         # Select of meteo data
         imeteo = meteo[meteo.time == date]
@@ -623,8 +625,8 @@ def run(g, wd, scene, **kwargs):
 
         # Plot stuff..
         sapflow.append(g.node(vid_collar).Flux)
-        sapEast.append(g.node(arm_vid['arm1']).Flux)
-        sapWest.append(g.node(arm_vid['arm2']).Flux)
+#        sapEast.append(g.node(arm_vid['arm1']).Flux)
+#        sapWest.append(g.node(arm_vid['arm2']).Flux)
 
         an_ls.append(g.node(vid_collar).FluxC)
 
@@ -644,15 +646,19 @@ def run(g, wd, scene, **kwargs):
         print 'gs', np.median(g.property('gs').values())
         print 'flux H2O', round(g.node(vid_collar).Flux * 1000. * time_conv, 4)
         print 'flux C2O', round(g.node(vid_collar).FluxC, 4)
-        print 'Tlc', round(np.median([g.node(vid).Tlc for vid in g.property('gs').keys()]), 2),\
-            'Tair =', round(imeteo.Tac[0], 4)
+        print 'Tleaf ', round(np.median([g.node(vid).Tlc for vid in g.property('gs').keys()]), 2),\
+            'Tair ', round(imeteo.Tac[0], 4)
+        print ''
+        print "=" * 72
 
     # End time loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     # Write output
     # Plant total transpiration
-    sapflow, sapEast, sapWest = [np.array(flow) * time_conv * 1000. for i, flow in
-                                 enumerate((sapflow, sapEast, sapWest))]
+    sapflow = [flow * time_conv * 1000. for flow in sapflow]
+
+#    sapflow, sapEast, sapWest = [np.array(flow) * time_conv * 1000. for i, flow in
+#                                 enumerate((sapflow, sapEast, sapWest))]
 
     # Median leaf temperature
     t_ls = [np.median(Tlc_dict[date].values()) for date in meteo.time]
@@ -664,8 +670,8 @@ def run(g, wd, scene, **kwargs):
         'Rg': rg_ls,
         'An': an_ls,
         'E': sapflow,
-        'sapEast': sapEast,
-        'sapWest': sapWest,
+        #'sapEast': sapEast,
+        #'sapWest': sapWest,
         'Tleaf': t_ls
     }
 
@@ -676,9 +682,12 @@ def run(g, wd, scene, **kwargs):
     results_df.to_csv(output_path + 'time_series.output',
                       sep=';', decimal='.')
 
-    total_time_off = time.time()
+    time_off = dt.datetime.now()
 
-    print ("--- Total runtime: %s minutes ---" % ((total_time_off - total_time_on) / 60.))
-    print time.ctime()
+    print ("")
+    print ("beg time", time_on)
+    print ("end time", time_off)
+    print ("--- Total runtime: %d minute(s) ---" %
+           int((time_off - time_on).seconds / 60.))
 
     return
