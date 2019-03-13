@@ -13,7 +13,7 @@ Created on Tue Dec 13 13:07:33 2016
 """
 import datetime as dt
 import os.path
-from pandas import read_csv, DataFrame, date_range, DatetimeIndex
+from pandas import read_csv, DataFrame, date_range, DatetimeIndex, merge
 from copy import deepcopy
 import numpy as np
 from operator import mul
@@ -151,7 +151,12 @@ def run(g, wd, scene, **kwargs):
         tmeteo = tmeteo.set_index(DatetimeIndex(tmeteo.index).normalize())
         df_min = tmeteo.groupby(tmeteo.index).aggregate(np.min).Tac
         df_max = tmeteo.groupby(tmeteo.index).aggregate(np.max).Tac
-        df_tt = max(0., 0.5 * (df_min + df_max) - t_base)
+#        df_tt = merge(df_max, df_min,
+#                      how='inner', left_index=True, right_index=True)
+#        df_tt.columns = ('max', 'min')
+#        df_tt['gdd'] = df_tt.apply(lambda x: 0.5 * (x['max'] + x['min']) - t_base)
+#        tt = df_tt['gdd'].cumsum()[-1]
+        df_tt = 0.5 * (df_min + df_max) - t_base
         tt = df_tt.cumsum()[-1]
     else:
         raise ValueError('Cumulative degree-days temperature is not provided.')
