@@ -27,12 +27,9 @@ for v in traversal.iter_mtg2(g, g.root):
                            max_order=55, rand_rot_angle=90.,
                            cordon_vector=None)
     architecture.vine_mtg_properties(g, v)
-    architecture.vine_mtg_geometry(g, v)  # ,theta_1=90,theta_2=180,theta_2_cv=10.)
+    architecture.vine_mtg_geometry(g, v)
     architecture.vine_transform(g, v)
 
-# Display of the plant mock-up (result in 'fig_01_plant_mock_up.png')
-# scene = HSVisu.visu(g,def_elmnt_color_dict=True,scene=Scene(),
-#                    snap_shot_path='mockup.png')
 scene = display.visu(g, def_elmnt_color_dict=True, scene=Scene(),
                      view_result=True)
 
