@@ -1583,8 +1583,8 @@ def mtg_save(g, scene, file_path):
     
 def mtg_load(wd, index):
     
-    fgeom = wd + 'geometry.bgeom'
-    fg = wd + 'mtg%s.pckl'%(index)
+    fgeom = wd + 'geometry%s.bgeom'%index
+    fg = wd + '%s.pckl'%(index)
     
     scene = pgl.Scene()
     scene.read(fgeom, 'BGEOM')
@@ -1599,7 +1599,7 @@ def mtg_load(wd, index):
     
     return g2, scene
 
-def mtg_save_geometry(scene, file_path):
+def mtg_save_geometry(scene, file_path, index=''):
     """
     Saves the geometry of a scene in an external file.
 
@@ -1611,7 +1611,7 @@ def mtg_save_geometry(scene, file_path):
     if not path.exists(file_path):
         mkdir(file_path)
 
-    fgeom = file_path + 'geometry.bgeom'
+    fgeom = file_path + 'geometry%s.bgeom' % index
 
     scene.save(fgeom, 'BGEOM')
 

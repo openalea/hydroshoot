@@ -46,7 +46,8 @@ def par_photo_default(Vcm25= 89.0, Jm25 = 143.0, cRd = 0.008, TPU25 = 10.0,
    - **Ko25**: Michaelis-Menten constant for the oxygenase [mmol mol-1]
    - **Tx25**: CO2 compensation point in the absence of mitochondrial respiration [umol mol-1]
    - **alpha**, **alpha_T_limit**, **a1**, **a2**, **a3**: parameters regulating electron transport for sunlit and shaded leaves (**not used**)
-   - **c** and **deltaHa** are empirical parameters defining the temperature response curves of each of Kc, Ko, Vcm, Jm, TPU, Rd and Tx
+   - **c**: empirical parameter defining the temperature response curves of each of Kc, Ko, Vcm, Jm, TPU, Rd and Tx
+   - **deltaHa**: Activation energy of the Arrhenius functions [kJ molCO2-1] 
    - **ds**: float, enthalpie of activation [KJ mol-1]
    - **dHd**: float, enthalpie of deactivation [KJ mol-1]
    """

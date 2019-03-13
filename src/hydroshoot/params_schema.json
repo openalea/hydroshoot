@@ -1,0 +1,925 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "HydroShootParameters",
+  "description": "The schema for HydroShoot parameters",
+  "type": "object",
+  "properties": {
+    "simulation": {
+      "type": "object",
+      "description": "Simulation configuration parameters",
+      "properties": {
+        "sdate": {
+          "type": "string",
+          "format": "date_time",
+          "description": "starting date of the simulation"
+        },
+        "edate": {
+          "type": "string",
+          "format": "date_time",
+          "description": "end date of the simulation"
+        },
+        "latitude": {
+          "type": "number",
+          "description": "[decimal degrees] latitude of location"
+        },
+        "longitude": {
+          "type": "number",
+          "description": "[decimal degrees] longitude of location"
+        },
+        "elevation": {
+          "type": "number",
+          "description": "[m.a.s.l] latitude of location"
+        },
+        "meteo": {
+          "type": "string",
+          "description": "csv file containing the meteo input variables"
+        },
+        "tzone": {
+          "type": "string",
+          "description": "Area/Location timezone according to the Olson timezone database"
+        },
+        "output_index": {
+          "type": "string",
+          "description": "Index to be added to the name of the simulation outputs folder"
+        },
+        "unit_scene_length": {
+          "type": "string",
+          "description": "Unit length of scene elements",
+          "enum": [
+            "mm",
+            "cm",
+            "m"
+          ]
+        },
+        "simplified_form_factors": {
+          "type": "boolean",
+          "description": "`true` to use the simplified form factors method"
+        },
+        "hydraulic_structure": {
+          "type": "boolean",
+          "description": "`true` to calculate shoot hydraulic structure: leaf water potential is calculated and used in stomatal conductance model; `false` to use leaf-to-air vapor pressure deficit"
+        },
+        "negligible_shoot_resistance": {
+          "type": "boolean",
+          "description": "`true` to omit shoot hydraulic resistance: leaf water potential is equal to soil water potential; `false` to calculate leaf water potential as part of the hydraulic structure"
+        },
+        "energy_budget": {
+          "type": "boolean",
+          "description": "`true` to calculate leaf temperature from leaf energy budget; `false` to set leaf temperature equal to air temperature"
+        },
+        "soil_water_deficit": {
+          "type": "boolean",
+          "description": "`true` to allow simulating soil water deficit; `false` to prevent soil water from dropping below a given threshold"
+        }
+      },
+      "required": [
+        "sdate",
+        "edate",
+        "latitude",
+        "longitude",
+        "elevation",
+        "meteo",
+        "tzone",
+        "output_index",
+        "unit_scene_length",
+        "simplified_form_factors",
+        "hydraulic_structure",
+        "negligible_shoot_resistance",
+        "energy_budget",
+        "soil_water_deficit"
+      ]
+    },
+    "phenology": {
+      "type": "object",
+      "description": "Parameters required for calculating cumulative degree-day temperature since budbreak",
+      "properties": {
+        "emdate": {
+          "type": "string",
+          "format": "date_time",
+          "description": "Observed date of budbreak"
+        },
+        "t_base": {
+          "type": "number",
+          "description": "[°C] base temperature for cumulative degree-days calculations",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "emdate",
+        "t_base"
+      ]
+    },
+    "mtg_api": {
+      "type": "object",
+      "description": "API in order to allow HydroShoot to identify the different shoot hydraulic segments",
+      "properties": {
+        "collar_label": {
+          "type": "string",
+          "description": "Label prefix of the collar internode (required to identify the first segment of the hydraulic structure)"
+        },
+        "leaf_lbl_prefix": {
+          "type": "string",
+          "description": "Label prefix of the leaf"
+        },
+        "stem_lbl_prefix": {
+          "type": "array",
+          "description": "Label prefices of the internodes, petioles, and complex-nodes resulting from pruning over successive years",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "collar_label",
+        "leaf_lbl_prefix",
+        "stem_lbl_prefix"
+      ]
+    },
+    "numerical_resolution": {
+      "type": "object",
+      "description": "Requirements for the numerical resolution of the hydraulic and energy-balance systems",
+      "properties": {
+        "max_iter": {
+          "type": "integer",
+          "description": "Maximum number of iterations (for both hydraulic and energy-balance calculations)",
+          "minimum": 0,
+          "exclusiveMinimum": true,
+          "maximum": 200
+        },
+        "psi_step": {
+          "type": "number",
+          "description": "Reduction factor to the xylem water potential step value between two consecutive iterations in the case of non convergence",
+          "minimum": 0,
+          "exclusiveMinimum": true,
+          "maximum": 1
+        },
+        "psi_error_threshold": {
+          "type": "number",
+          "description": "[MPa] Maximum allowable cumulative squared difference in xylem water potential between two consecutive iterations",
+          "minimum": 0
+        },
+        "t_step": {
+          "type": "number",
+          "description": "Reduction factor to the leaf temperature step value between two consecutive iterations in the case of non convergence",
+          "minimum": 0,
+          "exclusiveMinimum": true,
+          "maximum": 1
+        },
+        "t_error_crit": {
+          "type": "number",
+          "description": "[°C] Maximum allowable cumulative squared difference in leaf temperature between two consecutive iterations",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "max_iter",
+        "psi_step",
+        "psi_error_threshold",
+        "t_step",
+        "t_error_crit"
+      ]
+    },
+    "irradiance": {
+      "type": "object",
+      "description": "Parameters of the `irradiance` module, to be used in the Caribu model (Chelle et al. 1998, Ecol. Model. 111, 75  91)",
+      "properties": {
+        "E_type": {
+          "type": "string",
+          "description": "Unit of the irradiance flux density used in the simulation",
+          "enum": [
+            "Rg_Watt/m2",
+            "RgPAR_Watt/m2",
+            "PPFD_umol/m2/s"
+          ]
+        },
+        "E_type2": {
+          "type": "string",
+          "description": "Unit of the desired simulated irradiance flux density output",
+          "enum": [
+            "Ei",
+            "Eabs"
+          ]
+        },
+        "opt_prop": {
+          "type": "object",
+          "description": "Optical properties od scene elements",
+          "properties": {
+            "SW": {
+              "type": "object",
+              "description": "Optical properties in the shortwave band",
+              "properties": {
+                "leaf": {
+                  "type": "array",
+                  "description": "(reflectance, transmittance) of a single leaf",
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "stem": {
+                  "type": "array",
+                  "description": "(reflectance, ) of a stem",
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "minItems": 1,
+                  "maxItems": 1
+                },
+                "other": {
+                  "type": "array",
+                  "description": "(reflectance, transmittance) of a given element",
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                }
+              },
+              "required": [
+                "leaf",
+                "stem"
+              ]
+            },
+            "LW": {
+              "type": "object",
+              "description": "Optical properties in the longwave band",
+              "properties": {
+                "leaf": {
+                  "type": "array",
+                  "description": "(reflectance, transmittance) of a single leaf",
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "stem": {
+                  "type": "array",
+                  "description": "(reflectance, ) of a stem",
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "minItems": 1,
+                  "maxItems": 1
+                },
+                "other": {
+                  "type": "array",
+                  "description": "(reflectance, transmittance) of a given element",
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                }
+              },
+              "required": [
+                "leaf",
+                "stem"
+              ]
+            }
+          },
+          "required": [
+            "SW",
+            "LW"
+          ]
+        },
+        "scene_rotation": {
+          "type": "number",
+          "description": "[degrees] Counter clockwise angle between the default X-axis direction (South) and the real direction of X-axis."
+        },
+        "turtle_format": {
+          "type": "string",
+          "description": "Irradiance distribution over the celestial dome (sky overcast or uniform overcast)",
+          "enum": [
+            "soc",
+            "uoc"
+          ]
+        },
+        "turtle_sectors": {
+          "type": "string",
+          "description": "String number of turtle sectors",
+          "enum": [
+            "16",
+            "46"
+          ]
+        },
+        "icosphere_level": {
+          "type": "null",
+          "description": "The level of refinement of the dual icosphere."
+        }
+      },
+      "required": [
+        "E_type",
+        "E_type2",
+        "opt_prop",
+        "scene_rotation",
+        "turtle_format",
+        "turtle_sectors",
+        "icosphere_level"
+      ]
+    },
+    "energy": {
+      "type": "object",
+      "description": "Parameters of the `energy` module",
+      "properties": {
+        "solo": {
+          "type": "boolean",
+          "description": " if `true` calculates energy budget for each element assuming the temperatures of surrounding leaves constant (from previous calculation step), if `false` computes simultaneously all temperatures using `sympy.solvers.nsolve` (**very costly!!!**)"
+        },
+        "limit": {
+          "type": "number",
+          "description": "(negative), a threshold below which form factor values are ignored",
+          "maximum": 0.0,
+          "exclusiveMaximum": true
+        },
+        "t_cloud": {
+          "type": "number",
+          "description": "[°C] Cloud temperature"
+        },
+        "t_sky": {
+          "type": "number",
+          "description": "[°C] Sky temperature"
+        }
+      },
+      "required": [
+        "solo",
+        "limit",
+        "t_cloud",
+        "t_sky"
+      ]
+    },
+    "hydraulic": {
+      "type": "object",
+      "description": "Parameters of the `hydraulic` module",
+      "properties": {
+        "MassConv": {
+          "type": "number",
+          "description": "[g mol-1] Molar mass of pure water",
+          "minimum": 0.0,
+          "exclusiveMinimum": true
+        },
+        "psi_min": {
+          "type": "number",
+          "description": "[MPa] Minimum allowable xylem water potential",
+          "maximum": 0.0
+        },
+        "Kx_dict": {
+          "type": "object",
+          "description": "Parameters of the allometric relationship between the diameter of the hydraulic segment and its maximum hydraulic conductivity (K_max=a*D^b)",
+          "properties": {
+            "a": {
+              "type": "number",
+              "description": "[kg s-1 m-3 MPa-1] The slope of the allometric relationship",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "b": {
+              "type": "number",
+              "description": "[-] The power of the allometric relationship",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "min_kmax": {
+              "type": "number",
+              "description": "[kg s-1 m-3 MPa-1] The minimum allowable (or observed) value of maximum hydraulic conductivity",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            }
+          },
+          "required": [
+            "a",
+            "b",
+            "min_kmax"
+          ]
+        },
+        "par_K_vul": {
+          "type": "object",
+          "description": "Parameters of the vulnerability function of the hydraulic conductivity",
+          "properties": {
+            "model": {
+              "type": "string",
+              "description": "Vulnerability model name",
+              "enum": [
+                "misson",
+                "tuzet",
+                "linear"
+              ]
+            },
+            "fifty_cent": {
+              "type": "number",
+              "description": "[MPa] Water potential at which the conductivity of the hydraulic segment is reduced by 50% reltive to its maximum value",
+              "maximum": 0.0
+            },
+            "sig_slope": {
+              "type": "number",
+              "description": "Shape parameter controlling the slope of the S-curve"
+            }
+          },
+          "required": [
+            "model",
+            "fifty_cent",
+            "sig_slope"
+          ]
+        }
+      },
+      "required": [
+        "MassConv",
+        "psi_min",
+        "Kx_dict",
+        "par_K_vul"
+      ]
+    },
+    "exchange": {
+      "type": "object",
+      "description": "Parameters of the `exchange` module",
+      "properties": {
+        "rbt": {
+          "type": "number",
+          "description": "[m2 s ubar umol-1] Combined turbulance and boundary layer resistance for CO2 transport",
+          "minimum": 0.0,
+          "exclusiveMinimum": true
+        },
+        "ca": {
+          "type": "number",
+          "description": "[ubar] CO2 partial pressure of the air",
+          "minimum": 0.0
+        },
+        "Na_dict": {
+          "type": "object",
+          "description": "Parameters of the linear relationship between Nitrogen content per area and leaf mass per area according to Prieto et al. 2012 (doi: 10.1111/j.1365-3040.2012.02491.x)",
+          "properties": {
+            "aN": {
+              "type": "number",
+              "description": "[gN gDM-1 °Cd-1] Slope of the linear relationship between leaf massic Nitrogen content and cumulative degree-days temperature"
+            },
+            "bN": {
+              "type": "number",
+              "description": "[gN gDM-1] Intercept of the linear relationship between leaf massic Nitrogen content and cumulative degree-days temperature"
+            },
+            "aM": {
+              "type": "number",
+              "description": "[gDM m-2 umol-1 m2 s] Slope of the linear relationship between leaf mass per area and the log of the cumulative photosynthetic photon flux density over the last 10 days"
+            },
+            "bM": {
+              "type": "number",
+              "description": "[gDM m-2 umol-1 m2 s] Intercept of the linear relationship between leaf mass per area and the log of the cumulative photosynthetic photon flux density over the last 10 days"
+            }
+          },
+          "required": [
+            "aN",
+            "bN",
+            "aM",
+            "bM"
+          ]
+        },
+        "par_gs": {
+          "type": "object",
+          "description": "Parameters of the stomatal conductance model",
+          "properties": {
+            "model": {
+              "type": "string",
+              "description": "Model name for the response function of stomata to leaf water status",
+              "enum": [
+                "misson",
+                "tuzet",
+                "linear",
+                "vpd"
+              ]
+            },
+            "g0": {
+              "type": "number",
+              "description": "[umol m-2 s-1] Residual stomatal conductance for CO2 at the light compensation point",
+              "minimum": 0.0
+            },
+            "m0": {
+              "type": "number",
+              "description": "[umol mmol-1] Maximum slope An/gs (absence of water deficit)",
+              "minimum": 0.0
+            },
+            "psi0": {
+              "type": "number",
+              "description": "[MPa] Critical thershold for leaf water potential regulating the reduction trend of stomatal conductance with the drop in leaf water potential"
+            },
+            "D0": {
+              "type": "number",
+              "description": "[kPa] Shape parameter of the stomatal conductance model of Leuning (1995, PCE 18, 339–355)",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "n": {
+              "type": "number",
+              "description": "[-] Shape parameter of the stomatal conductance model of Tuzet et al. (2003, PCE 26, 1097–1116) or Misson et al. (2004, Tree Physiol. 24, 529–541)",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            }
+          },
+          "required": [
+            "model",
+            "g0",
+            "m0",
+            "psi0",
+            "D0",
+            "n"
+          ]
+        },
+        "par_photo": {
+          "type": "object",
+          "description": "Parameters of the photosynthetic capacity (before accounting for the effect of leaf N content",
+          "properties": {
+            "Vcm25": {
+              "type": "number",
+              "description": "[umol m-2 s-1] Maximum RuBP-saturated rate of carboxylation",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "Jm25": {
+              "type": "number",
+              "description": "[umol m-2 s-1] Maximum of electron transport rate",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "cRd": {
+              "type": "number",
+              "description": "[-] Coefficient of mitochondrial respiration to `Vcm25`",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "TPU25": {
+              "type": "number",
+              "description": "[umol m-2 s-1] Maximum rate of triose phosphate transport",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "Kc25": {
+              "type": "number",
+              "description": "[umol mol-1] Michaelis-Menten constant for the carboxylase",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "Ko25": {
+              "type": "number",
+              "description": "[mmol mol-1] Michaelis-Menten constant for the oxygenase",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "Tx25": {
+              "type": "number",
+              "description": "[umol mol-1] CO2 compensation point in the absence of mitochondrial respiration",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "RespT_Kc": {
+              "type": "object",
+              "description": "Parameters for temperature response curve of Michaelis-Menten constant for the carboxylase",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "description": "Temperature response model",
+                  "enum": [
+                    "Arrhenius"
+                  ]
+                },
+                "c": {
+                  "type": "number",
+                  "description": "[-] Scaling constant"
+                },
+                "deltaHa": {
+                  "type": "number",
+                  "description": "[kJ molCO2-1] Activation energy of the Arrhenius functions",
+                  "minimum": 0.0
+                }
+              },
+              "required": [
+                "model",
+                "c",
+                "deltaHa"
+              ]
+            },
+            "RespT_Ko": {
+              "type": "object",
+              "description": "Parameters for temperature response curve of Michaelis-Menten constant for the oxygenase",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "description": "Temperature response model",
+                  "enum": [
+                    "Arrhenius"
+                  ]
+                },
+                "c": {
+                  "type": "number",
+                  "description": "[-] Scaling constant"
+                },
+                "deltaHa": {
+                  "type": "number",
+                  "description": "[kJ molCO2-1] Activation energy of the Arrhenius functions",
+                  "minimum": 0.0
+                }
+              },
+              "required": [
+                "model",
+                "c",
+                "deltaHa"
+              ]
+            },
+            "RespT_Vcm": {
+              "type": "object",
+              "description": "Parameters for temperature response curve of RuBP-saturated rate of carboxylation",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "description": "Temperature response model",
+                  "enum": [
+                    "Arrhenius"
+                  ]
+                },
+                "c": {
+                  "type": "number",
+                  "description": "[-] Scaling constant"
+                },
+                "deltaHa": {
+                  "type": "number",
+                  "description": "[kJ molCO2-1] Activation energy of the Arrhenius functions",
+                  "minimum": 0.0
+                }
+              },
+              "required": [
+                "model",
+                "c",
+                "deltaHa"
+              ]
+            },
+            "RespT_Jm": {
+              "type": "object",
+              "description": "Parameters for temperature response curve of electron transport rate",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "description": "Temperature response model",
+                  "enum": [
+                    "Arrhenius"
+                  ]
+                },
+                "c": {
+                  "type": "number",
+                  "description": "[-] Scaling constant"
+                },
+                "deltaHa": {
+                  "type": "number",
+                  "description": "[kJ molCO2-1] Activation energy of the Arrhenius functions",
+                  "minimum": 0.0
+                }
+              },
+              "required": [
+                "model",
+                "c",
+                "deltaHa"
+              ]
+            },
+            "RespT_TPU": {
+              "type": "object",
+              "description": "Parameters for temperature response curve of triose phosphate rate",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "description": "Temperature response model",
+                  "enum": [
+                    "Arrhenius"
+                  ]
+                },
+                "c": {
+                  "type": "number",
+                  "description": "[-] Scaling constant"
+                },
+                "deltaHa": {
+                  "type": "number",
+                  "description": "[kJ molCO2-1] Activation energy of the Arrhenius functions",
+                  "minimum": 0.0
+                }
+              },
+              "required": [
+                "model",
+                "c",
+                "deltaHa"
+              ]
+            },
+            "RespT_Rd": {
+              "type": "object",
+              "description": "Parameters for temperature response curve of mitochondrial respiration rate",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "description": "Temperature response model",
+                  "enum": [
+                    "Arrhenius"
+                  ]
+                },
+                "c": {
+                  "type": "number",
+                  "description": "[-] Scaling constant"
+                },
+                "deltaHa": {
+                  "type": "number",
+                  "description": "[kJ molCO2-1] Activation energy of the Arrhenius functions",
+                  "minimum": 0.0
+                }
+              },
+              "required": [
+                "model",
+                "c",
+                "deltaHa"
+              ]
+            },
+            "RespT_Tx": {
+              "type": "object",
+              "description": "Parameters for temperature response curve of CO2 compensation point in the absence of mitochondrial respiration",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "description": "Temperature response model",
+                  "enum": [
+                    "Arrhenius"
+                  ]
+                },
+                "c": {
+                  "type": "number",
+                  "description": "[-] Scaling constant"
+                },
+                "deltaHa": {
+                  "type": "number",
+                  "description": "[kJ molCO2-1] Activation energy of the Arrhenius functions",
+                  "minimum": 0.0
+                }
+              },
+              "required": [
+                "model",
+                "c",
+                "deltaHa"
+              ]
+            }
+          },
+          "required": [
+            "Vcm25",
+            "Jm25",
+            "cRd",
+            "TPU25",
+            "Kc25",
+            "Ko25",
+            "Tx25",
+            "RespT_Kc",
+            "RespT_Ko",
+            "RespT_Vcm",
+            "RespT_Jm",
+            "RespT_TPU",
+            "RespT_Rd",
+            "RespT_Tx"
+          ]
+        },
+        "par_photo_N": {
+          "type": "object",
+          "description": "(slope, intercept) values of the linear relationship between photosynthetic capacity parameters (Vcmax, Jmax, TPU, Rd) and surface-based leaf Nitrogen content, according to Prieto et al. (2012, doi: 10.1111/j.1365-3040.2012.02491.x)",
+          "properties": {
+            "Vcm25_N": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            },
+            "Jm25_N": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            },
+            "Rd_N": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            },
+            "TPU25_N": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "required": [
+            "Vcm25_N",
+            "Jm25_N",
+            "Rd_N",
+            "TPU25_N"
+          ]
+        }
+      },
+      "required": [
+        "rbt",
+        "ca",
+        "Na_dict",
+        "par_gs",
+        "par_photo",
+        "par_photo_N"
+      ]
+    },
+    "soil": {
+      "type": "object",
+      "description": "Parameters of the soil water balance model",
+      "properties": {
+        "soil_class": {
+          "type": "string",
+          "description": "Soil hydrodynamic class as proposed by Carsel and Parrish (1988) DOI: 10.1029/WR024i005p00755",
+          "enum": [
+            "Sand",
+            "Loamy_Sand",
+            "Sandy_Loam",
+            "Loam",
+            "Silt",
+            "Silty_Loam",
+            "Sandy_Clay_Loam",
+            "Clay_Loam",
+            "Silty_Clay_Loam",
+            "Sandy_Clay",
+            "Silty_Clay",
+            "Clay"
+          ]
+        },
+        "soil_dimensions": {
+          "type": "array",
+          "description": "[m] (inter-row spacing, intra-row spacing, effective root depth)",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "number",
+            "minimum": 0.0,
+            "exclusiveMinimum": true
+          }
+        },
+        "rhyzo_solution": {
+          "type": "boolean",
+          "description": "Add rhyzosphere elements to the mtg"
+        },
+        "rhyzo_radii": {
+          "type": "array",
+          "description": "[m] Radii of concentric rhyzosphere cylinders",
+          "minItems": 1,
+          "items": {
+            "type": "number"
+          }
+        },
+        "rhyzo_coeff": {
+          "type": "number",
+          "description": "[-] Fraction of extractable soil water",
+          "minimum": 0,
+          "maxItems": 1
+        },
+        "root": {
+          "type": "array",
+          "description": "[m] (average distance between roots, average radius of roots)",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "required": [
+        "soil_class",
+        "soil_dimensions"
+      ]
+    }
+  },
+  "required": [
+    "simulation",
+    "phenology",
+    "mtg_api",
+    "numerical_resolution",
+    "irradiance",
+    "energy",
+    "hydraulic",
+    "exchange",
+    "soil"
+  ]
+}
