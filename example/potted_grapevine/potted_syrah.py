@@ -11,10 +11,6 @@ import hydroshoot.architecture as HSArc
 import hydroshoot.display as HSVisu
 from hydroshoot.model import run
 
-
-mpl.use('Qt4Agg')
-mpl.style.use('ggplot')
-
 # =============================================================================
 # Construct the plant mock-up
 # =============================================================================
@@ -39,11 +35,10 @@ for v in traversal.iter_mtg2(g, g.root):
     HSArc.vine_transform(g, v)
 
 # Display of the plant mock-up (result in 'fig_01_plant_mock_up.png')
-#scene = HSVisu.visu(g,def_elmnt_color_dict=True,scene=Scene(),
+# scene = HSVisu.visu(g,def_elmnt_color_dict=True,scene=Scene(),
 #                    snap_shot_path='mockup.png')
 scene = HSVisu.visu(g, def_elmnt_color_dict=True, scene=Scene(),
                     view_result=True)
-
 
 # =============================================================================
 # Run HydroShoot
