@@ -30,9 +30,9 @@
   },
   "numerical_resolution": {
     "max_iter": 100,
-    "psi_step": 0.5,
+    "psi_step": 1.0,
     "psi_error_threshold": 0.05,
-    "t_step": 0.5,
+    "t_step": 1.0,
     "t_error_crit": 0.02
   },
   "irradiance": {
@@ -66,7 +66,7 @@
         ]
       }
     },
-    "scene_rotation": 0.0,
+    "scene_rotation": 140.0,
     "turtle_format": "soc",
     "turtle_sectors": "46",
     "icosphere_level": null
@@ -83,17 +83,17 @@
     "Kx_dict": {
       "a": 1.6,
       "b": 2.0,
-      "min_kmax": 0.01
+      "min_kmax": 0.000111
     },
     "par_K_vul": {
       "model": "misson",
-      "fifty_cent": -0.51,
+      "fifty_cent": -0.76,
       "sig_slope": 1.0
     }
   },
   "exchange": {
     "rbt": 0.6667,
-    "ca": 360.0,
+    "ca": 400.0,
     "Na_dict": {
       "aN": -0.0008,
       "bN": 3.3,
@@ -103,9 +103,9 @@
     "par_gs": {
       "model": "misson",
       "g0": 0.02,
-      "m0": 5.278,
-      "psi0": -1.0,
-      "D0": 30.0,
+      "m0": 7.3,
+      "psi0": -0.65,
+      "D0": 1.0,
       "n": 4.0
     },
     "par_photo": {
@@ -193,13 +193,13 @@
     }
   },
   "soil": {
-    "soil_class": "Sand",
+    "soil_class": "Sandy_Loam",
     "soil_dimensions": [
       3.6,
       1.0,
       1.2
     ],
-    "rhyzo_solution": true,
+    "rhyzo_solution": false,
     "rhyzo_radii": [
       0.167,
       0.333,

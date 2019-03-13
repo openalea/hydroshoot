@@ -13,27 +13,28 @@ from hydroshoot import architecture, display, model
 # =============================================================================
 
 # Path for plant digitalization data.
-g = HSArc.vine_mtg('digit.input')
+g = architecture.vine_mtg('digit.input')
 
 # Local Coordinates Correction
 for v in traversal.iter_mtg2(g, g.root):
     architecture.vine_phyto_modular(g, v)
-    architecture.VinePetiole(g, v, pet_ins=90., pet_ins_cv=0., phyllo_angle=180.)
-    architecture.VineLeaf(g, v, leaf_inc=-45., leaf_inc_cv=100., lim_max=12.5, lim_min=5.,
-                          order_lim_max=6., max_order=55, rand_rot_angle=90.,
-                          cordon_vector=None)
-    architecture.VineMTGProp(g, v)
-    architecture.VineMTGGeom(g, v)
-    architecture.VineTransform(g, v)
+    architecture.vine_petiole(g, v, pet_ins=90., pet_ins_cv=0.,
+                              phyllo_angle=180)
+    architecture.vine_leaf(g, v, leaf_inc=-45., leaf_inc_cv=100., lim_max=12.5,
+                           lim_min=5., order_lim_max=6., max_order=55,
+                           rand_rot_angle=90., cordon_vector=None)
+    architecture.vine_mtg_properties(g, v)
+    architecture.vine_mtg_geometry(g, v)
+    architecture.vine_transform(g, v)
 
 # Display of the plant mock-up (result in 'fig_01_plant_mock_up.png')
 # scene = HSVisu.visu(g,def_elmnt_color_dict=True,scene=Scene(),
 #                    snap_shot_path='mockup.png')
-scene = HSVisu.visu(g, def_elmnt_color_dict=True, scene=Scene(),
-                    view_result=True)
+scene = display.visu(g, def_elmnt_color_dict=True, scene=Scene(),
+                     view_result=True)
 
 # =============================================================================
 # Run HydroShoot
 # =============================================================================
 
-run(g, str(getcwd()) + '/', scene)
+model.run(g, str(getcwd()) + '/', scene)
