@@ -3,13 +3,10 @@ simple shoot architecture.
 """
 
 from os import getcwd
-import matplotlib as mpl
 
-import openalea.mtg.traversal as traversal
+from openalea.mtg import traversal
 from openalea.plantgl.all import Scene
-import hydroshoot.architecture as HSArc
-import hydroshoot.display as HSVisu
-from hydroshoot.model import run
+from hydroshoot import architecture, display, model
 
 # =============================================================================
 # Construct the plant mock-up
