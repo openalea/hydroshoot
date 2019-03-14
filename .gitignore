@@ -86,4 +86,9 @@ target/
 # #}
 
 # user custom filters
-hydroshoot/example/potted_grapevine/output_example/
+hydroshoot/example/potted_grapevine/output/
+hydroshoot/example/vsp_ww_grapevine/output/
+hydroshoot/example/vsp_ws_grapevine/output/
+hydroshoot/example/gdc_can1_grapevine/output/
+hydroshoot/example/gdc_can2_grapevine/output/
+hydroshoot/example/gdc_can3_grapevine/output/
