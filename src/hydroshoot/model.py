@@ -17,17 +17,11 @@ from pandas import read_csv, DataFrame, date_range, DatetimeIndex, merge
 from copy import deepcopy
 import numpy as np
 from operator import mul
-import time
 
 import openalea.mtg.traversal as traversal
 from openalea.plantgl.all import Scene, surface
 
-import hydroshoot.architecture as HSArc
-import hydroshoot.irradiance as HSCaribu
-import hydroshoot.exchange as HSExchange
-import hydroshoot.hydraulic as HSHyd
-import hydroshoot.energy as HSEnergy
-import hydroshoot.display as HSVisu
+from hydroshoot import (architecture, irradiance, exchange, hydraulic, energy, display)
 from hydroshoot.params import Params
 
 
@@ -40,56 +34,10 @@ def run(g, wd, scene, **kwargs):
     - **wd**: string, working directory
     - **scene**: PlantGl scene
     - **kwargs** can include:
-        - **collar_label**
-        - **E_type**
-        - **E_type2**
-        - **elevation**
-        - **energy_budget**
-        - **hydraulic_structure**
-        - **icosphere_level**
-        - **Kx_dict**
-        - **latitude**
-        - **leaf_lbl_prefix**
-        - **limit**
-        - **longitude**
-        - **max_iter**
-        - **MassConv**
-        - **Na_dict**
-        - **negligible_shoot_resistance**
-        - **opt_prop**
-        - **output_index**
-        - **par_gs**
-        - **par_K_vul**
-        - **par_photo**
-        - **par_photo_N**
-        - **psi_error_threshold**
-        - **psi_min**
-        - **psi_step**
-        - **rbt**
-        - **rhyzo_solution**
-        - **rhyzo_number**
-        - **rhyzo_radii**
-        - **roots**
-        - **scene_rotation**
-        - **simplified_form_factors**
-        - **soil_class**: one of ('Sand','Loamy_Sand','Sandy_Loam','Loam', 'Silt','Silty_Loam','Sandy_Clay_Loam','Clay_Loam','Silty_Clay_Loam','Sandy_Clay','Silty_Clay','Clay')
-        - **soil_dimensions**
-        - **soil_water_deficit**
-        - **solo**
-        - **stem_lbl_prefix**
-        - **sun2scene**
-        - **t_base**
-        - **t_cloud**
-        - **t_error_crit**
-        - **t_sky**
-        - **t_step**
-        - **tzone**
-        - **turtle_format**
-        - **turtle_sectors**
-        - **unit_scene_length**
-        
-        - **psi_soil**
-
+        - **psi_soil**: [MPa] predawn soil water potential
+        - **gdd_since_budbreak**: [°Cd] growing degree-day since bubreak
+        - **sun2scene**: PlantGl scene, when prodivided, a sun object (sphere) is added to it
+        - **soil_size**: [cm] length of squared mesh size
     """
     print '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
     print '+ Project: ', wd
@@ -143,8 +91,8 @@ def run(g, wd, scene, **kwargs):
     t_base = params.phenology.t_base
     budbreak_date = dt.datetime.strptime(params.phenology.emdate, "%Y-%m-%d %H:%M:%S")
 
-    if 'tt' in kwargs:
-        tt = kwargs['tt']
+    if 'gdd_since_budbreak' in kwargs:
+        gdd_since_budbreak = kwargs['gdd_since_budbreak']
     elif min(meteo_tab.index) <= budbreak_date:
         tdays = date_range(budbreak_date, sdate, freq='D')
         tmeteo = meteo_tab.ix[tdays].Tac.to_frame()
@@ -155,13 +103,13 @@ def run(g, wd, scene, **kwargs):
 #                      how='inner', left_index=True, right_index=True)
 #        df_tt.columns = ('max', 'min')
 #        df_tt['gdd'] = df_tt.apply(lambda x: 0.5 * (x['max'] + x['min']) - t_base)
-#        tt = df_tt['gdd'].cumsum()[-1]
+#        gdd_since_budbreak = df_tt['gdd'].cumsum()[-1]
         df_tt = 0.5 * (df_min + df_max) - t_base
-        tt = df_tt.cumsum()[-1]
+        gdd_since_budbreak = df_tt.cumsum()[-1]
     else:
         raise ValueError('Cumulative degree-days temperature is not provided.')
 
-    print 'Cumulative degree-day temperature = %d °C' % tt
+    print 'GDD since budbreak = %d °Cd' % gdd_since_budbreak
 
     # Determination of perennial structure arms (for grapevine)
 #    arm_vid = {g.node(vid).label: g.node(vid).components()[0]._vid \
@@ -273,11 +221,11 @@ def run(g, wd, scene, **kwargs):
             print 'Computing form factors...'
 
             if not simplified_form_factors:
-                HSEnergy.form_factors_matrix(g, pattern, length_conv, limit=limit)
+                energy.form_factors_matrix(g, pattern, length_conv, limit=limit)
             else:
-                HSEnergy.form_factors_simplified(g, pattern, leaf_lbl_prefix,
-                                                 stem_lbl_prefix, turtle_sectors, icosphere_level,
-                                                 unit_scene_length)
+                energy.form_factors_simplified(g, pattern, leaf_lbl_prefix,
+                                               stem_lbl_prefix, turtle_sectors, icosphere_level,
+                                               unit_scene_length)
 
     # Soil class
     soil_class = params.soil.soil_class
@@ -294,9 +242,9 @@ def run(g, wd, scene, **kwargs):
     if rhyzo_solution:
         dist_roots, rad_roots = params.soil.roots
         if not any(item.startswith('rhyzo') for item in g.property('label').values()):
-            vid_collar = HSArc.mtg_base(g, vtx_label=vtx_label)
-            vid_base = HSArc.add_soil_components(g, rhyzo_number, rhyzo_radii,
-                                                 soil_dimensions, soil_class, vtx_label)
+            vid_collar = architecture.mtg_base(g, vtx_label=vtx_label)
+            vid_base = architecture.add_soil_components(g, rhyzo_number, rhyzo_radii,
+                                                        soil_dimensions, soil_class, vtx_label)
         else:
             vid_collar = g.node(g.root).vid_collar
             vid_base = g.node(g.root).vid_base
@@ -315,7 +263,7 @@ def run(g, wd, scene, **kwargs):
     else:
         dist_roots, rad_roots = None, None
         # Identifying and attaching the base node of a single MTG
-        vid_collar = HSArc.mtg_base(g, vtx_label=vtx_label)
+        vid_collar = architecture.mtg_base(g, vtx_label=vtx_label)
         vid_base = vid_collar
 
     g.node(g.root).vid_base = vid_base
@@ -329,9 +277,9 @@ def run(g, wd, scene, **kwargs):
     if 'Soil' not in g.properties()['label'].values():
         if 'soil_size' in kwargs:
             if kwargs['soil_size'] > 0.:
-                HSArc.add_soil(g, kwargs['soil_size'])
+                architecture.add_soil(g, kwargs['soil_size'])
         else:
-            HSArc.add_soil(g, 500.)
+            architecture.add_soil(g, 500.)
 
     # Suppression of undesired geometry for light and energy calculations
     geom_prop = g.properties()['geometry']
@@ -344,9 +292,9 @@ def run(g, wd, scene, **kwargs):
     g.properties()['geometry'] = geom_prop
 
     # Attaching optical properties to MTG elements
-    g = HSCaribu.optical_prop(g, leaf_lbl_prefix=leaf_lbl_prefix,
-                              stem_lbl_prefix=stem_lbl_prefix, wave_band='SW',
-                              opt_prop=opt_prop)
+    g = irradiance.optical_prop(g, leaf_lbl_prefix=leaf_lbl_prefix,
+                                stem_lbl_prefix=stem_lbl_prefix, wave_band='SW',
+                                opt_prop=opt_prop)
 
     # Wind profile
     if 'u_coef' not in g.property_names():
@@ -368,33 +316,33 @@ def run(g, wd, scene, **kwargs):
         ppfd10_date = sdate + dt.timedelta(days=-10)
         ppfd10t = date_range(ppfd10_date, sdate, freq='H')
         ppfd10_meteo = meteo_tab.ix[ppfd10t]
-        caribu_source, RdRsH_ratio = HSCaribu.irradiance_distribution(ppfd10_meteo, geo_location, E_type,
-                                                                      tzone, turtle_sectors, turtle_format,
-                                                                      None, scene_rotation, None)
+        caribu_source, RdRsH_ratio = irradiance.irradiance_distribution(ppfd10_meteo, geo_location, E_type,
+                                                                        tzone, turtle_sectors, turtle_format,
+                                                                        None, scene_rotation, None)
 
         # Compute irradiance interception and absorbtion
-        g, caribu_scene = HSCaribu.hsCaribu(mtg=g, meteo=ppfd10_meteo, local_date=None,
-                                            geo_location=None, E_type=None,
-                                            unit_scene_length=unit_scene_length, tzone=tzone,
-                                            wave_band='SW', source=caribu_source, direct=False,
-                                            infinite=True, nz=50, dz=5, ds=0.5,
-                                            pattern=pattern, turtle_sectors=turtle_sectors,
-                                            turtle_format=turtle_format,
-                                            leaf_lbl_prefix=leaf_lbl_prefix,
-                                            stem_lbl_prefix=stem_lbl_prefix,
-                                            opt_prop=opt_prop, rotation_angle=scene_rotation,
-                                            icosphere_level=None)
+        g, caribu_scene = irradiance.hsCaribu(mtg=g, meteo=ppfd10_meteo, local_date=None,
+                                              geo_location=None, E_type=None,
+                                              unit_scene_length=unit_scene_length, tzone=tzone,
+                                              wave_band='SW', source=caribu_source, direct=False,
+                                              infinite=True, nz=50, dz=5, ds=0.5,
+                                              pattern=pattern, turtle_sectors=turtle_sectors,
+                                              turtle_format=turtle_format,
+                                              leaf_lbl_prefix=leaf_lbl_prefix,
+                                              stem_lbl_prefix=stem_lbl_prefix,
+                                              opt_prop=opt_prop, rotation_angle=scene_rotation,
+                                              icosphere_level=None)
 
         g.properties()['Ei10'] = {vid: g.node(vid).Ei * time_conv / 10. / 1.e6 for vid in g.property('Ei').keys()}
 
         # Estimation of leaf surface-based nitrogen content:
         for vid in g.VtxList(Scale=3):
             if g.node(vid).label.startswith(leaf_lbl_prefix):
-                g.node(vid).Na = HSExchange.leaf_Na(tt, g.node(vid).Ei10,
-                                                    Na_dict['aN'],
-                                                    Na_dict['bN'],
-                                                    Na_dict['aM'],
-                                                    Na_dict['bM'])
+                g.node(vid).Na = exchange.leaf_Na(gdd_since_budbreak, g.node(vid).Ei10,
+                                                  Na_dict['aN'],
+                                                  Na_dict['bN'],
+                                                  Na_dict['aM'],
+                                                  Na_dict['bM'])
 
     # Define path to folder
     output_path = wd + 'output' + output_index + '/'
@@ -440,9 +388,9 @@ def run(g, wd, scene, **kwargs):
                     pass
             # Estimate soil water potntial evolution due to transpiration
             else:
-                psi_soil = HSHyd.soil_water_potential(psi_soil,
-                                                      g.node(vid_collar).Flux * time_conv,
-                                                      soil_class, soil_total_volume, psi_min)
+                psi_soil = hydraulic.soil_water_potential(psi_soil,
+                                                          g.node(vid_collar).Flux * time_conv,
+                                                          soil_class, soil_total_volume, psi_min)
 
         # Initializing all xylem potential values to soil water potential
         for vtx_id in traversal.pre_order2(g, vid_base):
@@ -451,25 +399,25 @@ def run(g, wd, scene, **kwargs):
         if 'sun2scene' not in kwargs or not kwargs['sun2scene']:
             sun2scene = None
         elif kwargs['sun2scene']:
-            sun2scene = HSVisu.visu(g, def_elmnt_color_dict=True, scene=Scene())
+            sun2scene = display.visu(g, def_elmnt_color_dict=True, scene=Scene())
 
         # Compute irradiance distribution over the scene
-        caribu_source, RdRsH_ratio = HSCaribu.irradiance_distribution(imeteo, geo_location, E_type, tzone,
-                                                                      turtle_sectors, turtle_format, sun2scene,
-                                                                      scene_rotation, None)
+        caribu_source, RdRsH_ratio = irradiance.irradiance_distribution(imeteo, geo_location, E_type, tzone,
+                                                                        turtle_sectors, turtle_format, sun2scene,
+                                                                        scene_rotation, None)
 
         # Compute irradiance interception and absorbtion
-        g, caribu_scene = HSCaribu.hsCaribu(mtg=g, meteo=imeteo, local_date=None,
-                                            geo_location=None, E_type=None,
-                                            unit_scene_length=unit_scene_length, tzone=tzone,
-                                            wave_band='SW', source=caribu_source, direct=False,
-                                            infinite=True, nz=50, dz=5, ds=0.5,
-                                            pattern=pattern, turtle_sectors=turtle_sectors,
-                                            turtle_format=turtle_format,
-                                            leaf_lbl_prefix=leaf_lbl_prefix,
-                                            stem_lbl_prefix=stem_lbl_prefix,
-                                            opt_prop=opt_prop, rotation_angle=scene_rotation,
-                                            icosphere_level=None)
+        g, caribu_scene = irradiance.hsCaribu(mtg=g, meteo=imeteo, local_date=None,
+                                              geo_location=None, E_type=None,
+                                              unit_scene_length=unit_scene_length, tzone=tzone,
+                                              wave_band='SW', source=caribu_source, direct=False,
+                                              infinite=True, nz=50, dz=5, ds=0.5,
+                                              pattern=pattern, turtle_sectors=turtle_sectors,
+                                              turtle_format=turtle_format,
+                                              leaf_lbl_prefix=leaf_lbl_prefix,
+                                              stem_lbl_prefix=stem_lbl_prefix,
+                                              opt_prop=opt_prop, rotation_angle=scene_rotation,
+                                              icosphere_level=None)
 
         g.properties()['Ei'] = {vid: 1.2 * g.node(vid).Ei for vid in g.property('Ei').keys()}
 
@@ -509,17 +457,17 @@ def run(g, wd, scene, **kwargs):
                     psi_prev = deepcopy(g.property('psi_head'))
 
                     # Computes gas-exchange fluxes. Leaf T and Psi are from prev calc loop
-                    HSExchange.gas_exchange_rates(g, par_photo, par_photo_N, par_gs,
-                                                  imeteo, E_type2, leaf_lbl_prefix, rbt)
+                    exchange.gas_exchange_rates(g, par_photo, par_photo_N, par_gs,
+                                                imeteo, E_type2, leaf_lbl_prefix, rbt)
 
                     # Computes sapflow and hydraulic properties
-                    HSHyd.hydraulic_prop(g, vtx_label=vtx_label, MassConv=MassConv,
-                                         LengthConv=length_conv,
-                                         a=Kx_dict['a'], b=Kx_dict['b'], min_kmax=Kx_dict['min_kmax'])
+                    hydraulic.hydraulic_prop(g, vtx_label=vtx_label, MassConv=MassConv,
+                                             LengthConv=length_conv,
+                                             a=Kx_dict['a'], b=Kx_dict['b'], min_kmax=Kx_dict['min_kmax'])
 
                     # Updating the soil water status
-                    psi_collar = HSHyd.soil_water_potential(psi_soil, g.node(vid_collar).Flux * time_conv,
-                                                            soil_class, rhyzo_total_volume, psi_min)
+                    psi_collar = hydraulic.soil_water_potential(psi_soil, g.node(vid_collar).Flux * time_conv,
+                                                                soil_class, rhyzo_total_volume, psi_min)
 
                     if soil_water_deficit:
                         psi_collar = max(-1.3, psi_collar)
@@ -530,15 +478,15 @@ def run(g, wd, scene, **kwargs):
                             g.node(vid).psi_head = psi_collar
 
                     # Computes xylem water potential
-                    n_iter_psi = HSHyd.xylem_water_potential(g, psi_collar,
-                                                             psi_min=psi_min, model=modelx, max_iter=max_iter,
-                                                             psi_error_crit=psi_error_threshold, vtx_label=vtx_label,
-                                                             LengthConv=length_conv, fifty_cent=psi_critx,
-                                                             sig_slope=slopex, dist_roots=dist_roots,
-                                                             rad_roots=rad_roots,
-                                                             negligible_shoot_resistance=negligible_shoot_resistance,
-                                                             start_vid=vid_collar, stop_vid=None,
-                                                             psi_step=psi_step)
+                    n_iter_psi = hydraulic.xylem_water_potential(g, psi_collar,
+                                                                 psi_min=psi_min, model=modelx, max_iter=max_iter,
+                                                                 psi_error_crit=psi_error_threshold, vtx_label=vtx_label,
+                                                                 LengthConv=length_conv, fifty_cent=psi_critx,
+                                                                 sig_slope=slopex, dist_roots=dist_roots,
+                                                                 rad_roots=rad_roots,
+                                                                 negligible_shoot_resistance=negligible_shoot_resistance,
+                                                                 start_vid=vid_collar, stop_vid=None,
+                                                                 psi_step=psi_step)
 
                     psi_new = g.property('psi_head')
 
@@ -575,13 +523,13 @@ def run(g, wd, scene, **kwargs):
 
             else:
                 # Computes gas-exchange fluxes. Leaf T and Psi are from prev calc loop
-                HSExchange.gas_exchange_rates(g, par_photo, par_photo_N, par_gs,
-                                              imeteo, E_type2, leaf_lbl_prefix, rbt)
+                exchange.gas_exchange_rates(g, par_photo, par_photo_N, par_gs,
+                                            imeteo, E_type2, leaf_lbl_prefix, rbt)
 
                 # Computes sapflow and hydraulic properties
-                HSHyd.hydraulic_prop(g, vtx_label=vtx_label, MassConv=MassConv,
-                                     LengthConv=length_conv,
-                                     a=Kx_dict['a'], b=Kx_dict['b'], min_kmax=Kx_dict['min_kmax'])
+                hydraulic.hydraulic_prop(g, vtx_label=vtx_label, MassConv=MassConv,
+                                         LengthConv=length_conv,
+                                         a=Kx_dict['a'], b=Kx_dict['b'], min_kmax=Kx_dict['min_kmax'])
 
             # End psi loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -589,9 +537,9 @@ def run(g, wd, scene, **kwargs):
             if not energy_budget:
                 break
             else:
-                t_iter = HSEnergy.leaf_temperature(g, macro_meteo, solo, True,
-                                                   leaf_lbl_prefix, max_iter,
-                                                   t_error_crit, t_step)
+                t_iter = energy.leaf_temperature(g, macro_meteo, solo, True,
+                                                 leaf_lbl_prefix, max_iter,
+                                                 t_error_crit, t_step)
 
                 # t_iter_list.append(t_iter)
                 t_new = deepcopy(g.property('Tlc'))
@@ -624,7 +572,7 @@ def run(g, wd, scene, **kwargs):
                     g.properties()['Tlc'] = t_new_dict
 
         # Write mtg to an external file
-        HSArc.mtg_save(g, scene, output_path)
+        architecture.mtg_save(g, scene, output_path)
 
         # End t loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

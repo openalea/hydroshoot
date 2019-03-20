@@ -18,7 +18,7 @@ g = architecture.vine_mtg('grapevine_pot.csv')
 # Local Coordinates Correction
 for v in traversal.iter_mtg2(g, g.root):
     n = g.node(g.Trunk(v, Scale=1)[0])
-    theta = 180 if int(n.index()) < 200 else -90 if int(n.index()) < 300 else 0.
+    theta = 180 if int(n.index()) < 200 else -90 if int(n.index()) < 300 else 0
     architecture.vine_orientation(g, v, theta, local_rotation=True)
 
 # Scene rotation
@@ -41,4 +41,5 @@ scene = display.visu(g, def_elmnt_color_dict=True, scene=Scene(),
 # Run HydroShoot
 # =============================================================================
 
-model.run(g, str(getcwd()) + '/', scene, psi_soil=-0.5, tt=1000.)
+model.run(g, str(getcwd()) + '/', scene, psi_soil=-0.5,
+          gdd_since_budbreak=1000.)
