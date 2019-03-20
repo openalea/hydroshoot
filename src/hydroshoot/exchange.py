@@ -156,10 +156,10 @@ def arrhenius_2(param,Tlc,par_photo):
     - **Tlc**: float, leaf temperature [degreeC]
     - **par_photo**: a dictionart containing paramter values of the Farquhar's model
     """
-    
+
     ds = par_photo['ds']
     dHd = par_photo['dHd']
-    
+
     param_list = {
     'Vcmax':('Vcm25','RespT_Vcm'),
     'Jmax':('Jm25','RespT_Jm'),
@@ -384,6 +384,29 @@ def gm(temp, gm25=0.1025, EA_gm=49600., DEA_gm=437400., Sgm=1400.):
     gm = gm25*exp((1./298.-1./(temp+273.))*EA_gm/R2)*(1.+exp(Sgm/R2-DEA_gm/298./R2))/(1.+exp(Sgm/R2-1./(temp+273.)*DEA_gm/R2))
 
     return gm
+
+
+def boundary_layer_conductance(leaf_length, wind_speed, atm_pressure, air_temp, ideal_gas_cst):
+    """Computes boundary layer conductance of the leaf.
+
+    :params:
+    - **leaf_length**: [m] leaf length
+    - **wind_speed**: [m s-1] local wind speed
+    - **atm_pressure**: [kPa] atmospheric pressure
+    - **air_temp**: [°C] air temperature
+    - **ideal_gas_cst**: [kJ K-1 mol-1] Ideal gaz constant
+
+    :returns:
+    - [mol m-2 s-1] boundary layer conductance
+
+    """
+    l_w = leaf_length / 100. * 0.72  # effective length in the downwind direction [m]
+    d_bl = 4. * (l_w / max(1.e-3, wind_speed)) ** 0.5 / 1000.  # Boundary layer thickness in [m] (Nobel, 2009 pp.337)
+    Dj0 = 2.13 * 1.e-5  # [m2 s-1] at P=1. atm and t=0. °C (Nobel, pp.545)
+    Dj = Dj0 * (101.3 / atm_pressure) * ((air_temp + 273.15) / 273.15) ** 1.8  # (Nobel, eq.8.8, pp.379)
+    gb = Dj * (atm_pressure * 1.e-3) / ((ideal_gas_cst * 1.e-3) * (air_temp + 273.15) * d_bl)  # [mol m-2 s-1] (Nobel, 2009 pp.337)
+
+    return gb
 
 
 def compute_amono_analytic(x1, x2, temp, vpd, gammax, Rd, psi, model='misson',
@@ -622,15 +645,15 @@ def gas_exchange_rates(g, par_photo, par_photo_N, par_gs, meteo, E_type2,
                 g0 = g0max#*g0_sensibility(psi, psi_crit=-1, n=4)
 
                 An, Cc, Ci, gs = an_gs_ci(node.par_photo, meteo_leaf, psi, Tlc,
-                                           model, g0, rbt, Ca, m0, psi0, D0, n)
+                                          model, g0, rbt, Ca, m0, psi0, D0, n)
 
                 # Boundary layer conductance
-#                gb = mutils.boundary_layer_conductance(u, w)
-                l_w = node.Length/100.*0.72 # leaf length in the downwind direction [m]
-                d_bl = 4.*(l_w/max(1.e-3,u))**0.5 /1000. # Boundary layer thikness in [m] (Nobel, 2009 pp.337)
-                Dj0 = 2.13*1.e-5 #[m2 s-1] at P=1. atm and t=0. °C (Nobel, pp.545)
-                Dj = Dj0*(101.3/Pa)*((Tac+273.15)/273.15)**1.8 #(Nobel, eq.8.8, pp.379)
-                gb = Dj*(Pa * 1.e-3) / ((R*1.e-3) * (Tac+273.15) * d_bl) # [mol m-2 s-1] (Nobel, 2009 pp.337)
+                # l_w = node.Length/100.*0.72 # leaf length in the downwind direction [m]
+                # d_bl = 4.*(l_w/max(1.e-3,u))**0.5 /1000. # Boundary layer thikness in [m] (Nobel, 2009 pp.337)
+                # Dj0 = 2.13*1.e-5 #[m2 s-1] at P=1. atm and t=0. °C (Nobel, pp.545)
+                # Dj = Dj0*(101.3/Pa)*((Tac+273.15)/273.15)**1.8 #(Nobel, eq.8.8, pp.379)
+                # gb = Dj*(Pa * 1.e-3) / ((R*1.e-3) * (Tac+273.15) * d_bl) # [mol m-2 s-1] (Nobel, 2009 pp.337)
+                gb = boundary_layer_conductance(node.Length, u, Pa, Tac, R)
 
                 # Transpiration
                 es_a = mutils.saturated_air_vapor_pressure(Tac)
