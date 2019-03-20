@@ -109,7 +109,7 @@ def run(g, wd, scene, **kwargs):
     else:
         raise ValueError('Cumulative degree-days temperature is not provided.')
 
-    print 'Cumulative degree-day temperature = %d °C' % gdd_since_budbreak
+    print 'GDD since budbreak = %d °Cd' % gdd_since_budbreak
 
     # Determination of perennial structure arms (for grapevine)
 #    arm_vid = {g.node(vid).label: g.node(vid).components()[0]._vid \
