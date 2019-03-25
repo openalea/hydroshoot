@@ -1,5 +1,4 @@
 """
-@author: Gaetan Louarn
 @author: Rami ALBASHA
 
 This is a library for calculating meteorological variables
