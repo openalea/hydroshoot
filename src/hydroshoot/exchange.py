@@ -10,7 +10,7 @@ This module computes net photosynthesis and stomatal conductance rates.
 from copy import deepcopy
 from scipy import exp, arccos, sqrt, cos, log
 
-from hydroshoot import meteo_utils as mutils
+from hydroshoot import utilities as utils
 
 # Constants
 O = 210 # Oxygen partial pressure [mmol mol-1]
@@ -137,7 +137,7 @@ def arrhenius_1(param,Tlc,par_photo):
     'Kc':('Kc25','RespT_Kc'),
     'Ko':('Ko25','RespT_Ko')}
 
-    Tak = mutils.celsius_to_kelvin(Tlc)
+    Tak = utils.celsius_to_kelvin(Tlc)
 #    indice1 = param_list[param][0]
     indice2 = param_list[param][1]
 #    p25 = par_photo[indice1]
@@ -166,7 +166,7 @@ def arrhenius_2(param,Tlc,par_photo):
     'TPUmax':('TPU25','RespT_TPU'),
     'Rdmax': ('Rd','RespT_Rd')}
 
-    Tak = mutils.celsius_to_kelvin(Tlc)
+    Tak = utils.celsius_to_kelvin(Tlc)
     indice1 = param_list[param][0]
     indice2 = param_list[param][1]
     p25 = par_photo[indice1]
@@ -437,8 +437,8 @@ def compute_amono_analytic(x1, x2, temp, vpd, gammax, Rd, psi, model='misson',
 #    if psi < -1.5: f_VPD = 0
 
     cube_a = g0*(x2+gammax)+(g0/gm(temp)+f_VPD)*(x1-Rd)
-    cube_b = mutils.cmol2cpa(temp,ca)*(x1-Rd)-gammax*x1-Rd*x2
-    cube_c = mutils.cmol2cpa(temp,ca)+x2+(1./gm(temp)+rbt)*(x1-Rd)
+    cube_b = utils.cmol2cpa(temp, ca) * (x1 - Rd) - gammax * x1 - Rd * x2
+    cube_c = utils.cmol2cpa(temp, ca) + x2 + (1. / gm(temp) + rbt) * (x1 - Rd)
     cube_d = x2+gammax+(x1-Rd)/gm(temp)
     cube_e = 1./gm(temp)+(g0/gm(temp)+f_VPD)*(1./gm(temp)+rbt)
     cube_p = -(cube_d+(x1-Rd)/gm(temp)+cube_a*(1./gm(temp)+rbt)+(g0/gm(temp)+f_VPD)*cube_c)/cube_e
@@ -508,7 +508,7 @@ def compute_an_analytic(temp, vpd, x1c, x2c, x1j, x2j, x1t, x2t, Rd, psi,
     # stomatal conductance for water [umol m-2 s-1 ubar-1]
     GSW = GS*1.6
 
-    return An, mutils.cpa2cmol(temp,CC), mutils.cpa2cmol(temp,CI), GSW
+    return An, utils.cpa2cmol(temp, CC), utils.cpa2cmol(temp, CI), GSW
 
 
 def an_gs_ci(par_photo, meteo_leaf, psi, Tlc, model='misson', g0=0.019,rbt=2./3.,
@@ -543,7 +543,7 @@ def an_gs_ci(par_photo, meteo_leaf, psi, Tlc, model='misson', g0=0.019,rbt=2./3.
     
     PPFD = max(1.e-6, PPFD) # To avoid numerical instability at PPFD=0 (Eq. S9 from Evers et al., 2010 JxBot,61:2203–2216)
 
-    VPD = mutils.vapor_pressure_deficit(Tac,Tlc,hs)
+    VPD = utils.vapor_pressure_deficit(Tac, Tlc, hs)
 
     x1c,x2c,x1j,x2j,x1t,x2t,Rd = compute_an_2par(par_photo, PPFD, Tlc)
 
@@ -569,7 +569,7 @@ def transpiration_rate(Tlc, ea, gs, gb, Pa = 101.3):
 
 #    gva = gb*1.37 # boundary layer conductance for water vapour transport [mol m2 s-1] # R: ancienne formule : gb*1.4
     gv = 1./((2./gb)+(1./gs)) # Formulation by Pearcy 1989
-    es_l = mutils.saturated_air_vapor_pressure(Tlc)  # Saturated vapor pressure at leaf surface [kPa]
+    es_l = utils.saturated_air_vapor_pressure(Tlc)  # Saturated vapor pressure at leaf surface [kPa]
     E = gv*((es_l-ea)/Pa) # Transpiration rate [mol m-2 s-1]
 
     return E
@@ -656,7 +656,7 @@ def gas_exchange_rates(g, par_photo, par_photo_N, par_gs, meteo, E_type2,
                 gb = boundary_layer_conductance(node.Length, u, Pa, Tac, R)
 
                 # Transpiration
-                es_a = mutils.saturated_air_vapor_pressure(Tac)
+                es_a = utils.saturated_air_vapor_pressure(Tac)
                 ea = es_a*hs/100.
                 E = transpiration_rate(Tlc, ea, gs, gb, Pa)
 
