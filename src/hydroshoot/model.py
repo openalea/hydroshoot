@@ -174,10 +174,6 @@ def run(g, wd, scene, **kwargs):
     energy_budget = params.simulation.energy_budget
     print 'Energy_budget: %s' % energy_budget
 
-    if energy_budget:
-        solo = params.energy.solo
-        simplified_form_factors = params.simulation.simplified_form_factors
-
     # Optical properties
     opt_prop = params.irradiance.opt_prop
 
@@ -217,6 +213,8 @@ def run(g, wd, scene, **kwargs):
 
     # Computation of the form factor matrix
     if energy_budget:
+        solo = params.energy.solo
+        simplified_form_factors = params.simulation.simplified_form_factors
         if 'k_sky' not in g.property_names():
             print 'Computing form factors...'
 

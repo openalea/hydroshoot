@@ -1,5 +1,4 @@
 from copy import deepcopy
-from pandas import DataFrame
 import openalea.mtg.traversal as traversal
 from hydroshoot import hydraulic, exchange, energy
 
@@ -54,9 +53,32 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
     temp_error_threshold = params.numerical_resolution.t_error_crit
 
     modelx, psi_critx, slopex = [xylem_k_cavitation[ikey] for ikey in ('model', 'fifty_cent', 'sig_slope')]
+    
+    if hydraulic_structure:
+        assert (par_gs['model'] != 'vpd'), "Stomatal conductance model should be linked to the hydraulic strucutre"
+    else:
+        par_gs['model'] = 'vpd'
+        negligible_shoot_resistance = True
 
-    # to be modified in params
-    # par_gs if not hydraulic_structure
+        print "par_gs: 'model' is forced to 'vpd'"
+        print "negligible_shoot_resistance is forced to True."
+
+    # Compute form factors
+    # Computation of the form factor matrix
+    if energy_budget:
+        solo = params.energy.solo
+        simplified_form_factors = params.simulation.simplified_form_factors
+        if 'k_sky' not in g.property_names():
+            print 'Computing form factors...'
+
+            if not simplified_form_factors:
+                energy.form_factors_matrix(g, pattern, length_conv, limit=limit)
+            else:
+                energy.form_factors_simplified(g, pattern, leaf_lbl_prefix,
+                                               stem_lbl_prefix, turtle_sectors, icosphere_level,
+                                               unit_scene_length)
+
+
 
     # Initialize all xylem potential values to soil water potential
     for vtx_id in traversal.pre_order2(g, vid_base):
