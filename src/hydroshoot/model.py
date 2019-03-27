@@ -21,7 +21,8 @@ from operator import mul
 import openalea.mtg.traversal as traversal
 from openalea.plantgl.all import Scene, surface
 
-from hydroshoot import (architecture, irradiance, exchange, hydraulic, energy, display)
+from hydroshoot import (architecture, irradiance, exchange, hydraulic, energy,
+                        display, core)
 from hydroshoot.params import Params
 
 
@@ -81,8 +82,6 @@ def run(g, wd, scene, **kwargs):
         psi_pd = read_csv(wd + 'psi_soil.input', sep=';', decimal='.').set_index('time')
         psi_pd.index = [dt.datetime.strptime(s, "%Y-%m-%d") for s in psi_pd.index]
 
-    soil_water_deficit = params.simulation.soil_water_deficit
-
     # Unit length conversion (from scene unit to the standard [m]) unit)
     unit_scene_length = params.simulation.unit_scene_length
     length_conv = {'mm': 1.e-3, 'cm': 1.e-2, 'm': 1.}[unit_scene_length]
@@ -119,10 +118,11 @@ def run(g, wd, scene, **kwargs):
     soil_dimensions = params.soil.soil_dimensions
     soil_total_volume = reduce(mul, soil_dimensions)
     rhyzo_coeff = params.soil.rhyzo_coeff
-    rhyzo_total_volume = rhyzo_coeff * np.pi * min(soil_dimensions[:2]) ** 2 / 4. * soil_dimensions[2]
+    rhyzo_total_volume = rhyzo_coeff * np.pi * \
+        min(soil_dimensions[:2]) ** 2 / 4. * soil_dimensions[2]
 
-    # Counter clockwise angle between the default X-axis direction (South) and the
-    # real direction of X-axis.
+    # Counter clockwise angle between the default X-axis direction (South) and
+    # the real direction of X-axis.
     scene_rotation = params.irradiance.scene_rotation
 
     # Sky and cloud temperature [degreeC]
@@ -134,19 +134,6 @@ def run(g, wd, scene, **kwargs):
     longitude = params.simulation.longitude
     elevation = params.simulation.elevation
     geo_location = (latitude, longitude, elevation)
-
-    # Maximum number of iterations for both temperature and hydraulic calculations
-    max_iter = params.numerical_resolution.max_iter
-
-    # Steps size
-    t_step = params.numerical_resolution.t_step
-    psi_step = params.numerical_resolution.psi_step
-
-    # Maximum acceptable error threshold in hydraulic calculations
-    psi_error_threshold = params.numerical_resolution.psi_error_threshold
-
-    # Maximum acceptable error threshold in temperature calculations
-    t_error_crit = params.numerical_resolution.t_error_crit
 
     # Pattern
     ymax, xmax = map(lambda dim: dim / length_conv, soil_dimensions[:2])
@@ -162,14 +149,11 @@ def run(g, wd, scene, **kwargs):
     stem_lbl_prefix = params.mtg_api.stem_lbl_prefix
 
     E_type = params.irradiance.E_type
-    E_type2 = params.irradiance.E_type2
-    rbt = params.exchange.rbt
     tzone = params.simulation.tzone
     turtle_sectors = params.irradiance.turtle_sectors
     icosphere_level = params.irradiance.icosphere_level
     turtle_format = params.irradiance.turtle_format
 
-    MassConv = params.hydraulic.MassConv
     limit = params.energy.limit
     energy_budget = params.simulation.energy_budget
     print 'Energy_budget: %s' % energy_budget
@@ -177,39 +161,14 @@ def run(g, wd, scene, **kwargs):
     # Optical properties
     opt_prop = params.irradiance.opt_prop
 
-    # Farquhar parameters
-    par_photo = params.exchange.par_photo
-
-    # Shoot hydraulic resistance
-    negligible_shoot_resistance = params.simulation.negligible_shoot_resistance
-
-    #   Stomatal conductance parameters
-    par_gs = params.exchange.par_gs
-    hydraulic_structure = params.simulation.hydraulic_structure
-    print 'Hydraulic structure: %s' % hydraulic_structure
-
-    if hydraulic_structure:
-        assert (par_gs['model'] != 'vpd'), "Stomatal conductance model should be linked to the hydraulic strucutre"
-    else:
-        par_gs['model'] = 'vpd'
-        negligible_shoot_resistance = True
-
-        print "par_gs: 'model' is forced to 'vpd'"
-        print "negligible_shoot_resistance is forced to True."
-
-    # Parameters of maximum stem conductivity allometric relationship
-    Kx_dict = params.hydraulic.Kx_dict
+    print 'Hydraulic structure: %s' % params.simulation.hydraulic_structure
 
     psi_min = params.hydraulic.psi_min
 
-    # Parameters of stem water conductivty's vulnerability to cavitation
-    par_K_vul = params.hydraulic.par_K_vul
 
     # Parameters of leaf Nitrogen content-related models
     Na_dict = params.exchange.Na_dict
-    par_photo_N = params.exchange.par_photo_N
 
-    modelx, psi_critx, slopex = [par_K_vul[ikey] for ikey in ('model', 'fifty_cent', 'sig_slope')]
 
     # Computation of the form factor matrix
     if energy_budget:
@@ -390,9 +349,6 @@ def run(g, wd, scene, **kwargs):
                                                           g.node(vid_collar).Flux * time_conv,
                                                           soil_class, soil_total_volume, psi_min)
 
-        # Initializing all xylem potential values to soil water potential
-        for vtx_id in traversal.pre_order2(g, vid_base):
-            g.node(vtx_id).psi_head = psi_soil
 
         if 'sun2scene' not in kwargs or not kwargs['sun2scene']:
             sun2scene = None
@@ -432,147 +388,11 @@ def run(g, wd, scene, **kwargs):
         # Climatic data for energy balance module
         # TODO: Change the t_sky_eff formula (cf. Gliah et al., 2011, Heat and Mass Transfer, DOI: 10.1007/s00231-011-0780-1)
         t_sky_eff = RdRsH_ratio * t_cloud + (1 - RdRsH_ratio) * t_sky
-        macro_meteo = {'T_sky': t_sky_eff + 273.15, 'T_soil': t_soil + 273.15,
-                       'T_air': imeteo.Tac[0] + 273.15, 'Pa': imeteo.Pa[0],
-                       'u': imeteo.u[0]}
 
-        # The t loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        t_error_trace = []
-        it_step = t_step
 
-        # Initialize leaf [and other elements] temperature to air temperature
-        g.properties()['Tlc'] = {vid: imeteo.Tac[0] for vid in g.VtxList() if
-                                 vid > 0 and g.node(vid).label.startswith('L')}
-
-        for it in range(max_iter):
-            t_prev = deepcopy(g.property('Tlc'))
-
-            # The psi loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            if hydraulic_structure:
-                psi_error_trace = []
-                ipsi_step = psi_step
-                for ipsi in range(max_iter):
-                    psi_prev = deepcopy(g.property('psi_head'))
-
-                    # Computes gas-exchange fluxes. Leaf T and Psi are from prev calc loop
-                    exchange.gas_exchange_rates(g, par_photo, par_photo_N, par_gs,
-                                                imeteo, E_type2, leaf_lbl_prefix, rbt)
-
-                    # Computes sapflow and hydraulic properties
-                    hydraulic.hydraulic_prop(g, vtx_label=vtx_label, MassConv=MassConv,
-                                             LengthConv=length_conv,
-                                             a=Kx_dict['a'], b=Kx_dict['b'], min_kmax=Kx_dict['min_kmax'])
-
-                    # Updating the soil water status
-                    psi_collar = hydraulic.soil_water_potential(psi_soil, g.node(vid_collar).Flux * time_conv,
-                                                                soil_class, rhyzo_total_volume, psi_min)
-
-                    if soil_water_deficit:
-                        psi_collar = max(-1.3, psi_collar)
-                    else:
-                        psi_collar = max(-0.7, psi_collar)
-
-                        for vid in g.Ancestors(vid_collar):
-                            g.node(vid).psi_head = psi_collar
-
-                    # Computes xylem water potential
-                    n_iter_psi = hydraulic.xylem_water_potential(g, psi_collar,
-                                                                 psi_min=psi_min, model=modelx, max_iter=max_iter,
-                                                                 psi_error_crit=psi_error_threshold, vtx_label=vtx_label,
-                                                                 LengthConv=length_conv, fifty_cent=psi_critx,
-                                                                 sig_slope=slopex, dist_roots=dist_roots,
-                                                                 rad_roots=rad_roots,
-                                                                 negligible_shoot_resistance=negligible_shoot_resistance,
-                                                                 start_vid=vid_collar, stop_vid=None,
-                                                                 psi_step=psi_step)
-
-                    psi_new = g.property('psi_head')
-
-                    # Evaluation of xylem conversion creterion
-                    psi_error_dict = {}
-                    for vtx_id in g.property('psi_head').keys():
-                        psi_error_dict[vtx_id] = abs(psi_prev[vtx_id] - psi_new[vtx_id])
-
-                    psi_error = max(psi_error_dict.values())
-                    psi_error_trace.append(psi_error)
-
-                    print 'psi_error = ', round(psi_error,
-                                                3), ':: Nb_iter = %d' % n_iter_psi, 'ipsi_step = %f' % ipsi_step
-
-                    # Manage temperature step to ensure convergence
-                    # TODO replace by an odt process
-                    if psi_error < psi_error_threshold:
-                        break
-                    else:
-                        try:
-                            if psi_error_trace[-1] >= psi_error_trace[-2] - psi_error_threshold:
-                                ipsi_step = max(0.05, ipsi_step / 2.)
-                        except:
-                            pass
-
-                        psi_new_dict = {}
-                        for vtx_id in psi_new.keys():
-                            psix = psi_prev[vtx_id] + ipsi_step * (psi_new[vtx_id] - psi_prev[vtx_id])
-                            psi_new_dict[vtx_id] = psix
-
-                        g.properties()['psi_head'] = psi_new_dict
-
-                        # axpsi=HSVisu.property_map(g,prop='psi_head',add_head_loss=True, ax=axpsi, color='red')
-
-            else:
-                # Computes gas-exchange fluxes. Leaf T and Psi are from prev calc loop
-                exchange.gas_exchange_rates(g, par_photo, par_photo_N, par_gs,
-                                            imeteo, E_type2, leaf_lbl_prefix, rbt)
-
-                # Computes sapflow and hydraulic properties
-                hydraulic.hydraulic_prop(g, vtx_label=vtx_label, MassConv=MassConv,
-                                         LengthConv=length_conv,
-                                         a=Kx_dict['a'], b=Kx_dict['b'], min_kmax=Kx_dict['min_kmax'])
-
-            # End psi loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-            # Compute leaf temperature
-            if not energy_budget:
-                break
-            else:
-                t_iter = energy.leaf_temperature(g, macro_meteo, solo, True,
-                                                 leaf_lbl_prefix, max_iter,
-                                                 t_error_crit, t_step)
-
-                # t_iter_list.append(t_iter)
-                t_new = deepcopy(g.property('Tlc'))
-
-                # Evaluation of leaf temperature conversion creterion
-                error_dict = {vtx: abs(t_prev[vtx] - t_new[vtx]) for vtx in g.property('Tlc').keys()}
-
-                t_error = round(max(error_dict.values()), 3)
-                print 't_error = ', t_error, 'counter =', it, 't_iter = ', t_iter, 'it_step = ', it_step
-                t_error_trace.append(t_error)
-
-                # mManage temperature step to ensure convergence
-                # TODO replace by an odt process
-                if t_error < t_error_crit:
-                    break
-                else:
-                    assert (it <= max_iter), 'The energy budget solution did not converge.'
-
-                    try:
-                        if t_error_trace[-1] >= t_error_trace[-2] - t_error_crit:
-                            it_step = max(0.001, it_step / 2.)
-                    except:
-                        pass
-
-                    t_new_dict = {}
-                    for vtx_id in t_new.keys():
-                        tx = t_prev[vtx_id] + it_step * (t_new[vtx_id] - t_prev[vtx_id])
-                        t_new_dict[vtx_id] = tx
-
-                    g.properties()['Tlc'] = t_new_dict
-
-        # Write mtg to an external file
-        architecture.mtg_save(g, scene, output_path)
-
-        # End t loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        core.solve_interactions(g, imeteo, psi_soil, t_soil, t_sky_eff,
+                                vid_collar, vid_base, length_conv, time_conv,
+                                rhyzo_total_volume, params)
 
         # Plot stuff..
         sapflow.append(g.node(vid_collar).Flux)

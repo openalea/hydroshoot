@@ -54,6 +54,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
 
     modelx, psi_critx, slopex = [xylem_k_cavitation[ikey] for ikey in ('model', 'fifty_cent', 'sig_slope')]
     
+    
     if hydraulic_structure:
         assert (par_gs['model'] != 'vpd'), "Stomatal conductance model should be linked to the hydraulic strucutre"
     else:
@@ -62,22 +63,6 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
 
         print "par_gs: 'model' is forced to 'vpd'"
         print "negligible_shoot_resistance is forced to True."
-
-    # Compute form factors
-    # Computation of the form factor matrix
-    if energy_budget:
-        solo = params.energy.solo
-        simplified_form_factors = params.simulation.simplified_form_factors
-        if 'k_sky' not in g.property_names():
-            print 'Computing form factors...'
-
-            if not simplified_form_factors:
-                energy.form_factors_matrix(g, pattern, length_conv, limit=limit)
-            else:
-                energy.form_factors_simplified(g, pattern, leaf_lbl_prefix,
-                                               stem_lbl_prefix, turtle_sectors, icosphere_level,
-                                               unit_scene_length)
-
 
 
     # Initialize all xylem potential values to soil water potential
@@ -89,7 +74,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
                    'T_air': meteo.Tac[0] + 273.15, 'Pa': meteo.Pa[0],
                    'u': meteo.u[0]}
 
-    # The t loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # The t loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     t_error_trace = []
     it_step = temp_step
 
@@ -100,7 +85,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
     for it in range(max_iter):
         t_prev = deepcopy(g.property('Tlc'))
 
-        # The psi loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # The psi loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         if hydraulic_structure:
             psi_error_trace = []
             ipsi_step = psi_step
@@ -181,7 +166,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
                                      LengthConv=length_conv,
                                      a=xylem_k_max['a'], b=xylem_k_max['b'], min_kmax=xylem_k_max['min_kmax'])
 
-        # End psi loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # End psi loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         # Compute leaf temperature
         if not energy_budget:
