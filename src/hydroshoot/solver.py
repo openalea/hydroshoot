@@ -73,7 +73,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
                    'T_air': meteo.Tac[0] + 273.15, 'Pa': meteo.Pa[0],
                    'u': meteo.u[0]}
 
-    # The t loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # Temperature loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     t_error_trace = []
     it_step = temp_step
 
@@ -84,23 +84,23 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
     for it in range(max_iter):
         t_prev = deepcopy(g.property('Tlc'))
 
-        # The psi loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # Hydraulic loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         if hydraulic_structure:
             psi_error_trace = []
             ipsi_step = psi_step
             for ipsi in range(max_iter):
                 psi_prev = deepcopy(g.property('psi_head'))
 
-                # Computes gas-exchange fluxes. Leaf T and Psi are from prev calc loop
+                # Compute gas-exchange fluxes. Leaf T and Psi are from prev calc loop
                 exchange.gas_exchange_rates(g, par_photo, par_photo_n, par_gs,
                                             meteo, irradiance_type2, leaf_lbl_prefix, rbt)
 
-                # Computes sapflow and hydraulic properties
+                # Compute sap flow and hydraulic properties
                 hydraulic.hydraulic_prop(g, vtx_label=collar_label, MassConv=mass_conv,
                                          LengthConv=length_conv,
                                          a=xylem_k_max['a'], b=xylem_k_max['b'], min_kmax=xylem_k_max['min_kmax'])
 
-                # Updating the soil water status
+                # Update soil water status
                 psi_collar = hydraulic.soil_water_potential(psi_soil, g.node(vid_collar).Flux * time_conv,
                                                             soil_class, rhyzo_total_volume, psi_min)
 
@@ -112,7 +112,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
                     for vid in g.Ancestors(vid_collar):
                         g.node(vid).psi_head = psi_collar
 
-                # Computes xylem water potential
+                # Compute xylem water potential
                 n_iter_psi = hydraulic.xylem_water_potential(g, psi_collar,
                                                              psi_min=psi_min, model=modelx, max_iter=max_iter,
                                                              psi_error_crit=psi_error_threshold, vtx_label=collar_label,
@@ -125,7 +125,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
 
                 psi_new = g.property('psi_head')
 
-                # Evaluation of xylem conversion creterion
+                # Evaluate xylem conversion criterion
                 psi_error_dict = {}
                 for vtx_id in g.property('psi_head').keys():
                     psi_error_dict[vtx_id] = abs(psi_prev[vtx_id] - psi_new[vtx_id])
@@ -153,19 +153,17 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
 
                     g.properties()['psi_head'] = psi_new_dict
 
-                    # axpsi=HSVisu.property_map(g,prop='psi_head',add_head_loss=True, ax=axpsi, color='red')
-
         else:
-            # Computes gas-exchange fluxes. Leaf T and Psi are from prev calc loop
+            # Compute gas-exchange fluxes. Leaf T and Psi are from prev calc loop
             exchange.gas_exchange_rates(g, par_photo, par_photo_n, par_gs,
                                         meteo, irradiance_type2, leaf_lbl_prefix, rbt)
 
-            # Computes sapflow and hydraulic properties
+            # Compute sap flow and hydraulic properties
             hydraulic.hydraulic_prop(g, vtx_label=collar_label, MassConv=mass_conv,
                                      LengthConv=length_conv,
                                      a=xylem_k_max['a'], b=xylem_k_max['b'], min_kmax=xylem_k_max['min_kmax'])
 
-        # End psi loop ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # End Hydraulic loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         # Compute leaf temperature
         if not energy_budget:
@@ -203,3 +201,5 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
                     t_new_dict[vtx_id] = tx
 
                 g.properties()['Tlc'] = t_new_dict
+
+    # End temperature loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
