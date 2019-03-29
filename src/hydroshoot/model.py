@@ -1,22 +1,12 @@
 # -*- coding: utf-8 -*-
+"""This module performs a complete comutation scheme: irradiance absorption, gas-exchange, hydraulic structure,
+energy-exchange, and soil water depletion, for each given time step.
 """
-Created on Mon Feb  6 18:23:26 2017
-
-@author: albashar
-"""
-
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Dec 13 13:07:33 2016
-
-@author: albashar
-"""
-import datetime as dt
-import os.path
-from pandas import read_csv, DataFrame, date_range, DatetimeIndex, merge
-from copy import deepcopy
 import numpy as np
-from operator import mul
+from copy import deepcopy
+from os.path import isfile
+from datetime import datetime, timedelta
+from pandas import read_csv, DataFrame, date_range, DatetimeIndex, merge
 
 import openalea.mtg.traversal as traversal
 from openalea.plantgl.all import Scene, surface
@@ -43,7 +33,7 @@ def run(g, wd, scene, **kwargs):
     print '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
     print '+ Project: ', wd
     print '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
-    time_on = dt.datetime.now()
+    time_on = datetime.now()
 
     # Read user parameters
     params_path = wd + 'params.json'
@@ -67,8 +57,8 @@ def run(g, wd, scene, **kwargs):
         meteo_tab['Pa'] = [101.3] * len(meteo_tab)  # atmospheric pressure
 
     #   Determination of the simulation period
-    sdate = dt.datetime.strptime(params.simulation.sdate, "%Y-%m-%d %H:%M:%S")
-    edate = dt.datetime.strptime(params.simulation.edate, "%Y-%m-%d %H:%M:%S")
+    sdate = datetime.strptime(params.simulation.sdate, "%Y-%m-%d %H:%M:%S")
+    edate = datetime.strptime(params.simulation.edate, "%Y-%m-%d %H:%M:%S")
     datet = date_range(sdate, edate, freq='H')
     meteo = meteo_tab.ix[datet]
     time_conv = {'D': 86.4e3, 'H': 3600., 'T': 60., 'S': 1.}[datet.freqstr]
@@ -78,9 +68,9 @@ def run(g, wd, scene, **kwargs):
         psi_pd = DataFrame([kwargs['psi_soil']] * len(meteo.time),
                            index=meteo.time, columns=['psi'])
     else:
-        assert (os.path.isfile(wd + 'psi_soil.input')), "The 'psi_soil.input' file is missing."
+        assert (isfile(wd + 'psi_soil.input')), "The 'psi_soil.input' file is missing."
         psi_pd = read_csv(wd + 'psi_soil.input', sep=';', decimal='.').set_index('time')
-        psi_pd.index = [dt.datetime.strptime(s, "%Y-%m-%d") for s in psi_pd.index]
+        psi_pd.index = [datetime.strptime(s, "%Y-%m-%d") for s in psi_pd.index]
 
     # Unit length conversion (from scene unit to the standard [m]) unit)
     unit_scene_length = params.simulation.unit_scene_length
@@ -88,7 +78,7 @@ def run(g, wd, scene, **kwargs):
 
     # Determination of cumulative degree-days parameter
     t_base = params.phenology.t_base
-    budbreak_date = dt.datetime.strptime(params.phenology.emdate, "%Y-%m-%d %H:%M:%S")
+    budbreak_date = datetime.strptime(params.phenology.emdate, "%Y-%m-%d %H:%M:%S")
 
     if 'gdd_since_budbreak' in kwargs:
         gdd_since_budbreak = kwargs['gdd_since_budbreak']
@@ -116,7 +106,7 @@ def run(g, wd, scene, **kwargs):
 
     # Soil reservoir dimensions (inter row, intra row, depth) [m]
     soil_dimensions = params.soil.soil_dimensions
-    soil_total_volume = reduce(mul, soil_dimensions)
+    soil_total_volume = soil_dimensions[0] * soil_dimensions[1] * soil_dimensions[2]
     rhyzo_coeff = params.soil.rhyzo_coeff
     rhyzo_total_volume = rhyzo_coeff * np.pi * \
         min(soil_dimensions[:2]) ** 2 / 4. * soil_dimensions[2]
@@ -270,7 +260,7 @@ def run(g, wd, scene, **kwargs):
         assert (sdate - min(
             meteo_tab.index)).days >= 10, 'Meteorological data do not cover 10 days prior to simulation date.'
 
-        ppfd10_date = sdate + dt.timedelta(days=-10)
+        ppfd10_date = sdate + timedelta(days=-10)
         ppfd10t = date_range(ppfd10_date, sdate, freq='H')
         ppfd10_meteo = meteo_tab.ix[ppfd10t]
         caribu_source, RdRsH_ratio = irradiance.irradiance_distribution(ppfd10_meteo, geo_location, E_type,
@@ -331,7 +321,7 @@ def run(g, wd, scene, **kwargs):
         imeteo = meteo[meteo.time == date]
 
         # Add a date index to g
-        g.date = dt.datetime.strftime(date, "%Y%m%d%H%M%S")
+        g.date = datetime.strftime(date, "%Y%m%d%H%M%S")
 
         # Read soil water potntial at midnight
         if 'psi_soil' in kwargs:
@@ -456,7 +446,7 @@ def run(g, wd, scene, **kwargs):
     results_df.to_csv(output_path + 'time_series.output',
                       sep=';', decimal='.')
 
-    time_off = dt.datetime.now()
+    time_off = datetime.now()
 
     print ("")
     print ("beg time", time_on)
