@@ -88,11 +88,10 @@ def run(g, wd, scene, **kwargs):
         tmeteo = tmeteo.set_index(DatetimeIndex(tmeteo.index).normalize())
         df_min = tmeteo.groupby(tmeteo.index).aggregate(np.min).Tac
         df_max = tmeteo.groupby(tmeteo.index).aggregate(np.max).Tac
-#        df_tt = merge(df_max, df_min,
-#                      how='inner', left_index=True, right_index=True)
-#        df_tt.columns = ('max', 'min')
-#        df_tt['gdd'] = df_tt.apply(lambda x: 0.5 * (x['max'] + x['min']) - t_base)
-#        gdd_since_budbreak = df_tt['gdd'].cumsum()[-1]
+        # df_tt = merge(df_max, df_min, how='inner', left_index=True, right_index=True)
+        # df_tt.columns = ('max', 'min')
+        # df_tt['gdd'] = df_tt.apply(lambda x: 0.5 * (x['max'] + x['min']) - t_base)
+        # gdd_since_budbreak = df_tt['gdd'].cumsum()[-1]
         df_tt = 0.5 * (df_min + df_max) - t_base
         gdd_since_budbreak = df_tt.cumsum()[-1]
     else:
@@ -101,15 +100,14 @@ def run(g, wd, scene, **kwargs):
     print 'GDD since budbreak = %d °Cd' % gdd_since_budbreak
 
     # Determination of perennial structure arms (for grapevine)
-#    arm_vid = {g.node(vid).label: g.node(vid).components()[0]._vid \
-#               for vid in g.VtxList(Scale=2) if g.node(vid).label.startswith('arm')}
+    # arm_vid = {g.node(vid).label: g.node(vid).components()[0]._vid for vid in g.VtxList(Scale=2) if
+    #            g.node(vid).label.startswith('arm')}
 
     # Soil reservoir dimensions (inter row, intra row, depth) [m]
     soil_dimensions = params.soil.soil_dimensions
     soil_total_volume = soil_dimensions[0] * soil_dimensions[1] * soil_dimensions[2]
     rhyzo_coeff = params.soil.rhyzo_coeff
-    rhyzo_total_volume = rhyzo_coeff * np.pi * \
-        min(soil_dimensions[:2]) ** 2 / 4. * soil_dimensions[2]
+    rhyzo_total_volume = rhyzo_coeff * np.pi * min(soil_dimensions[:2]) ** 2 / 4. * soil_dimensions[2]
 
     # Counter clockwise angle between the default X-axis direction (South) and
     # the real direction of X-axis.
@@ -155,10 +153,8 @@ def run(g, wd, scene, **kwargs):
 
     psi_min = params.hydraulic.psi_min
 
-
     # Parameters of leaf Nitrogen content-related models
     Na_dict = params.exchange.Na_dict
-
 
     # Computation of the form factor matrix
     if energy_budget:
@@ -302,8 +298,8 @@ def run(g, wd, scene, **kwargs):
     # ==============================================================================
 
     sapflow = []
-    sapEast = []
-    sapWest = []
+    # sapEast = []
+    # sapWest = []
     an_ls = []
     rg_ls = []
     psi_stem = {}
@@ -338,7 +334,6 @@ def run(g, wd, scene, **kwargs):
                 psi_soil = hydraulic.soil_water_potential(psi_soil,
                                                           g.node(vid_collar).Flux * time_conv,
                                                           soil_class, soil_total_volume, psi_min)
-
 
         if 'sun2scene' not in kwargs or not kwargs['sun2scene']:
             sun2scene = None
@@ -379,7 +374,6 @@ def run(g, wd, scene, **kwargs):
         # TODO: Change the t_sky_eff formula (cf. Gliah et al., 2011, Heat and Mass Transfer, DOI: 10.1007/s00231-011-0780-1)
         t_sky_eff = RdRsH_ratio * t_cloud + (1 - RdRsH_ratio) * t_sky
 
-
         core.solve_interactions(g, imeteo, psi_soil, t_soil, t_sky_eff,
                                 vid_collar, vid_base, length_conv, time_conv,
                                 rhyzo_total_volume, params)
@@ -389,8 +383,8 @@ def run(g, wd, scene, **kwargs):
 
         # Plot stuff..
         sapflow.append(g.node(vid_collar).Flux)
-#        sapEast.append(g.node(arm_vid['arm1']).Flux)
-#        sapWest.append(g.node(arm_vid['arm2']).Flux)
+        # sapEast.append(g.node(arm_vid['arm1']).Flux)
+        # sapWest.append(g.node(arm_vid['arm2']).Flux)
 
         an_ls.append(g.node(vid_collar).FluxC)
 
@@ -410,7 +404,7 @@ def run(g, wd, scene, **kwargs):
         print 'gs', np.median(g.property('gs').values())
         print 'flux H2O', round(g.node(vid_collar).Flux * 1000. * time_conv, 4)
         print 'flux C2O', round(g.node(vid_collar).FluxC, 4)
-        print 'Tleaf ', round(np.median([g.node(vid).Tlc for vid in g.property('gs').keys()]), 2),\
+        print 'Tleaf ', round(np.median([g.node(vid).Tlc for vid in g.property('gs').keys()]), 2), \
             'Tair ', round(imeteo.Tac[0], 4)
         print ''
         print "=" * 72
@@ -421,8 +415,8 @@ def run(g, wd, scene, **kwargs):
     # Plant total transpiration
     sapflow = [flow * time_conv * 1000. for flow in sapflow]
 
-#    sapflow, sapEast, sapWest = [np.array(flow) * time_conv * 1000. for i, flow in
-#                                 enumerate((sapflow, sapEast, sapWest))]
+    #    sapflow, sapEast, sapWest = [np.array(flow) * time_conv * 1000. for i, flow in
+    #                                 enumerate((sapflow, sapEast, sapWest))]
 
     # Median leaf temperature
     t_ls = [np.median(Tlc_dict[date].values()) for date in meteo.time]
@@ -434,8 +428,8 @@ def run(g, wd, scene, **kwargs):
         'Rg': rg_ls,
         'An': an_ls,
         'E': sapflow,
-        #'sapEast': sapEast,
-        #'sapWest': sapWest,
+        # 'sapEast': sapEast,
+        # 'sapWest': sapWest,
         'Tleaf': t_ls
     }
 
