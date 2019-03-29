@@ -394,6 +394,9 @@ def run(g, wd, scene, **kwargs):
                                 vid_collar, vid_base, length_conv, time_conv,
                                 rhyzo_total_volume, params)
 
+        # Write mtg to an external file
+        architecture.mtg_save(g, scene, output_path)
+
         # Plot stuff..
         sapflow.append(g.node(vid_collar).Flux)
 #        sapEast.append(g.node(arm_vid['arm1']).Flux)
