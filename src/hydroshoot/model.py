@@ -12,7 +12,7 @@ import openalea.mtg.traversal as traversal
 from openalea.plantgl.all import Scene, surface
 
 from hydroshoot import (architecture, irradiance, exchange, hydraulic, energy,
-                        display, core)
+                        display, solver)
 from hydroshoot.params import Params
 
 
@@ -374,9 +374,9 @@ def run(g, wd, scene, **kwargs):
         # TODO: Change the t_sky_eff formula (cf. Gliah et al., 2011, Heat and Mass Transfer, DOI: 10.1007/s00231-011-0780-1)
         t_sky_eff = RdRsH_ratio * t_cloud + (1 - RdRsH_ratio) * t_sky
 
-        core.solve_interactions(g, imeteo, psi_soil, t_soil, t_sky_eff,
-                                vid_collar, vid_base, length_conv, time_conv,
-                                rhyzo_total_volume, params)
+        solver.solve_interactions(g, imeteo, psi_soil, t_soil, t_sky_eff,
+                                  vid_collar, vid_base, length_conv, time_conv,
+                                  rhyzo_total_volume, params)
 
         # Write mtg to an external file
         architecture.mtg_save(g, scene, output_path)
