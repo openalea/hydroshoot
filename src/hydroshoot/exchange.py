@@ -614,11 +614,7 @@ def gas_exchange_rates(g, par_photo, par_photo_N, par_gs, meteo, E_type2,
                 Ca = meteo_leaf.Ca
                 Pa = meteo_leaf.Pa
                 
-                try:
-                    u *= node.u_coef
-                    node.u = u
-                except:
-                    pass
+                node.u = u  # TODO replace the meso-wind speed (u) by a micro-wind speed at the level of each leaf
 
                 psi = node.properties()['psi_head'] #leaf water potential [MPa] (assumed equal to that of the petiole)
                 Tlc = node.properties()['Tlc']

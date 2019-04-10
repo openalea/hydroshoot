@@ -239,16 +239,6 @@ def run(g, wd, scene, **kwargs):
                                 stem_lbl_prefix=stem_lbl_prefix, wave_band='SW',
                                 opt_prop=opt_prop)
 
-    # Wind profile
-    if 'u_coef' not in g.property_names():
-        z_ls = [g.node(vid).TopPosition[2] for vid in g.VtxList(Scale=3) if g.node(vid).label.startswith('L')]
-        z_max, z_min = max(z_ls), min(z_ls)
-        z_avg = 0.5 * (z_max + z_min)
-        for vid in g.VtxList(Scale=3):
-            if g.node(vid).label.startswith('L'):
-                z_node = g.node(vid).TopPosition[2]
-                g.node(vid).u_coef = 1.  # 0.2 + 0.8*(abs(z_node-z_avg)/(1.2*(z_max-z_min)/2.))**2.
-
     # Estimation of Nitroen surface-based content according to Prieto et al. (2012)
     # Estimation of intercepted irradiance over past 10 days:
     if not 'Na' in g.property_names():
