@@ -1,10 +1,15 @@
 ##### Primitives 3D (PlantGL)
 ##### A modified module from the TopVine Package (G. Louarn)
 
-import IOtable
 from openalea.plantgl.all import *
-from scipy import tan, sqrt, sin, cos, array
-from Obj3Dutils import quadform
+from scipy import tan, sin, cos, array
+
+
+def quadform(p1, p2, p3, p4):
+    """ renvoie le TriangleSet a 4 points """
+    points= Point3Array([ Vector3(p1[0],p1[1],p1[2]),Vector3(p2[0],p2[1],p2[2]),Vector3(p3[0],p3[1],p3[2]), Vector3(p4[0],p4[1],p4[2])])
+    indices= Index3Array([ Index3(0,1,3), Index3(1,2,3)])
+    return TriangleSet(points, indices)
 
 def en0(n=6):
     return Cylinder(1,1,True,n)
