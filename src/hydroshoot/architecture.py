@@ -12,10 +12,8 @@ The resulting MTG incorporates geometry
 
 import scipy
 from scipy.linalg import norm
-#from numpy.linalg.linalg import norm
 from numpy.linalg import det
 from scipy.spatial import distance
-from roman import toRoman
 from pandas import read_csv
 from re import search, findall
 from itertools import product
@@ -26,6 +24,8 @@ from os import path, mkdir
 from openalea.mtg import mtg, io
 from openalea.plantgl.all import Point3Array
 import openalea.plantgl.all as pgl
+
+from hydroshoot.extern.roman import toRoman
 
 #==============================================================================
 # Functions from TopVine package
