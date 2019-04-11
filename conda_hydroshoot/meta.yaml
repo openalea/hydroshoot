@@ -12,6 +12,16 @@ requirements:
 
   run:
     - python
+    - numpy
+    - scipy
+    - sympy
+    - pandas
+    - jsonschema
+    - pvlib-python
+    - openalea.mtg
+    - openalea.plantgl
+    - alinea.caribu
+    - alinea.astk
 
 about:
   summary: "HydroShoot is an FSPM model to simulate gas-exchange on vine"
