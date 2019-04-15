@@ -1,5 +1,5 @@
 from hydroshoot.data import potted_syrah, meteo
-from hydroshoot.irradiance import irradiance_distribution, hsCaribu, optical_prop
+from hydroshoot.irradiance import irradiance_distribution, hsCaribu, optical_prop, e_conv_PPFD
 from numpy.testing import assert_almost_equal
 
 
@@ -7,26 +7,63 @@ def test_irradiance_distribution():
     # sample values copied from data.json_parameters
     location = (43.61, 3.87, 44.0)
     e_type = 'Rg_Watt/m2'
+    conv = e_conv_PPFD(e_type)
+
+    # a cloudy hour
+    met = meteo().iloc[[12], :]
+    sources, rdrs = irradiance_distribution(met, location, e_type)
+    assert rdrs == 1
+    # would expect 46 as no direct light is estimated
+    assert len(sources) == 47
+    nrj, pos = zip(*sources)
+    assert_almost_equal(met.Rg.sum() * conv, sum(nrj), 2)
+
+    # Same our but with 16 directions
+    sources, rdrs = irradiance_distribution(met, location, e_type, turtle_sectors='16')
+    assert len(sources) == 17
+    nrj, pos = zip(*sources)
+    assert_almost_equal(met.Rg.sum() * conv, sum(nrj), 2)
+
+    # a sunny hour
+    met = meteo().iloc[[60], :]
+    sources, rdrs = irradiance_distribution(met, location, e_type)
+    assert rdrs < 0.3
+    assert len(sources) == 47
+    nrj, pos = zip(*sources)
+    assert_almost_equal(met.Rg.sum() * conv, sum(nrj), 2)
+
+    #a night hour
+    met = meteo().iloc[[1], :]
+    sources, rdrs = irradiance_distribution(met, location, e_type)
+    assert rdrs == 1
+    # would expect No source or 46
+    assert len(sources) == 47
+    nrj, pos = zip(*sources)
+    assert_almost_equal(sum(nrj), 0)
 
     # a particularly overcast day
     day_met = meteo().iloc[:24,:]
     sources, rdrs = irradiance_distribution(day_met, location, e_type)
-    assert rdrs == 1
-    # not optimals  no direct light is predicted for this day. Expect 46 instead
+    assert rdrs > 0.9
+    # not optimals  as almost no direct light is predicted for this day. Expect 48 instead
     assert len(sources) == 70
     nrj, pos = zip(*sources)
-    # bug : almost two fold diff between source energy sum and meteo Rg sum
-    assert_almost_equal(day_met.Rg.sum(),sum(nrj) ,0)
+    assert_almost_equal(day_met.Rg.sum() * conv, sum(nrj),2)
+
+    # Same day but with 16 directions
+    sources, rdrs = irradiance_distribution(day_met, location, e_type, turtle_sectors='16')
+    assert len(sources) == 40
+    nrj, pos = zip(*sources)
+    assert_almost_equal(day_met.Rg.sum() * conv, sum(nrj), 2)
 
     # a much clearer day
     day_met = meteo().iloc[48:72,:]
     sources, rdrs = irradiance_distribution(day_met, location, e_type)
-    # fail because of bug in irradiance : only last value of rdrs is returned
-    assert rdrs < 1
+    assert rdrs < 0.5
     # not optimals
     assert len(sources) == 70
-    # bug : almost two fold diff between source energy sum and meteo Rg sum
-    assert_almost_equal(day_met.Rg.sum(),sum(nrj) ,0)
+    nrj, pos = zip(*sources)
+    assert_almost_equal(day_met.Rg.sum() * conv,sum(nrj),0)
 
 
 def test_hsCaribu():

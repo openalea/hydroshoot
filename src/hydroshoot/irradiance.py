@@ -81,8 +81,32 @@ def optical_prop(mtg,leaf_lbl_prefix='L', stem_lbl_prefix=('in', 'Pet', 'cx'),
     return mtg
 
 
+def e_conv_Wm2(E_type):
+    #conversion factor for irradiance of type E_type to get W m-2
+    if E_type == 'Rg_Watt/m2':
+        return 1.
+    elif E_type == 'RgPAR_Watt/m2':
+        return 1. / 0.48
+    elif E_type == 'PPFD_umol/m2/s':
+        return 1. / (0.48 * 4.6)
+    else:
+        raise TypeError("E_type must be one of the following 'Rg_Watt/m2', 'RgPAR_Watt/m2' or'PPFD_umol/m2/s'.")
+
+
+def e_conv_PPFD(E_type):
+    #conversion factor for irradiance of type E_type to get umol/m2/s
+    if E_type == 'Rg_Watt/m2':
+        return 0.48 * 4.6
+    elif E_type == 'RgPAR_Watt/m2':
+        return 4.6
+    elif E_type == 'PPFD_umol/m2/s':
+        return 1.
+    else:
+        raise TypeError("E_type must be one of the following 'Rg_Watt/m2', 'RgPAR_Watt/m2' or'PPFD_umol/m2/s'.")
+
+
 def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
-                     turtle_sectors='46', turtle_format='soc', sun2scene=None,
+                     turtle_sectors='46', turtle_format='uoc', sun2scene=None,
                      rotation_angle=0., icosphere_level = None):
     """
     Calculates energy distribution over a semi-hemisphere surrounding the plant [umol m-2 s-1].
@@ -113,7 +137,8 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
 
     TODO: replace by the icosphere procedure
     """
-
+    rdrs = []
+    nrj_sum = 0
     for idate, date in enumerate(meteo.index):
 
         if E_type.split('_')[0] == 'PPFD':
@@ -126,15 +151,7 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
 
 
 #       Convert irradiance to W m-2 (Spitters method always gets energy flux as Rg Watt m-2)
-        if E_type == 'Rg_Watt/m2':
-            corr = 1.
-        elif E_type == 'RgPAR_Watt/m2':
-            corr = 1./0.48
-        elif E_type == 'PPFD_umol/m2/s':
-            corr = 1./(0.48 * 4.6)
-        else:
-            raise TypeError ("E_type must be one of the following 'Rg_Watt/m2', 'RgPAR_Watt/m2' or'PPFD_umol/m2/s'.")
-
+        corr = e_conv_Wm2(E_type)
         energy = energy*corr
 #        print 'energy = ', energy
 
@@ -145,7 +162,8 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
         DOYUTC = dateUTC.timetuple().tm_yday
         hUTC = dateUTC.hour + dateUTC.minute/60.
         RdRsH_ratio = RdRsH(energy, DOYUTC, hUTC, latitude) # R: Attention, ne renvoie pas exactement le même RdRsH que celui du noeud 'spitters_horaire' dans topvine.
-
+        rdrs.append(RdRsH_ratio * energy)
+        nrj_sum += energy
 #           Third and final correction: it is always desirable to get energy as PPFD
         energy = energy*(0.48 * 4.6)
 
@@ -154,7 +172,7 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
 
 #       diffuse radiation
         if not icosphere_level:
-            energy2, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format='uoc',energy=R_diff)
+            energy2, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format=turtle_format,energy=R_diff)
 #            sky=zip(energy2,direction)
         else:
             vert,fac = ico.turtle_dome(icosphere_level)
@@ -204,7 +222,13 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
             sun2scene.add(sun)
         Viewer.display(sun2scene)
 
-    return source_cum, RdRsH_ratio
+    # rdrs mean
+    if nrj_sum > 0:
+        rdrs = sum(rdrs) / nrj_sum
+    else:
+        rdrs = 1
+
+    return source_cum, rdrs
 
 
 def hsCaribu(mtg, meteo, local_date, geo_location, E_type, unit_scene_length,
