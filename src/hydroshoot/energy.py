@@ -160,12 +160,9 @@ def form_factors_simplified(g, pattern, leaf_lbl_prefix='L',
         # Compute irradiance interception and absorbtion
         g, caribu_scene = HSCaribu.hsCaribu(mtg=g,
                            unit_scene_length=unit_scene_length,
-                           wave_band='SW', source = caribu_source, direct=True,
-                           infinite=True, nz=50, dz=5, ds=0.5,
-                           pattern=pattern,
-                           leaf_lbl_prefix=leaf_lbl_prefix,
-                           stem_lbl_prefix=stem_lbl_prefix,
-                           opt_prop=opt_prop_ff)
+                           source = caribu_source, direct=True,
+                           infinite=True, nz=50, ds=0.5,
+                           pattern=pattern)
         
     #    caribu_scene.getIncidentEnergy()
         if s == 'pirouette':

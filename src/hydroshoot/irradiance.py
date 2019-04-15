@@ -232,22 +232,17 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
 
 
 def hsCaribu(mtg, unit_scene_length,
-               wave_band='SW', source = None, direct=True,
+               source = None, direct=True,
                infinite=False,
-               nz=50, dz=5, ds=0.5, pattern=None,leaf_lbl_prefix='L', stem_lbl_prefix=('in', 'Pet', 'cx'),
-               opt_prop={'SW':{'leaf':(0.06,0.07),'stem':(0.13,),'other':(0.06,0.07)},
-                'LW':{'leaf':(0.04,0.07),'stem':(0.13,),'other':(0.06,0.07)}}):
+               nz=50, ds=0.5, pattern=None):
     """
     Estimates intercepted energy by the plant canopy.
 
     :Parameters:
     - **mtg**: an MTG object
     - **unit_scene_length**: the unit of length used for scene coordinate and for pattern (should be one of `CaribuScene.units` default)
-    - **wave_band**: either 'SW' for *short wave band* or 'LS' for *long wave band*
     - **source**: a tuple of tuples, giving energy unit and sky coordinates, if None, this function calculates energy for a single given `date`
-    - **direct**, **nz**, **dz**, **ds**, **pattern**: See :func:`runCaribu` from `CaribuScene` package
-    - **leaf_lbl_prefix**, **stem_lbl_prefix**: the prefices of the leaf label and stem label, resp.
-    - **opt_prop**: the optical properties of mtg elements, given as a {band_name: material} dictionary of tuples (See :func:`CaribuScene.__init__` for more information)
+    - **direct**, **nz**, **ds**, **pattern**: See :func:`runCaribu` from `CaribuScene` package
 
     :Returns:
     - the mtg object, with the incident radiation (`Ei`) and absorbed radiation (`Eabs`), both in [umol m-2 s-1], attached to mtg vertices as properties.
@@ -255,6 +250,9 @@ def hsCaribu(mtg, unit_scene_length,
     :Notice 1:
     **Ei** and **Eabs** units are returned in [umol m-2 s-1] **REGARDLESS** of the `unit_scence_length` type.
     """
+
+    # currently used as a dummy variable
+    wave_band = 'SW'
 
     if source is None:
         source = [(1, (0, 0, -1))]
