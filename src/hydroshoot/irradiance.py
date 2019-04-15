@@ -234,7 +234,7 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
 def hsCaribu(mtg, meteo, local_date, geo_location, E_type, unit_scene_length,
                tzone='Europe/Paris', wave_band='SW', source = None, direct=True,
                infinite=False,
-               nz=50, dz=5, ds=0.5, pattern=False, turtle_sectors='46',
+               nz=50, dz=5, ds=0.5, pattern=None, turtle_sectors='46',
                turtle_format='soc',leaf_lbl_prefix='L', stem_lbl_prefix=('in', 'Pet', 'cx'),
                opt_prop={'SW':{'leaf':(0.06,0.07),'stem':(0.13,),'other':(0.06,0.07)},
                 'LW':{'leaf':(0.04,0.07),'stem':(0.13,),'other':(0.06,0.07)}},
@@ -325,7 +325,7 @@ def hsCaribu(mtg, meteo, local_date, geo_location, E_type, unit_scene_length,
             direction = ico.sample_faces(vert, fac, iter=None, spheric=False).values()
             direction = [idirect[0] for idirect in direction]
             direction = map(lambda x: tuple(list(x[:2])+[-x[2]]),direction)
-        
+
         sky = zip(len(direction)*[R_diff/len(direction)],direction)
 #        energy, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format=turtle_format,energy=R_diff)
 #        sky=zip(energy,direction)

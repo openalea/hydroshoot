@@ -92,4 +92,4 @@ def test_hsCaribu():
     local_date = None
     sources = [(1,(0,0,-1))]
     # pattern = False (default) raises a bug
-    gg, cs = hsCaribu(g, day_met, local_date, location, e_type, unit_scene_length, source=sources, pattern=None)
+    gg, cs = hsCaribu(g, day_met, local_date, location, e_type, unit_scene_length, source=sources)
