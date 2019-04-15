@@ -69,8 +69,6 @@ def test_irradiance_distribution():
 def test_hsCaribu():
     g = potted_syrah()
     # sample values copied from data.json_parameters
-    location = (43.61, 3.87, 44.0)
-    e_type = 'Rg_Watt/m2'
     unit_scene_length = 'cm'
 
     # reporduce preprocessing as done  in model.py
@@ -86,10 +84,4 @@ def test_hsCaribu():
     # Attaching optical properties to MTG elements
     g = optical_prop(g)
 
-
-    # force sources
-    day_met = None
-    local_date = None
-    sources = [(1,(0,0,-1))]
-    # pattern = False (default) raises a bug
-    gg, cs = hsCaribu(g, day_met, local_date, location, e_type, unit_scene_length, source=sources)
+    gg, cs = hsCaribu(g, unit_scene_length)
