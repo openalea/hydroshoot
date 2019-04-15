@@ -256,12 +256,9 @@ def run(g, wd, scene, **kwargs):
         # Compute irradiance interception and absorbtion
         g, caribu_scene = irradiance.hsCaribu(mtg=g,
                                               unit_scene_length=unit_scene_length,
-                                              wave_band='SW', source=caribu_source, direct=False,
-                                              infinite=True, nz=50, dz=5, ds=0.5,
-                                              pattern=pattern,
-                                              leaf_lbl_prefix=leaf_lbl_prefix,
-                                              stem_lbl_prefix=stem_lbl_prefix,
-                                              opt_prop=opt_prop)
+                                              source=caribu_source, direct=False,
+                                              infinite=True, nz=50, ds=0.5,
+                                              pattern=pattern)
 
         g.properties()['Ei10'] = {vid: g.node(vid).Ei * time_conv / 10. / 1.e6 for vid in g.property('Ei').keys()}
 
