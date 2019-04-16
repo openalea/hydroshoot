@@ -233,7 +233,7 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
 def hsCaribu(mtg, unit_scene_length, geometry='geometry', opticals='opticals', consider=None,
                source = None, direct=True,
                infinite=False,
-               nz=50, ds=0.5, pattern=None, soil_refectance=0.15):
+               nz=50, ds=0.5, pattern=None, soil_reflectance=0.15):
     """
     Estimates intercepted energy by the plant canopy.
 
@@ -289,7 +289,7 @@ def hsCaribu(mtg, unit_scene_length, geometry='geometry', opticals='opticals', c
 
             # setup CaribuScene
             caribu_scene = CaribuScene(mtg, light=source, opt = opts,
-                                       soil_reflectance={wave_band: soil_refectance},
+                                       soil_reflectance={wave_band: soil_reflectance},
                                         scene_unit=unit_scene_length,
                                         pattern=pattern)
 
