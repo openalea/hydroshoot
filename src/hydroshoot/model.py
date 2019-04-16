@@ -16,7 +16,7 @@ from hydroshoot import (architecture, irradiance, exchange, hydraulic, energy,
 from hydroshoot.params import Params
 
 
-def run(g, wd, scene, **kwargs):
+def run(g, wd, scene=None, write_result=True, **kwargs):
     """
     Calculates leaf gas and energy exchange in addition to the hydraulic structure of an individual plant.
 
@@ -45,7 +45,7 @@ def run(g, wd, scene, **kwargs):
     # Initialisation
     # ==============================================================================
     #   Climate data
-    meteo_path = params.simulation.meteo
+    meteo_path = wd + params.simulation.meteo
     meteo_tab = read_csv(meteo_path, sep=';', decimal='.', header=0)
     meteo_tab.time = DatetimeIndex(meteo_tab.time)
     meteo_tab = meteo_tab.set_index(meteo_tab.time)
@@ -369,7 +369,8 @@ def run(g, wd, scene, **kwargs):
                                   rhyzo_total_volume, params)
 
         # Write mtg to an external file
-        architecture.mtg_save(g, scene, output_path)
+        if scene is not None:
+            architecture.mtg_save(g, scene, output_path)
 
         # Plot stuff..
         sapflow.append(g.node(vid_collar).Flux)
@@ -427,7 +428,8 @@ def run(g, wd, scene, **kwargs):
     results_df = DataFrame(results_dict, index=meteo.time)
 
     # Write
-    results_df.to_csv(output_path + 'time_series.output',
+    if write_result:
+        results_df.to_csv(output_path + 'time_series.output',
                       sep=';', decimal='.')
 
     time_off = datetime.now()
@@ -438,4 +440,4 @@ def run(g, wd, scene, **kwargs):
     print ("--- Total runtime: %d minute(s) ---" %
            int((time_off - time_on).seconds / 60.))
 
-    return
+    return results_df
