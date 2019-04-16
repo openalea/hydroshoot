@@ -102,3 +102,19 @@ def test_hsCaribu():
     # non regression test
     ei_sum = sum(g.property('Ei').values())
     assert_almost_equal(ei_sum, 14.83, 2)
+
+    # test consider option
+    g = potted_syrah()
+    unit_scene_length = 'cm'
+    g = optical_prop(g)
+    ng = len(g.property('geometry'))
+    label = g.property('label')
+    consider = [vid for vid in g.property('geometry') if label[vid].startswith(('L', 'other', 'soil'))]
+    assert len(consider) < ng
+    g, cs = hsCaribu(g, unit_scene_length, consider=consider)
+    assert len(g.property('Ei')) == len(cs.scene)
+    assert len(g.property('Ei')) == len(consider)
+    assert len(g.property('geometry')) == ng
+    # non regression test
+    ei_sum = sum(g.property('Ei').values())
+    assert_almost_equal(ei_sum, 14.83, 2)

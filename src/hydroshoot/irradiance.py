@@ -13,7 +13,6 @@ given plant shoot.
 
 from numpy import array, deg2rad
 from pandas import date_range
-from copy import deepcopy
 from pytz import timezone, utc
 from pvlib.solarposition import ephemeris
 
@@ -231,7 +230,7 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
     return source_cum, rdrs
 
 
-def hsCaribu(mtg, unit_scene_length, geometry='geometry', opticals='opticals',
+def hsCaribu(mtg, unit_scene_length, geometry='geometry', opticals='opticals', consider=None,
                source = None, direct=True,
                infinite=False,
                nz=50, ds=0.5, pattern=None, soil_refectance=0.15):
@@ -243,6 +242,7 @@ def hsCaribu(mtg, unit_scene_length, geometry='geometry', opticals='opticals',
     - **unit_scene_length**: the unit of length used for scene coordinate and for pattern (should be one of `CaribuScene.units` default)
     - **geometry**: the name of the property to use for computing scene geometry from the mtg
     - **opticals**: the name of the property to use for caribu optical properties
+    - **consider**: a list of vertex to be considered for the computation. If None(default) all vertices with a geometry are considered
     - **source**: a tuple of tuples, giving energy unit and sky coordinates, if None, this function calculates energy for a single given `date`
     - **direct**, **nz**, **ds**, **pattern**: See :func:`runCaribu` from `CaribuScene` package
     - **soil_reflectance**: the reflectance of the soil
@@ -264,13 +264,20 @@ def hsCaribu(mtg, unit_scene_length, geometry='geometry', opticals='opticals',
         source = [(1, (0, 0, -1))]
 
     # Hack : would be much better to have geometry as a caribuscene args directly
-    geom0 = mtg.property('geometry')
+    geom0 = mtg.property(geometry)
+    geometry0 = {}
+    remove_geometry = 'geometry' not in mtg.property_names()
+
+    if consider is not None:
+        geom0 = {k: v for k, v in mtg.property(geometry).iteritems()}
+        mtg.properties()[geometry] = {k: v for k, v in mtg.property(geometry).iteritems() if k in consider}
     if geometry is not 'geometry' and 'geometry' in mtg.property_names():
-        geom0 = {k: v for k, v in mtg.property('geometry').iteritems()}
-        mtg.properties()['geometry'] = mtg.property(geometry)
+        geometry0 = {k: v for k, v in mtg.property('geometry').iteritems()}
+
+    mtg.properties()['geometry'] = mtg.property(geometry)
+    caribu_scene = None
 
     # use a try/except/finally block to allow restoring geometry if block fails
-    caribu_scene = None
     try:
     #   Run caribu only if irradiance is greater that 0
         if sum([x[0] for x in source]) == 0.:
@@ -295,7 +302,12 @@ def hsCaribu(mtg, unit_scene_length, geometry='geometry', opticals='opticals',
     except:
         pass
     finally:
-        mtg.properties()['geometry'] = geom0
+        mtg.properties()[geometry] = geom0
+        if remove_geometry:
+            mtg.remove_property('geometry')
+        else:
+            if len(geometry0) > 0:
+                mtg.properties()['geometry'] = geometry0
 
     return mtg, caribu_scene
 
