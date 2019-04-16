@@ -231,18 +231,21 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
     return source_cum, rdrs
 
 
-def hsCaribu(mtg, unit_scene_length,
+def hsCaribu(mtg, unit_scene_length, geometry='geometry', opticals='opticals',
                source = None, direct=True,
                infinite=False,
-               nz=50, ds=0.5, pattern=None):
+               nz=50, ds=0.5, pattern=None, soil_refectance=0.15):
     """
     Estimates intercepted energy by the plant canopy.
 
     :Parameters:
     - **mtg**: an MTG object
     - **unit_scene_length**: the unit of length used for scene coordinate and for pattern (should be one of `CaribuScene.units` default)
+    - **geometry**: the name of the property to use for computing scene geometry from the mtg
+    - **opticals**: the name of the property to use for caribu optical properties
     - **source**: a tuple of tuples, giving energy unit and sky coordinates, if None, this function calculates energy for a single given `date`
     - **direct**, **nz**, **ds**, **pattern**: See :func:`runCaribu` from `CaribuScene` package
+    - **soil_reflectance**: the reflectance of the soil
 
     :Returns:
     - the mtg object, with the incident radiation (`Ei`) and absorbed radiation (`Eabs`), both in [umol m-2 s-1], attached to mtg vertices as properties.
@@ -251,37 +254,48 @@ def hsCaribu(mtg, unit_scene_length,
     **Ei** and **Eabs** units are returned in [umol m-2 s-1] **REGARDLESS** of the `unit_scence_length` type.
     """
 
+    assert geometry in mtg.property_names()
+    assert opticals in mtg.property_names()
+
     # currently used as a dummy variable
     wave_band = 'SW'
 
     if source is None:
         source = [(1, (0, 0, -1))]
 
-#   Run caribu only if irradiance is greater that 0
-    if sum([x[0] for x in source]) == 0.:
-        mtg.properties()['Ei'] = {ikey:0. for ikey in mtg.property('geometry').keys()}
-        mtg.properties()['Eabs'] = deepcopy(mtg.properties()['Ei'])
-        caribu_scene = None
-    else:
-        # Attaching optical properties to each organ of the plant mock-up
-        opticals = {wave_band: mtg.property('opticals')}
+    # Hack : would be much better to have geometry as a caribuscene args directly
+    geom0 = mtg.property('geometry')
+    if geometry is not 'geometry' and 'geometry' in mtg.property_names():
+        geom0 = {k: v for k, v in mtg.property('geometry').iteritems()}
+        mtg.properties()['geometry'] = mtg.property(geometry)
 
-        # setup CaribuScene
-        caribu_scene = CaribuScene(mtg, light=source, opt = opticals,
-                                   soil_reflectance={wave_band:0.15},
-                                    scene_unit=unit_scene_length,
-                                    pattern=pattern)
+    # use a try/except/finally block to allow restoring geometry if block fails
+    caribu_scene = None
+    try:
+    #   Run caribu only if irradiance is greater that 0
+        if sum([x[0] for x in source]) == 0.:
+            mtg.properties()['Ei'] = {k: 0. for k in mtg.property('geometry')}
+            mtg.properties()['Eabs'] = {k: 0. for k in mtg.property('geometry')}
+        else:
+            # Attaching optical properties to each organ of the plant mock-up
+            opts = {wave_band: mtg.property(opticals)}
 
-        # run caribu
-        raw, aggregated = caribu_scene.run(direct=direct, infinite=infinite, d_sphere=ds, layers=nz, split_face=False)
+            # setup CaribuScene
+            caribu_scene = CaribuScene(mtg, light=source, opt = opts,
+                                       soil_reflectance={wave_band: soil_refectance},
+                                        scene_unit=unit_scene_length,
+                                        pattern=pattern)
 
-        # Getting the output as PPFD in umol m-2 s-1
-        #for key in aggregated[wave_band]['Ei'].keys() : aggregated[wave_band]['Ei'][key] = aggregated[wave_band]['Ei'][key]/corr2
-        #for key in aggregated[wave_band]['Eabs'].keys() : aggregated[wave_band]['Eabs'][key] = aggregated[wave_band]['Eabs'][key]/corr2
+            # run caribu
+            raw, aggregated = caribu_scene.run(direct=direct, infinite=infinite, d_sphere=ds, layers=nz, split_face=False)
 
-        # Attaching output to MTG
-        mtg.properties()['Ei'] = aggregated[wave_band]['Ei']
-        mtg.properties()['Eabs'] = aggregated[wave_band]['Eabs']
+            # Attaching output to MTG
+            mtg.properties()['Ei'] = aggregated[wave_band]['Ei']
+            mtg.properties()['Eabs'] = aggregated[wave_band]['Eabs']
+    except:
+        pass
+    finally:
+        mtg.properties()['geometry'] = geom0
 
     return mtg, caribu_scene
 

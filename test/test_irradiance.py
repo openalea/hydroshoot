@@ -70,18 +70,35 @@ def test_hsCaribu():
     g = potted_syrah()
     # sample values copied from data.json_parameters
     unit_scene_length = 'cm'
-
-    # reporduce preprocessing as done  in model.py
-    # Suppression of undesired geometry for light and energy calculations
-    geom_prop = g.properties()['geometry']
-    vidkeys = []
-    for vid in g.properties()['geometry']:
-        n = g.node(vid)
-        if not n.label.startswith(('L', 'other', 'soil')):
-            vidkeys.append(vid)
-    [geom_prop.pop(x) for x in vidkeys]
-    g.properties()['geometry'] = geom_prop
     # Attaching optical properties to MTG elements
     g = optical_prop(g)
 
-    gg, cs = hsCaribu(g, unit_scene_length)
+    # simple run
+    assert 'Ei' not in g.property_names()
+    assert 'Eabs' not in g.property_names()
+    g, cs = hsCaribu(g, unit_scene_length)
+    assert 'Ei' in g.property_names()
+    assert 'Eabs' in g.property_names()
+    assert len(g.property('Ei')) == len(cs.scene)
+    assert len(g.property('Eabs')) == len(cs.scene)
+    assert sum(g.property('Ei').values()) > 0
+
+    # simple run during night
+    g, cs = hsCaribu(g, unit_scene_length, source=[(0, (0, -1, 0))])
+    assert sum(g.property('Ei').values()) == 0
+
+    # reproduce scene filtering as done in model.py
+    g = potted_syrah()
+    unit_scene_length = 'cm'
+    g = optical_prop(g)
+    ng = len(g.property('geometry'))
+    label = g.property('label')
+    g.properties()['radiative_geometry'] = {k: v for k, v in g.property('geometry').iteritems() if label[k].startswith(('L', 'other', 'soil'))}
+    assert len(g.property('radiative_geometry')) < ng
+    g, cs = hsCaribu(g, unit_scene_length, geometry='radiative_geometry')
+    assert len(g.property('Ei')) == len(cs.scene)
+    assert len(g.property('Ei')) == len(g.property('radiative_geometry'))
+    assert len(g.property('geometry')) == ng
+    # non regression test
+    ei_sum = sum(g.property('Ei').values())
+    assert_almost_equal(ei_sum, 14.83, 2)
