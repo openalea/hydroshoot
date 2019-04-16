@@ -42,3 +42,8 @@ def json_parameters():
     with open(params_path) as f:
         pars = json.load(f)
     return pars
+
+
+def reference_time_series_output():
+    path = get_path('reference_time_series.output')
+    return read_csv(path,sep=';', decimal='.')
