@@ -3,14 +3,15 @@
 from os.path import dirname, join
 from json import load
 from pandas import read_csv, DatetimeIndex
+
 from openalea.mtg import traversal
 from hydroshoot import architecture
 
-
 sources_dir = join(dirname(__file__), 'sources')
 
+
 def potted_syrah():
-    """ A mtg representing a potted syrrah grapevine"""
+    """Returns an `openalea.mtg` representing a potted syrah grapevine."""
     digit = join(sources_dir, 'grapevine_pot.csv')
     g = architecture.vine_mtg(digit)
     # Local Coordinates Correction
@@ -31,7 +32,7 @@ def potted_syrah():
 
 
 def meteo():
-    """A pandas.DataFrame containing meteorological data"""
+    """Returns a `pandas.DataFrame` containing meteorological data."""
     meteo_path = join(sources_dir, 'meteo.input')
     df = read_csv(meteo_path, sep=';', decimal='.', header=0)
     df.time = DatetimeIndex(df.time)
@@ -40,6 +41,7 @@ def meteo():
 
 
 def json_parameters():
+    """Returns `Dict` of hydroshoot parameters."""
     params_path = join(sources_dir, 'params.json')
     with open(params_path) as f:
         pars = load(f)
@@ -47,5 +49,6 @@ def json_parameters():
 
 
 def reference_time_series_output():
+    """Returns a `pandas.DataFrame` containing reference hydroshoot time-series output."""
     path = join(sources_dir, 'reference_time_series.output')
-    return read_csv(path,sep=';', decimal='.')
+    return read_csv(path, sep=';', decimal='.')
