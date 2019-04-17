@@ -13,14 +13,13 @@ def test_irradiance_distribution():
     met = meteo().iloc[[12], :]
     sources, rdrs = irradiance_distribution(met, location, e_type)
     assert rdrs == 1
-    # would expect 46 as no direct light is estimated
-    assert len(sources) == 47
+    assert len(sources) == 46
     nrj, pos = zip(*sources)
     assert_almost_equal(met.Rg.sum() * conv, sum(nrj), 2)
 
     # Same our but with 16 directions
     sources, rdrs = irradiance_distribution(met, location, e_type, turtle_sectors='16')
-    assert len(sources) == 17
+    assert len(sources) == 16
     nrj, pos = zip(*sources)
     assert_almost_equal(met.Rg.sum() * conv, sum(nrj), 2)
 
@@ -36,8 +35,7 @@ def test_irradiance_distribution():
     met = meteo().iloc[[1], :]
     sources, rdrs = irradiance_distribution(met, location, e_type)
     assert rdrs == 1
-    # would expect No source or 46
-    assert len(sources) == 47
+    assert len(sources) == 1
     nrj, pos = zip(*sources)
     assert_almost_equal(sum(nrj), 0)
 
@@ -45,14 +43,13 @@ def test_irradiance_distribution():
     day_met = meteo().iloc[:24,:]
     sources, rdrs = irradiance_distribution(day_met, location, e_type)
     assert rdrs > 0.9
-    # not optimals  as almost no direct light is predicted for this day. Expect 48 instead
-    assert len(sources) == 70
+    assert len(sources) == 48
     nrj, pos = zip(*sources)
     assert_almost_equal(day_met.Rg.sum() * conv, sum(nrj),2)
 
     # Same day but with 16 directions
     sources, rdrs = irradiance_distribution(day_met, location, e_type, turtle_sectors='16')
-    assert len(sources) == 40
+    assert len(sources) == 18
     nrj, pos = zip(*sources)
     assert_almost_equal(day_met.Rg.sum() * conv, sum(nrj), 2)
 
@@ -60,8 +57,7 @@ def test_irradiance_distribution():
     day_met = meteo().iloc[48:72,:]
     sources, rdrs = irradiance_distribution(day_met, location, e_type)
     assert rdrs < 0.5
-    # not optimals
-    assert len(sources) == 70
+    assert len(sources) == 58
     nrj, pos = zip(*sources)
     assert_almost_equal(day_met.Rg.sum() * conv,sum(nrj),0)
 

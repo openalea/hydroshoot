@@ -227,6 +227,11 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
     else:
         rdrs = 1
 
+    # filter black sources up to the penultimate (hsCaribu expect at least one source)
+    source_cum = [v for v in source_cum if v[0] > 0]
+    if len(source_cum) == 0: # night
+        source_cum = [(0, (0, 0, -1))]
+
     return source_cum, rdrs
 
 
@@ -243,7 +248,7 @@ def hsCaribu(mtg, unit_scene_length, geometry='geometry', opticals='opticals', c
     - **geometry**: the name of the property to use for computing scene geometry from the mtg
     - **opticals**: the name of the property to use for caribu optical properties
     - **consider**: a list of vertex to be considered for the computation. If None(default) all vertices with a geometry are considered
-    - **source**: a tuple of tuples, giving energy unit and sky coordinates, if None, this function calculates energy for a single given `date`
+    - **source**: a tuple of tuples, giving energy unit and sky coordinates, if None, a unit zenital source is used
     - **direct**, **nz**, **ds**, **pattern**: See :func:`runCaribu` from `CaribuScene` package
     - **soil_reflectance**: the reflectance of the soil
 
