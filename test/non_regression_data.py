@@ -7,7 +7,7 @@ from pandas import read_csv, DatetimeIndex
 from openalea.mtg import traversal
 from hydroshoot import architecture
 
-sources_dir = join(dirname(__file__), 'sources')
+sources_dir = join(dirname(__file__), 'data')
 
 
 def potted_syrah():
