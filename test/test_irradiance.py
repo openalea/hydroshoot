@@ -1,4 +1,4 @@
-from hydroshoot.data import potted_syrah, meteo
+from non_regression_data import potted_syrah, meteo
 from hydroshoot.irradiance import irradiance_distribution, hsCaribu, optical_prop, e_conv_PPFD
 from numpy.testing import assert_almost_equal
 
