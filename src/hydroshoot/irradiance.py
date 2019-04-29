@@ -129,6 +129,7 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
 
     :Returns:
     - **source_cum** a tuple of tuples, giving energy unit and sky coordinates
+    - **diffuse_ratio** diffuse-to-total irradiance ratio
 
     :Notice:
     The meteo data can consiste of only one line (single event) or multiple lines.
@@ -136,7 +137,7 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
 
     TODO: replace by the icosphere procedure
     """
-    rdrs = []
+    diffuse_ratio = []
     nrj_sum = 0
     for idate, date in enumerate(meteo.index):
 
@@ -161,7 +162,7 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
         DOYUTC = dateUTC.timetuple().tm_yday
         hUTC = dateUTC.hour + dateUTC.minute/60.
         RdRsH_ratio = RdRsH(energy, DOYUTC, hUTC, latitude) # R: Attention, ne renvoie pas exactement le même RdRsH que celui du noeud 'spitters_horaire' dans topvine.
-        rdrs.append(RdRsH_ratio * energy)
+        diffuse_ratio.append(RdRsH_ratio * energy)
         nrj_sum += energy
 #           Third and final correction: it is always desirable to get energy as PPFD
         energy = energy*(0.48 * 4.6)
@@ -221,18 +222,18 @@ def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
             sun2scene.add(sun)
         Viewer.display(sun2scene)
 
-    # rdrs mean
+    # diffuse_ratio mean
     if nrj_sum > 0:
-        rdrs = sum(rdrs) / nrj_sum
+        diffuse_ratio = sum(diffuse_ratio) / nrj_sum
     else:
-        rdrs = 1
+        diffuse_ratio = 1
 
     # filter black sources up to the penultimate (hsCaribu expect at least one source)
     source_cum = [v for v in source_cum if v[0] > 0]
     if len(source_cum) == 0: # night
         source_cum = [(0, (0, 0, -1))]
 
-    return source_cum, rdrs
+    return source_cum, diffuse_ratio
 
 
 def hsCaribu(mtg, unit_scene_length, geometry='geometry', opticals='opticals', consider=None,
