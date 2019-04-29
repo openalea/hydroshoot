@@ -1,14 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
-@author: Rami ALBASHA
-
-Irradiance module of HydroShoot: an interface of the Caribu module.
+"""Irradiance module of HydroShoot: an interface of the Caribu module.
+This module computes leaf (and eventually other elements) interception and absorption of incident irradiance given
+plant shoot geometry.
 
 TODO: plug to the standard interface of Caribu module.
-
-This module computes leaf (and eventually other elements) interception and
-absorption of incident irradiance.
-given plant shoot.
 """
 
 from numpy import array, deg2rad
@@ -25,44 +20,52 @@ import alinea.astk.icosphere as ico
 from hydroshoot.architecture import vector_rotation
 
 
-def local2solar(local_time, latitude, longitude, tzone, temperature=25.):
-    """
-    Returns UTC time and Solar time in decimal hours (solar noon is 12.00),
-    based on `pvlib.solarposition.ephemeris` function.
+def local2solar(local_time, latitude, longitude, time_zone, temperature=25.):
+    """Calculates UTC time and Solar time in decimal hours (solar noon is 12.00), based on
+    :func:`pvlib.solarposition.ephemeris`.
 
-    :Parameters:
-    - **local_time**: local (legal) time, given as a `datetime.time`-like object
-    - **latitude** and **longitude**: float, given in degrees
-    - **tzone**,: string, a legal 'pytz.timezone' (e.g. 'Europe/Paris')
-    - **temperature** float, is given in degrees
+    Args:
+        local_time (datetime): local time
+        latitude (float): [°] latitude at which local time is given
+        longitude (float): [°] longitude at which local time is given
+        time_zone (str): a 'pytz.timezone' (e.g. 'Europe/Paris')
+        temperature (float): [°C] air temperature
+
+    Returns:
+        (datetime): utc time
+        (float): [decimal hours] solar time
+
     """
-    time_zone = timezone(tzone)
+
+    time_zone = timezone(time_zone)
     local_time = time_zone.localize(local_time)
-    dateUTC = local_time.astimezone(utc)
-    #hUTC = dateUTC.time()
-    #DOYUTC = dateUTC.timetuple().tm_yday
+    date_utc = local_time.astimezone(utc)
     datet = date_range(local_time, local_time)
-    LST = ephemeris(datet, latitude, longitude, temperature).solar_time.values[0]
+    lst = ephemeris(datet, latitude, longitude, temperature).solar_time.values[0]
 
-    return dateUTC, LST
+    return date_utc, lst
 
 
-def optical_prop(mtg,leaf_lbl_prefix='L', stem_lbl_prefix=('in', 'Pet', 'cx'),
-         wave_band='SW',
-         opt_prop={'SW':{'leaf':(0.06,0.07),'stem':(0.13,),'other':(0.65,0.0)},
-                'LW':{'leaf':(0.04,0.07),'stem':(0.13,),'other':(0.65,0.0)}}):
+def optical_prop(mtg, leaf_lbl_prefix='L', stem_lbl_prefix=('in', 'Pet', 'cx'),
+                 wave_band='SW',
+                 opt_prop={'SW': {'leaf': (0.06, 0.07), 'stem': (0.13,), 'other': (0.65, 0.0)},
+                           'LW': {'leaf': (0.04, 0.07), 'stem': (0.13,), 'other': (0.65, 0.0)}}):
+    """Attaches optical properties to elements of an MTG. An element may be a `leaf`, a `stem`, or `other` when scene
+    background elements (e.g. oculting objects) are attached to the MTG.
+
+    Args:
+        mtg (MTG): plant Multiscale Tree Graph
+        leaf_lbl_prefix (str): the prefix of the leaf label
+        stem_lbl_prefix (str): the prefix of the stem label
+        wave_band (str): wave band name, default values are 'SW' for *short wave band* or 'LW' for *long wave band*
+        opt_prop: dictionary of the optical properties of mtg elements,
+            given as a {band_name: material} dictionary of tuples
+            (See :func:`CaribuScene.__init__` for more information)
+
+    Returns:
+        MTG object
+
     """
-    Attaches optical properties to elements of an MTG. An element may be a leaf,
-    a stem, or 'other' when scene background elements (e.g. oculting objects)
-    are attached to the MTG.
-
-    :Parameters:
-    - **mtg**: an MTG object
-    - **leaf_lbl_prefix**, **stem_lbl_prefix**: string, the prefices of the leaf label and stem label, resp.
-    - **wave_band**: string, wave band name, default values are 'SW' for *short wave band* or 'LS' for *long wave band*
-    - **opt_prop**: the optical properties of mtg elements, given as a {band_name: material} dictionary of tuples (See :func:`CaribuScene.__init__` for more information).
-    """
-
     leaf_material, stem_material = [opt_prop[wave_band][ikey] for ikey in ('leaf', 'stem')]
     other_material = opt_prop[wave_band]['other']
 
@@ -80,190 +83,223 @@ def optical_prop(mtg,leaf_lbl_prefix='L', stem_lbl_prefix=('in', 'Pet', 'cx'),
     return mtg
 
 
-def e_conv_Wm2(E_type):
-    #conversion factor for irradiance of type E_type to get W m-2
-    if E_type == 'Rg_Watt/m2':
+def e_conv_Wm2(irradiance_unit):
+    """Conversion factor for irradiance from the unit specified by `irradiance_unit` to [W m-2]
+
+    Args:
+        irradiance_unit (str): unit of the irradiance flux density,
+            one of ('Rg_Watt/m2', 'RgPAR_Watt/m2', 'PPFD_umol/m2/s')
+
+    Returns:
+        (float): conversion factor
+
+    """
+
+    if irradiance_unit == 'Rg_Watt/m2':
         return 1.
-    elif E_type == 'RgPAR_Watt/m2':
+    elif irradiance_unit == 'RgPAR_Watt/m2':
         return 1. / 0.48
-    elif E_type == 'PPFD_umol/m2/s':
+    elif irradiance_unit == 'PPFD_umol/m2/s':
         return 1. / (0.48 * 4.6)
     else:
         raise TypeError("E_type must be one of the following 'Rg_Watt/m2', 'RgPAR_Watt/m2' or'PPFD_umol/m2/s'.")
 
 
-def e_conv_PPFD(E_type):
-    #conversion factor for irradiance of type E_type to get umol/m2/s
-    if E_type == 'Rg_Watt/m2':
+def e_conv_PPFD(irradiance_unit):
+    """Conversion factor for irradiance from the unit specified by `irradiance_unit` to [umol/m2/s]
+
+    Args:
+        irradiance_unit (str): unit of the irradiance flux density,
+            one of ('Rg_Watt/m2', 'RgPAR_Watt/m2', 'PPFD_umol/m2/s')
+
+    Returns:
+        (float): conversion factor
+
+    """
+
+    if irradiance_unit == 'Rg_Watt/m2':
         return 0.48 * 4.6
-    elif E_type == 'RgPAR_Watt/m2':
+    elif irradiance_unit == 'RgPAR_Watt/m2':
         return 4.6
-    elif E_type == 'PPFD_umol/m2/s':
+    elif irradiance_unit == 'PPFD_umol/m2/s':
         return 1.
     else:
         raise TypeError("E_type must be one of the following 'Rg_Watt/m2', 'RgPAR_Watt/m2' or'PPFD_umol/m2/s'.")
 
 
-def irradiance_distribution(meteo, geo_location, E_type, tzone='Europe/Paris',
-                     turtle_sectors='46', turtle_format='uoc', sun2scene=None,
-                     rotation_angle=0., icosphere_level = None):
-    """
-    Calculates energy distribution over a semi-hemisphere surrounding the plant [umol m-2 s-1].
+def irradiance_distribution(meteo, geo_location, irradiance_unit,
+                            time_zone='Europe/Paris', turtle_sectors='46', turtle_format='uoc',
+                            sun2scene=None, rotation_angle=0., icosphere_level=None):
+    """Calculates irradiance distribution over a semi-hemisphere surrounding the plant [umol m-2 s-1].
 
-    :Parameters:
-    - **meteo**: the meteo data, given as `pandas.DataFrame`, expected columns are:
-        - **time**: UTC time, given as a `datetime.time`-like object
-        - **Tac**: float, air temperature [degrees]
-        - **hs**:  float, air relative humidity (%)
-        - **Rg** or **PPFD**: float, respectively global [W m-2] or photosynthetic photon flux density [umol m-2 s-1]
-        - **u**: float, wind speed
-        - **Ca**:  float, air CO2 concentration [ppm]
-        - **Pa**: float, atmospheric pressure [kPa]
-    - **geo_location**: a tuple of (latitude, longitude, elevation) given in degrees
-    - **E_type**: string, one of the following 'Rg_Watt/m2', 'RgPAR_Watt/m2' or 'PPFD_umol/m2/s'
-    - **tzone**= a `pytz.timezone` object
-    - **turtle_sectors**, **turtle_format**: string, see :func:`turtle` from `sky_tools` package
-    - **sun2scene**: takes None as default, otherwise, if a pgl.scene is provided, a sun object (sphere) is added to it
-    - **rotation_angle**: float, counter clockwise azimuth between the default X-axis direction (South) and real direction of X-axis [degrees]
-    - **icosphere_level**: integer, the level of refinement of the dual icosphere. See :func:`alinea.astk.icosphere.turtle_dome` for details
+    Args:
+        meteo (DataFrame): meteo data having the following columns:
+            time (datetime): UTC time
+            Tac (float): [°C] air temperature
+            hs (float): (%) air relative humidity
+            Rg or PPFD (float): respectively global [W m-2] or photosynthetic photon flux density [umol m-2 s-1]
+            u (float): [m s-1] wind speed
+            Ca (float): [ppm] CO2 concentration in the air
+            Pa (float): [kPa] atmospheric pressure
+        geo_location: tuple of (latitude [°], longitude [°], elevation [°])
+        irradiance_unit (str): unit of the irradiance flux density,
+            one of ('Rg_Watt/m2', 'RgPAR_Watt/m2', 'PPFD_umol/m2/s')
+        time_zone (str): a 'pytz.timezone' (e.g. 'Europe/Paris')
+        turtle_sectors (int): number of turtle sectors (see :func:`turtle` from `sky_tools` package)
+        turtle_format (int): format irradiance distribution, could be 'soc', or 'uoc'
+            (see :func:`turtle` from `sky_tools` package for details)
+        sun2scene (pgl.scene): if provided, a sun object (sphere) is added to it
+        rotation_angle (float): [°] counter clockwise azimuth between the default X-axis direction (South) and real
+            direction of X-axis
+        icosphere_level (int): the level of refinement of the dual icosphere
+            (see :func:`alinea.astk.icosphere.turtle_dome` for details)
 
-    :Returns:
-    - **source_cum** a tuple of tuples, giving energy unit and sky coordinates
-    - **diffuse_ratio** diffuse-to-total irradiance ratio
+    Returns:
+        [umol m-2 s-1] tuple of tuples, cumulative irradiance flux densities distributed across the semi-hemisphere
+            surrounding the plant
+        (float) [-] diffuse-to-total irradiance ratio
 
-    :Notice:
-    The meteo data can consiste of only one line (single event) or multiple lines.
-    In the latter case, this function returns accumulated irradiance throughtout the entire periode with sun positions corresponding to each time step.
+    Notes:
+        meteo data can consist of only one line (single event) or multiple lines.
+            In the latter case, this function returns accumulated irradiance throughtout the entire periode with sun
+            positions corresponding to each time step.
+
 
     TODO: replace by the icosphere procedure
+
     """
     diffuse_ratio = []
     nrj_sum = 0
     for idate, date in enumerate(meteo.index):
 
-        if E_type.split('_')[0] == 'PPFD':
+        if irradiance_unit.split('_')[0] == 'PPFD':
             energy = meteo.ix[date].PPFD
         else:
             try:
                 energy = meteo.ix[date].Rg
             except:
-                raise TypeError ("E_type must be one of the following 'Rg_Watt/m2', 'RgPAR_Watt/m2' or'PPFD_umol/m2/s'.")
+                raise TypeError(
+                    "'irradiance_unit' must be one of the following 'Rg_Watt/m2', 'RgPAR_Watt/m2' or'PPFD_umol/m2/s'.")
 
+        # First check: convert irradiance to W m-2 (Spitters method always gets energy flux as Rg Watt m-2)
+        corr = e_conv_Wm2(irradiance_unit)
+        energy = energy * corr
 
-#       Convert irradiance to W m-2 (Spitters method always gets energy flux as Rg Watt m-2)
-        corr = e_conv_Wm2(E_type)
-        energy = energy*corr
-#        print 'energy = ', energy
-
-#           Convert to UTC datetime
+        # Second check: Convert to UTC datetime
         latitude, longitude, elevation = [geo_location[x] for x in range(3)]
         temperature = meteo.Tac.values[0]
-        dateUTC, LST = local2solar(date, latitude, longitude, tzone, temperature)
-        DOYUTC = dateUTC.timetuple().tm_yday
-        hUTC = dateUTC.hour + dateUTC.minute/60.
-        RdRsH_ratio = RdRsH(energy, DOYUTC, hUTC, latitude) # R: Attention, ne renvoie pas exactement le même RdRsH que celui du noeud 'spitters_horaire' dans topvine.
-        diffuse_ratio.append(RdRsH_ratio * energy)
+        date_utc, lst = local2solar(date, latitude, longitude, time_zone, temperature)
+        doy_utc = date_utc.timetuple().tm_yday
+        hour_utc = date_utc.hour + date_utc.minute / 60.
+        # R: Attention, ne renvoie pas exactement le même RdRsH que celui du noeud 'spitters_horaire' dans topvine.
+        diffuse_ratio_hourly = RdRsH(energy, doy_utc, hour_utc, latitude)
+        diffuse_ratio.append(diffuse_ratio_hourly * energy)
         nrj_sum += energy
-#           Third and final correction: it is always desirable to get energy as PPFD
-        energy = energy*(0.48 * 4.6)
 
-        R_diff = RdRsH_ratio*energy
-        R_direct = (1-RdRsH_ratio)*energy
+        # Third and final check: it is always desirable to get energy as PPFD
+        energy = energy * (0.48 * 4.6)
 
-#       diffuse radiation
+        irradiance_diff = diffuse_ratio_hourly * energy
+        irradiance_dir = (1 - diffuse_ratio_hourly) * energy
+
+        # diffuse irradiance
         if not icosphere_level:
-            energy2, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format=turtle_format,energy=R_diff)
-#            sky=zip(energy2,direction)
+            energy2, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,
+                                                                             format=turtle_format,
+                                                                             energy=irradiance_diff)
         else:
-            vert,fac = ico.turtle_dome(icosphere_level)
+            vert, fac = ico.turtle_dome(icosphere_level)
             direction = ico.sample_faces(vert, fac, iter=None, spheric=False).values()
             direction = [idirect[0] for idirect in direction]
-            direction = map(lambda x: tuple(list(x[:2])+[-x[2]]),direction)
-        sky = zip(len(direction)*[R_diff/len(direction)],direction)
-        
+            direction = map(lambda x: tuple(list(x[:2]) + [-x[2]]), direction)
 
-#        energy, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format=turtle_format,energy=R_diff)
-#        sky=zip(energy,direction)
+        sky = zip(len(direction) * [irradiance_diff / len(direction)], direction)
 
-#           direct radiation
-        sun=Gensun.Gensun()(Rsun=R_direct,DOY=DOYUTC,heureTU=hUTC,lat=latitude)
-        sun=GetLightsSun.GetLightsSun(sun)
-        sun_data=[(float(sun.split()[0]),(float(sun.split()[1]),float(sun.split()[2]),float(sun.split()[3])))]
+        # direct irradiance
+        sun = Gensun.Gensun()(Rsun=irradiance_dir, DOY=doy_utc, heureTU=hour_utc, lat=latitude)
+        sun = GetLightsSun.GetLightsSun(sun)
+        sun_data = [(float(sun.split()[0]), (float(sun.split()[1]), float(sun.split()[2]), float(sun.split()[3])))]
 
-#           diffuse radiation (distributed over a dome) + direct radiation (localized as a supplemental source)
-        source=sky.__add__(sun_data)
+        # diffuse irradiance (distributed over a dome) + direct irradiance (localized as point source(s))
+        source = sky.__add__(sun_data)
         source = [list(isource) for isource in source]
 
         try:
-            for j in range(len(source)-1):
+            for j in range(len(source) - 1):
                 source_cum[j][0] += source[j][0]
             source_cum.append(source[-1])
         except NameError:
             source_cum = []
             for isource in source:
                 source_cum.append([isource[0], isource[1]])
-            
 
         if date == meteo.index[-1]:
             source_cum = [tuple(isource) for isource in source_cum]
 
-#   Rotate irradiance sources to cope with plant row orientation
+    # Rotate irradiance sources to cope with plant row orientation
     if rotation_angle != 0.:
         v_energy = [vec[0] for vec in source_cum]
-        v_coord = [tuple(vector_rotation(vec[1],(0.,0.,1.), deg2rad(rotation_angle))) for vec in source_cum]
+        v_coord = [tuple(vector_rotation(vec[1], (0., 0., 1.), deg2rad(rotation_angle))) for vec in source_cum]
         source_cum = zip(v_energy, v_coord)
 
-#           Add Sun to an existing pgl.scene
+    # Add Sun to an existing pgl.scene
     if sun2scene != None:
-        xSun,ySun,zSun = -500.*array([source_cum[-1][1][i] for i in range(3)])
+        xSun, ySun, zSun = -500. * array([source_cum[-1][1][i] for i in range(3)])
         if zSun >= 0:
-            ss = Translated(xSun,ySun,zSun, Sphere(20))
-            sun = Shape(ss, Material('yellow', Color3(255,255,0)))
+            ss = Translated(xSun, ySun, zSun, Sphere(20))
+            sun = Shape(ss, Material('yellow', Color3(255, 255, 0)))
             sun2scene.add(sun)
         Viewer.display(sun2scene)
 
-    # diffuse_ratio mean
+    # Diffuse_ratio mean
     if nrj_sum > 0:
         diffuse_ratio = sum(diffuse_ratio) / nrj_sum
     else:
         diffuse_ratio = 1
 
-    # filter black sources up to the penultimate (hsCaribu expect at least one source)
+    # Filter black sources up to the penultimate (hsCaribu expect at least one source)
     source_cum = [v for v in source_cum if v[0] > 0]
-    if len(source_cum) == 0: # night
+    if len(source_cum) == 0:  # night
         source_cum = [(0, (0, 0, -1))]
 
     return source_cum, diffuse_ratio
 
 
 def hsCaribu(mtg, unit_scene_length, geometry='geometry', opticals='opticals', consider=None,
-               source = None, direct=True,
-               infinite=False,
-               nz=50, ds=0.5, pattern=None, soil_reflectance=0.15):
+             source=None, direct=True,
+             infinite=False,
+             nz=50, ds=0.5, pattern=None, soil_reflectance=0.15):
+    """Calculates intercepted and absorbed irradiance flux densities by the plant canopy.
+
+    Args:
+        mtg (MTG): plant Multiscale Tree Graph
+        unit_scene_length (str): the unit of length used for scene coordinate and for pattern
+            (should be one of `CaribuScene.units` default)
+        geometry (str): the name of the property to use for computing scene geometry from the mtg
+        opticals (str): the name of the property to use for caribu optical properties
+        consider (list(int)): vertices to be considered for the computation, if None (default) all vertices with a
+            geometry are considered
+        source (tuple): a tuple of tuples, giving energy unit and sky coordinates, if None, a unit zenital source is
+            used
+        direct: see :func:`runCaribu` from `CaribuScene` package
+        infinite: see :func:`runCaribu` from `CaribuScene` package
+        nz: see :func:`runCaribu` from `CaribuScene` package
+        ds: see :func:`runCaribu` from `CaribuScene` package
+        pattern: see :func:`runCaribu` from `CaribuScene` package
+        soil_reflectance (float): [-] the reflectance of the soil (between 0 and 1)
+
+    Returns:
+        mtg object with the incident irradiance (`Ei`) and absorbed irradiance (`Eabs`), both in [umol m-2 s-1],
+            attached to mtg vertices as properties.
+
+    Notes:
+        `Ei` and `Eabs` units are returned in [umol m-2 s-1] **REGARDLESS** of the `unit_scence_length` type.
+
     """
-    Estimates intercepted energy by the plant canopy.
-
-    :Parameters:
-    - **mtg**: an MTG object
-    - **unit_scene_length**: the unit of length used for scene coordinate and for pattern (should be one of `CaribuScene.units` default)
-    - **geometry**: the name of the property to use for computing scene geometry from the mtg
-    - **opticals**: the name of the property to use for caribu optical properties
-    - **consider**: a list of vertex to be considered for the computation. If None(default) all vertices with a geometry are considered
-    - **source**: a tuple of tuples, giving energy unit and sky coordinates, if None, a unit zenital source is used
-    - **direct**, **nz**, **ds**, **pattern**: See :func:`runCaribu` from `CaribuScene` package
-    - **soil_reflectance**: the reflectance of the soil
-
-    :Returns:
-    - the mtg object, with the incident radiation (`Ei`) and absorbed radiation (`Eabs`), both in [umol m-2 s-1], attached to mtg vertices as properties.
-
-    :Notice 1:
-    **Ei** and **Eabs** units are returned in [umol m-2 s-1] **REGARDLESS** of the `unit_scence_length` type.
-    """
-
     assert geometry in mtg.property_names()
     assert opticals in mtg.property_names()
 
-    # currently used as a dummy variable
+    # Currently used as a dummy variable
     wave_band = 'SW'
 
     if source is None:
@@ -283,9 +319,9 @@ def hsCaribu(mtg, unit_scene_length, geometry='geometry', opticals='opticals', c
     mtg.properties()['geometry'] = mtg.property(geometry)
     caribu_scene = None
 
-    # use a try/except/finally block to allow restoring geometry if block fails
+    # Use a try/except/finally block to allow restoring geometry if block fails
     try:
-    #   Run caribu only if irradiance is greater that 0
+        # Run caribu only if irradiance is greater that 0
         if sum([x[0] for x in source]) == 0.:
             mtg.properties()['Ei'] = {k: 0. for k in mtg.property('geometry')}
             mtg.properties()['Eabs'] = {k: 0. for k in mtg.property('geometry')}
@@ -293,14 +329,15 @@ def hsCaribu(mtg, unit_scene_length, geometry='geometry', opticals='opticals', c
             # Attaching optical properties to each organ of the plant mock-up
             opts = {wave_band: mtg.property(opticals)}
 
-            # setup CaribuScene
-            caribu_scene = CaribuScene(mtg, light=source, opt = opts,
+            # Setup CaribuScene
+            caribu_scene = CaribuScene(mtg, light=source, opt=opts,
                                        soil_reflectance={wave_band: soil_reflectance},
-                                        scene_unit=unit_scene_length,
-                                        pattern=pattern)
+                                       scene_unit=unit_scene_length,
+                                       pattern=pattern)
 
-            # run caribu
-            raw, aggregated = caribu_scene.run(direct=direct, infinite=infinite, d_sphere=ds, layers=nz, split_face=False)
+            # Run caribu
+            raw, aggregated = caribu_scene.run(direct=direct, infinite=infinite, d_sphere=ds, layers=nz,
+                                               split_face=False)
 
             # Attaching output to MTG
             mtg.properties()['Ei'] = aggregated[wave_band]['Ei']
@@ -316,5 +353,3 @@ def hsCaribu(mtg, unit_scene_length, geometry='geometry', opticals='opticals', c
                 mtg.properties()['geometry'] = geometry0
 
     return mtg, caribu_scene
-
-#caribu_scene.plot(raw['SW']['Ei'])
