@@ -145,8 +145,8 @@ def irradiance_distribution(meteo, geo_location, irradiance_unit,
         irradiance_unit (str): unit of the irradiance flux density,
             one of ('Rg_Watt/m2', 'RgPAR_Watt/m2', 'PPFD_umol/m2/s')
         time_zone (str): a 'pytz.timezone' (e.g. 'Europe/Paris')
-        turtle_sectors (int): number of turtle sectors (see :func:`turtle` from `sky_tools` package)
-        turtle_format (int): format irradiance distribution, could be 'soc', or 'uoc'
+        turtle_sectors (str): number of turtle sectors (see :func:`turtle` from `sky_tools` package)
+        turtle_format (str): format irradiance distribution, could be 'soc', or 'uoc'
             (see :func:`turtle` from `sky_tools` package for details)
         sun2scene (pgl.scene): if provided, a sun object (sphere) is added to it
         rotation_angle (float): [°] counter clockwise azimuth between the default X-axis direction (South) and real
@@ -279,7 +279,7 @@ def hsCaribu(mtg, unit_scene_length, geometry='geometry', opticals='opticals', c
         opticals (str): the name of the property to use for caribu optical properties
         consider (list(int)): vertices to be considered for the computation, if None (default) all vertices with a
             geometry are considered
-        source (tuple): a tuple of tuples, giving energy unit and sky coordinates, if None, a unit zenital source is
+        source (list): a tuple of tuples, giving energy unit and sky coordinates, if None, a unit zenital source is
             used
         direct: see :func:`runCaribu` from `CaribuScene` package
         infinite: see :func:`runCaribu` from `CaribuScene` package

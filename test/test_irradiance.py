@@ -31,7 +31,7 @@ def test_irradiance_distribution():
     nrj, pos = zip(*sources)
     assert_almost_equal(met.Rg.sum() * conv, sum(nrj), 2)
 
-    #a night hour
+    # a night hour
     met = meteo().iloc[[1], :]
     sources, rdrs = irradiance_distribution(met, location, e_type)
     assert rdrs == 1
