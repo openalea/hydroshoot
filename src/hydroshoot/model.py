@@ -336,7 +336,7 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
                                               infinite=True, nz=50, ds=0.5,
                                               pattern=pattern)
 
-        g.properties()['Ei'] = {vid: 1.2 * g.node(vid).Ei for vid in g.property('Ei').keys()}
+        # g.properties()['Ei'] = {vid: 1.2 * g.node(vid).Ei for vid in g.property('Ei').keys()}
 
         # Trace intercepted irradiance on each time step
         rg_ls.append(sum([g.node(vid).Ei / (0.48 * 4.6) * surface(g.node(vid).geometry) * (length_conv ** 2) \
