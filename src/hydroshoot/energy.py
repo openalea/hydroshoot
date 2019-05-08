@@ -19,11 +19,20 @@ import openalea.mtg.traversal as traversal
 #from alinea.caribu.CaribuScene import CaribuScene
 from alinea.caribu.sky_tools import turtle
 import alinea.astk.icosphere as ico
-
+import openalea.plantgl.all as pgl
 
 from hydroshoot import utilities as utils
 from hydroshoot import irradiance as HSCaribu
 from hydroshoot.architecture import vine_orientation, vine_mtg_properties, vine_mtg_geometry, vine_transform
+
+def pgl_scene(g):
+    geometry = g.property('geometry')
+    scene = pgl.Scene()
+    for id in geometry:
+        sh = pgl.Shape(geometry[id])
+        sh.id = id
+        scene.add(sh)
+    return scene
 
 
 #def energy_params(a_PAR=0.87, a_NIR=0.35, a_glob=0.6, e_sky=1.0, e_leaf=0.96,
@@ -103,7 +112,7 @@ from hydroshoot.architecture import vine_orientation, vine_mtg_properties, vine_
 #    return
 
 
-def form_factors_simplified(g, pattern, leaf_lbl_prefix='L',
+def form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L',
                             stem_lbl_prefix=('in','Pet','cx'),
                             turtle_sectors='46', icosphere_level=3,
                             unit_scene_length='cm'):
@@ -161,7 +170,7 @@ def form_factors_simplified(g, pattern, leaf_lbl_prefix='L',
         g, caribu_scene = HSCaribu.hsCaribu(mtg=g,
                            unit_scene_length=unit_scene_length,
                            source = caribu_source, direct=True,
-                           infinite=True, nz=50, ds=0.5,
+                           infinite=infinite, nz=50, ds=0.5,
                            pattern=pattern)
         
     #    caribu_scene.getIncidentEnergy()
