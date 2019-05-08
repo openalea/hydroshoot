@@ -166,9 +166,9 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
             if not simplified_form_factors:
                 energy.form_factors_matrix(g, pattern, length_conv, limit=limit)
             else:
-                energy.form_factors_simplified(g, pattern, leaf_lbl_prefix,
-                                               stem_lbl_prefix, turtle_sectors, icosphere_level,
-                                               unit_scene_length)
+                energy.form_factors_simplified(g, pattern=pattern, infinite=True, leaf_lbl_prefix=leaf_lbl_prefix,
+                                               stem_lbl_prefix=stem_lbl_prefix, turtle_sectors=turtle_sectors, icosphere_level=icosphere_level,
+                                               unit_scene_length=unit_scene_length)
 
     # Soil class
     soil_class = params.soil.soil_class
