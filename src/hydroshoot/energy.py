@@ -15,7 +15,6 @@ from copy import deepcopy
 import time
 
 
-import openalea.mtg.traversal as traversal
 from alinea.caribu.CaribuScene import CaribuScene
 from alinea.caribu.sky_tools import turtle
 import alinea.astk.icosphere as ico
@@ -23,8 +22,6 @@ import openalea.plantgl.all as pgl
 from math import pi
 
 from hydroshoot import utilities as utils
-from hydroshoot import irradiance as HSCaribu
-from hydroshoot.architecture import vine_orientation, vine_mtg_properties, vine_mtg_geometry, vine_transform
 
 def pgl_scene(g, flip=False):
     geometry = g.property('geometry')
@@ -70,6 +67,15 @@ def pgl_scene(g, flip=False):
 #
 #    return energy_prop_dict
 
+a_PAR = 0.87
+a_NIR = 0.35
+a_glob = 0.6
+e_sky = 1.0
+e_leaf = 0.96
+e_soil = 0.95
+sigma = 5.670373e-8
+lambda_ = 44.0e3
+Cp = 29.07
 
 #def form_factors_matrix(g, pattern, LengthConv, limit=-0.01):
 #    """
@@ -116,10 +122,8 @@ def pgl_scene(g, flip=False):
 #    return
 
 
-def form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L',
-                            stem_lbl_prefix=('in','Pet','cx'),
-                            turtle_sectors='46', icosphere_level=3,
-                            unit_scene_length='cm'):
+def form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L', turtle_sectors='46',
+                            icosphere_level=3, unit_scene_length='cm'):
     """
     Returns sky and soil contribution factors (resp. k_sky and k_soil) to the energy budget equation.
     Both factors are calculated and attributed to each element of the scene.
@@ -143,11 +147,6 @@ def form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L'
     - **unit_scene_length**: the unit of length used for both scene coordinates and pattern (should be one of `CaribuScene.units` default)
     """
 
-    # opt_prop_ff={'SW':{'leaf':(0.001,0.0),'stem':(0.001,),'other':(0.001,0.0)},
-    #              'SW':{'leaf':(0.001,0.0),'stem':(0.001,),'other':(0.001,0.0)}}
-    #
-    # g = HSCaribu.optical_prop(g,leaf_lbl_prefix, stem_lbl_prefix,'SW',opt_prop_ff)
-
     geom = g.property('geometry')
     label = g.property('label')
     opts = {'SW': {vid: ((0.001, 0) if label[vid].startswith(leaf_lbl_prefix) else (0.001,)) for vid in geom}}
@@ -161,20 +160,12 @@ def form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L'
 
     caribu_source = zip(len(direction)*[1./len(direction)],direction)        
 
-
     for s in ('pirouette', 'cacahuete'):
         print '... %s'%s
         if s == 'pirouette':
             scene = pgl_scene(g, flip=True)
         else:
             scene = pgl_scene(g)
-        # for v in traversal.pre_order2(g,3):
-        #     vine_orientation(g,v,180., v_axis=[1.,0.,0.], local_rotation = False)
-        #
-        # for v in traversal.iter_mtg2(g,g.root):
-        #     vine_mtg_properties(g,v)
-        #     vine_mtg_geometry(g,v)
-        #     vine_transform(g,v)
 
         caribu_scene = CaribuScene(scene, light=caribu_source, opt=opts,
                                    scene_unit=unit_scene_length,
@@ -183,14 +174,6 @@ def form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L'
         # Run caribu
         raw, aggregated = caribu_scene.run(direct=True, infinite=infinite, split_face=False, simplify=True)
 
-        # Compute irradiance interception and absorbtion
-        # g, caribu_scene = HSCaribu.hsCaribu(mtg=g,
-        #                    unit_scene_length=unit_scene_length,
-        #                    source = caribu_source, direct=True,
-        #                    infinite=infinite, nz=50, ds=0.5,
-        #                    pattern=pattern)
-        
-    #    caribu_scene.getIncidentEnergy()
         if s == 'pirouette':
             k_soil_dict = aggregated['Ei']
             max_k_soil = float(max(k_soil_dict.values()))
@@ -199,7 +182,6 @@ def form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L'
             k_sky_dict = aggregated['Ei']
             max_k_sky = float(max(k_sky_dict.values()))
             g.properties()['k_sky'] = {vid:k_sky_dict[vid]/max_k_sky for vid in k_sky_dict}
-
 
     for vid in aggregated['Ei']:
         g.node(vid).k_leaves = max(0., 2.-(g.node(vid).k_soil+g.node(vid).k_sky))
@@ -210,16 +192,6 @@ def form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L'
 #Energy_Prop = energy_params()
 #nrj_Prop_tuple = ('a_PAR','a_NIR','a_glob','e_sky','e_leaf','e_soil','sigma','lambda_','Cp')
 #a_PAR,a_NIR,a_glob,e_sky,e_leaf,e_soil,sigma,lambda_,Cp = [Energy_Prop[ikey] for ikey in nrj_Prop_tuple]
-
-a_PAR=0.87
-a_NIR=0.35
-a_glob=0.6
-e_sky=1.0
-e_leaf=0.96
-e_soil = 0.95
-sigma=5.670373e-8
-lambda_=44.0e3
-Cp = 29.07
 
 
 def leaf_temperature(g, macro_meteo, solo=True, simple_ff=True,
