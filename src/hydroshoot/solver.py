@@ -68,11 +68,6 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
     for vtx_id in traversal.pre_order2(g, vid_base):
         g.node(vtx_id).psi_head = psi_soil
 
-    # Climatic data for energy balance module
-    macro_meteo = {'T_sky': t_sky_eff + 273.15, 'T_soil': t_soil + 273.15,
-                   'T_air': meteo.Tac[0] + 273.15, 'Pa': meteo.Pa[0],
-                   'u': meteo.u[0]}
-
     # Temperature loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     t_error_trace = []
     it_step = temp_step
@@ -169,7 +164,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
         if not energy_budget:
             break
         else:
-            t_iter = energy.leaf_temperature(g, macro_meteo, solo, True,
+            t_iter = energy.leaf_temperature(g, meteo, t_soil, t_sky_eff, solo, True,
                                              leaf_lbl_prefix, max_iter,
                                              temp_error_threshold, temp_step)
 

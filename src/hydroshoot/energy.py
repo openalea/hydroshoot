@@ -194,7 +194,33 @@ def form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L'
 #a_PAR,a_NIR,a_glob,e_sky,e_leaf,e_soil,sigma,lambda_,Cp = [Energy_Prop[ikey] for ikey in nrj_Prop_tuple]
 
 
-def leaf_temperature(g, macro_meteo, solo=True, simple_ff=True,
+def leaf_temperature_init(g, leaf_lbl_prefix='L', tlc=20, ei=0, u=0, E=0, k_soil=0.5, k_sky=0.5):
+    label = g.property('label')
+    leaves = [vid for vid in g.VtxList() if
+                             vid > 0 and label[vid].startswith(leaf_lbl_prefix)]
+    pnames = g.property_names()
+    if 'T1c' not in pnames:
+        g.properties()['Tlc'] = {vid: tlc for vid in leaves}
+    if 'Ei' not in pnames:
+        g.properties()['Ei'] = {vid: ei for vid in leaves}
+    if 'u' not in pnames:
+        g.properties()['u'] = {vid: u for vid in leaves}
+    if 'E' not in pnames:
+        g.properties()['E'] = {vid: E for vid in leaves}
+    if 'k_soil' not in pnames:
+        g.properties()['k_soil'] = {vid: k_soil for vid in leaves}
+    if 'k_sky' not in pnames:
+        g.properties()['k_sky'] = {vid: k_sky for vid in leaves}
+    if 'k_leaves' not in pnames:
+        pksoil = g.property('k_soil')
+        pksky = g.property('k_sky')
+        g.properties()['k_leaves'] = {vid: 2 - pksky[vid] - pksoil[vid] for vid in leaves}
+
+
+    return g
+
+
+def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True, simple_ff=True,
                      leaf_lbl_prefix='L', max_iter=100, t_error_crit=0.01,
                      t_step = 0.5):
     """
@@ -202,7 +228,9 @@ def leaf_temperature(g, macro_meteo, solo=True, simple_ff=True,
 
     :Parameters:
     - **g**: an MTG object
-    - **macro_meteo**: a dictionary with keys: 'T_sky', 'T_soil', 'T_air', 'Pa', all in **absolute temperatures [K]**.
+    - **meteo**: (DataFrame): forcing meteorological variables.
+    - **t_soil**: (float) [degreeC] soil surface temperature
+    - **t_sky_eff**: (float) [degreeC] effective sky temperature
     - **solo**: logical,
         - True (default), calculates energy budget for each element, assuming the temperatures of surrounding leaves constant (from previous calculation step)
         - False, computes simultaneously all temperatures using `sympy.solvers.nsolve` (**very costly!!!**)
@@ -210,7 +238,10 @@ def leaf_temperature(g, macro_meteo, solo=True, simple_ff=True,
     - **max_iter**: integer, the allowable number of itrations (for solo=True)
     - **t_error_crit**: float, the allowable error in leaf temperature (for solo=True)
     """
-
+    # Climatic data for energy balance module
+    macro_meteo = {'T_sky': t_sky_eff + 273.15, 'T_soil': t_soil + 273.15,
+                   'T_air': meteo.Tac[0] + 273.15, 'Pa': meteo.Pa[0],
+                   'u': meteo.u[0]}
 #   Iterative calculation of leaves temperature
     if solo:
         t_error_trace = []
