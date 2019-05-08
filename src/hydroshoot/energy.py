@@ -16,20 +16,24 @@ import time
 
 
 import openalea.mtg.traversal as traversal
-#from alinea.caribu.CaribuScene import CaribuScene
+from alinea.caribu.CaribuScene import CaribuScene
 from alinea.caribu.sky_tools import turtle
 import alinea.astk.icosphere as ico
 import openalea.plantgl.all as pgl
+from math import pi
 
 from hydroshoot import utilities as utils
 from hydroshoot import irradiance as HSCaribu
 from hydroshoot.architecture import vine_orientation, vine_mtg_properties, vine_mtg_geometry, vine_transform
 
-def pgl_scene(g):
+def pgl_scene(g, flip=False):
     geometry = g.property('geometry')
     scene = pgl.Scene()
     for id in geometry:
-        sh = pgl.Shape(geometry[id])
+        if not flip:
+            sh = pgl.Shape(geometry[id])
+        else:
+            sh = pgl.Shape(pgl.AxisRotated(pgl.Vector3(1,0,0),pi,geometry[id]))
         sh.id = id
         scene.add(sh)
     return scene
@@ -139,11 +143,14 @@ def form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L'
     - **unit_scene_length**: the unit of length used for both scene coordinates and pattern (should be one of `CaribuScene.units` default)
     """
 
-    opt_prop_ff={'SW':{'leaf':(0.001,0.0),'stem':(0.001,),'other':(0.001,0.0)},
-                 'SW':{'leaf':(0.001,0.0),'stem':(0.001,),'other':(0.001,0.0)}}
+    # opt_prop_ff={'SW':{'leaf':(0.001,0.0),'stem':(0.001,),'other':(0.001,0.0)},
+    #              'SW':{'leaf':(0.001,0.0),'stem':(0.001,),'other':(0.001,0.0)}}
+    #
+    # g = HSCaribu.optical_prop(g,leaf_lbl_prefix, stem_lbl_prefix,'SW',opt_prop_ff)
 
-    g = HSCaribu.optical_prop(g,leaf_lbl_prefix, stem_lbl_prefix,'SW',opt_prop_ff)
-
+    geom = g.property('geometry')
+    label = g.property('label')
+    opts = {'SW': {vid: ((0.001, 0) if label[vid].startswith(leaf_lbl_prefix) else (0.001,)) for vid in geom}}
     if not icosphere_level:
         energy, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format='uoc',energy=1.)
     else:
@@ -157,37 +164,47 @@ def form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L'
 
     for s in ('pirouette', 'cacahuete'):
         print '... %s'%s
-        for v in traversal.pre_order2(g,3):
-            vine_orientation(g,v,180., v_axis=[1.,0.,0.], local_rotation = False)
-        
-        for v in traversal.iter_mtg2(g,g.root):
-            vine_mtg_properties(g,v)
-            vine_mtg_geometry(g,v)
-            vine_transform(g,v)
-        
-        
+        if s == 'pirouette':
+            scene = pgl_scene(g, flip=True)
+        else:
+            scene = pgl_scene(g)
+        # for v in traversal.pre_order2(g,3):
+        #     vine_orientation(g,v,180., v_axis=[1.,0.,0.], local_rotation = False)
+        #
+        # for v in traversal.iter_mtg2(g,g.root):
+        #     vine_mtg_properties(g,v)
+        #     vine_mtg_geometry(g,v)
+        #     vine_transform(g,v)
+
+        caribu_scene = CaribuScene(scene, light=caribu_source, opt=opts,
+                                   scene_unit=unit_scene_length,
+                                   pattern=pattern)
+
+        # Run caribu
+        raw, aggregated = caribu_scene.run(direct=True, infinite=infinite, split_face=False, simplify=True)
+
         # Compute irradiance interception and absorbtion
-        g, caribu_scene = HSCaribu.hsCaribu(mtg=g,
-                           unit_scene_length=unit_scene_length,
-                           source = caribu_source, direct=True,
-                           infinite=infinite, nz=50, ds=0.5,
-                           pattern=pattern)
+        # g, caribu_scene = HSCaribu.hsCaribu(mtg=g,
+        #                    unit_scene_length=unit_scene_length,
+        #                    source = caribu_source, direct=True,
+        #                    infinite=infinite, nz=50, ds=0.5,
+        #                    pattern=pattern)
         
     #    caribu_scene.getIncidentEnergy()
         if s == 'pirouette':
-            k_soil_dict = g.properties()['Ei']
+            k_soil_dict = aggregated['Ei']
             max_k_soil = float(max(k_soil_dict.values()))
             g.properties()['k_soil'] = {vid:k_soil_dict[vid]/max_k_soil for vid in k_soil_dict}
         elif s == 'cacahuete':
-            k_sky_dict = g.properties()['Ei']
+            k_sky_dict = aggregated['Ei']
             max_k_sky = float(max(k_sky_dict.values()))
             g.properties()['k_sky'] = {vid:k_sky_dict[vid]/max_k_sky for vid in k_sky_dict}
 
 
-    for vid in g.properties()['Ei']:
+    for vid in aggregated['Ei']:
         g.node(vid).k_leaves = max(0., 2.-(g.node(vid).k_soil+g.node(vid).k_sky))
 
-    return
+    return g
 
 
 #Energy_Prop = energy_params()
