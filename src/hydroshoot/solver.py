@@ -164,6 +164,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
         if not energy_budget:
             break
         else:
+            g.properties()['gbH'] = energy.heat_boundary_layer_conductance(g, leaf_lbl_prefix=leaf_lbl_prefix)
             t_iter = energy.leaf_temperature(g, meteo, t_soil, t_sky_eff, solo, True,
                                              leaf_lbl_prefix, max_iter,
                                              temp_error_threshold, temp_step)

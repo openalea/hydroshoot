@@ -36,6 +36,11 @@ def pgl_scene(g, flip=False):
     return scene
 
 
+def get_leaves(g, leaf_lbl_prefix='L'):
+    label = g.property('label')
+    return [vid for vid in g.VtxList() if
+                             vid > 0 and label[vid].startswith(leaf_lbl_prefix)]
+
 #def energy_params(a_PAR=0.87, a_NIR=0.35, a_glob=0.6, e_sky=1.0, e_leaf=0.96,
 #                    sigma=5.670373e-8, e_soil = 0.95, lambda_=44.00e3, Cp = 29.07):
 #    """
@@ -194,10 +199,8 @@ def form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L'
 #a_PAR,a_NIR,a_glob,e_sky,e_leaf,e_soil,sigma,lambda_,Cp = [Energy_Prop[ikey] for ikey in nrj_Prop_tuple]
 
 
-def leaf_temperature_init(g, leaf_lbl_prefix='L', tlc=20, ei=0, u=0, E=0, k_soil=0.5, k_sky=0.5):
-    label = g.property('label')
-    leaves = [vid for vid in g.VtxList() if
-                             vid > 0 and label[vid].startswith(leaf_lbl_prefix)]
+def leaf_temperature_init(g, leaf_lbl_prefix='L', tlc=20, ei=0, u=0, E=0, k_soil=0.5, k_sky=0.5, gbH=1.5):
+    leaves = get_leaves(g, leaf_lbl_prefix)
     pnames = g.property_names()
     if 'T1c' not in pnames:
         g.properties()['Tlc'] = {vid: tlc for vid in leaves}
@@ -215,9 +218,25 @@ def leaf_temperature_init(g, leaf_lbl_prefix='L', tlc=20, ei=0, u=0, E=0, k_soil
         pksoil = g.property('k_soil')
         pksky = g.property('k_sky')
         g.properties()['k_leaves'] = {vid: 2 - pksky[vid] - pksoil[vid] for vid in leaves}
-
-
+    if 'gbH' not in pnames:
+        g.properties()['gbH'] = {vid: gbH for vid in leaves}
     return g
+
+
+def heat_boundary_layer_conductance(g, leaf_lbl_prefix='L', leaf_length_lbl='Length', wind_speed_lbl='u', unit_scene_length='cm'):
+    length_conv = {'mm': 1.e-3, 'cm': 1.e-2, 'm': 1.}[unit_scene_length]
+    leaves = get_leaves(g, leaf_lbl_prefix)
+    #                gbH = node.gb*1.37*0.9184 * Cp # Boundary layer conductance for heat [mol m2 s-1. The 0.9184 see Campbell and Norman (1998) in Gutschick (2016)
+    #                gbH = 3.9 * (macro_meteo['u']/l_w)**0.5
+    length = g.property(leaf_length_lbl)
+    wind_speed = g.property(wind_speed_lbl)
+    def _gbH(length, u):
+        l_w = length * 0.72  # leaf length in the downwind direction [m]
+        d_bl = 4. * (l_w / max(1.e-3, u)) ** 0.5 / 1000.  # Boundary layer thikness in [m] (Nobel, 2009 pp.337)
+        # TODO: Replace the constant thermal conductivity coefficient of the air (0.026 W m-1 C-1) by a model accounting for air temperature, humidity and pressure (cf. Nobel, 2009 Appendix I)
+        return 2. * 0.026 / d_bl  # Boundary layer conductance to heat [W m-2 K-1]
+    return {vid: _gbH(length[vid] * length_conv, wind_speed[vid]) for vid in leaves}
+
 
 
 def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True, simple_ff=True,
@@ -259,14 +278,7 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True, simple_ff=True,
                 k_leaves = node.k_leaves
                 k_soil = node.k_soil
                 u = node.u
-
-#                gbH = node.gb*1.37*0.9184 * Cp # Boundary layer conductance for heat [mol m2 s-1. The 0.9184 see Campbell and Norman (1998) in Gutschick (2016)
-#                gbH = 3.9 * (macro_meteo['u']/l_w)**0.5
-                l_w = node.Length/100.*0.72 # leaf length in the downwind direction [m]
-                d_bl = 4.*(l_w/max(1.e-3,u))**0.5 /1000. # Boundary layer thikness in [m] (Nobel, 2009 pp.337)
-                gbH = 2.*0.026 / d_bl # Boundary layer conductance to heat [W m-2 K-1]
-
-# TODO: Replace the constant thermal conductivity coefficient of the air (0.026 W m-1 C-1) by a model accounting for air temperature, humidity and pressure (cf. Nobel, 2009 Appendix I)
+                gbH = node.gbH
                 E = node.E
                 T_sky, T_air, T_soil, Pa = [macro_meteo[ikey] for ikey in ('T_sky', 'T_air', 'T_soil', 'Pa')]
                 t_leaf = node.Tlc if 'Tlc' in node.properties() else T_air - 273.15
@@ -291,10 +303,7 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True, simple_ff=True,
                     return E_error
 
                 t_leaf0 = optimize.newton_krylov(_VineEnergyX, t_leaf+273.15) - 273.15
-                t_leaf0
                 t_dict[vid] = t_leaf0
-                
-                node.gbH = gbH
 
             g.properties()['Tlc'] = t_dict
 
@@ -328,7 +337,7 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True, simple_ff=True,
 #                g.properties()['Tlc'] = {vtx_id:0.5*(t_prev[vtx_id]+t_new[vtx_id]) for vtx_id in t_new.keys()}
 
 
-#   Matrix iterative calculation of leaves temperature
+#   Matrix iterative calculation of leaves temperature ('not solo' case)
     else:
         t_lst = []
         t_dict = {}
