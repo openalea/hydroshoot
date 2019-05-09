@@ -342,11 +342,9 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
         rg_ls.append(sum([g.node(vid).Ei / (0.48 * 4.6) * surface(g.node(vid).geometry) * (length_conv ** 2) \
                           for vid in g.property('geometry') if g.node(vid).label.startswith('L')]))
 
-        #        t_soil = HSEnergy.soil_temperature(g,imeteo,t_sky+273.15,'other')
-        # [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
+
         # Hack forcing of soil temperture (model of soil temperature under development)
-        dt_soil = [3, 3, 3, 3, 3, 3, 3, 3, 10, 15, 20, 20, 20, 20, 20, 15, 6, 5, 4, 3, 3, 3, 3, 3]
-        t_soil = imeteo.Tac[0] + dt_soil[date.hour]
+        t_soil = energy.forced_soil_temperatue(imeteo)
 
         # Climatic data for energy balance module
         # TODO: Change the t_sky_eff formula (cf. Gliah et al., 2011, Heat and Mass Transfer, DOI: 10.1007/s00231-011-0780-1)

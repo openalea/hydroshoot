@@ -419,3 +419,9 @@ def soil_temperature(g, meteo, T_sky, soil_lbl_prefix='other'):
 
 
     return t_soil0
+
+def forced_soil_temperatue(imeteo):
+    """ A very simple model of soil temperature"""
+    dt_soil = [3, 3, 3, 3, 3, 3, 3, 3, 10, 15, 20, 20, 20, 20, 20, 15, 6, 5, 4, 3, 3, 3, 3, 3]
+    t_soil = imeteo.Tac[0] + dt_soil[imeteo.index.hour[0]]
+    return t_soil
