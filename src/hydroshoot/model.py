@@ -344,7 +344,7 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
 
 
         # Hack forcing of soil temperture (model of soil temperature under development)
-        t_soil = energy.forced_soil_temperatue(imeteo)
+        t_soil = energy.forced_soil_temperature(imeteo)
 
         # Climatic data for energy balance module
         # TODO: Change the t_sky_eff formula (cf. Gliah et al., 2011, Heat and Mass Transfer, DOI: 10.1007/s00231-011-0780-1)
