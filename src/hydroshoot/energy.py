@@ -271,6 +271,7 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True, simple_ff=True,
         pnames = g.property_names()
         assert 'Ei' in pnames
         assert 'E' in pnames
+        assert 'gbH' in pnames
         assert 'k_soil' in pnames
         assert 'k_sky' in pnames
         if solo:
@@ -298,7 +299,6 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True, simple_ff=True,
                 k_sky = node.k_sky
                 k_leaves = node.k_leaves
                 k_soil = node.k_soil
-                u = node.u
                 gbH = node.gbH
                 E = node.E
                 t_leaf = t_prev[vid]
@@ -370,7 +370,6 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True, simple_ff=True,
             node = g.node(vid)
             E_glob = node.Ei/(0.48*4.6) # Ei not Eabs
             k_sky = node.k_sky
-            k_leaves = node.k_leaves
             k_soil = node.k_soil
             gbH = node.gbH
             E = node.E
