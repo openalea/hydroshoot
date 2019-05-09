@@ -72,9 +72,8 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
     t_error_trace = []
     it_step = temp_step
 
-    # Initialize leaf [and other elements] temperature to air temperature
-    g.properties()['Tlc'] = {vid: meteo.Tac[0] for vid in g.VtxList() if
-                             vid > 0 and g.node(vid).label.startswith('L')}
+    # Initialize leaf  temperature to air temperature
+    g.properties()['Tlc'] = energy.leaf_temperature_as_air_temperature(g, meteo, leaf_lbl_prefix)
 
     for it in range(max_iter):
         t_prev = deepcopy(g.property('Tlc'))
@@ -161,11 +160,9 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
         # End Hydraulic loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         # Compute leaf temperature
-        if not energy_budget:
-            break
-        else:
+        if energy_budget:
             g.properties()['gbH'] = energy.heat_boundary_layer_conductance(g, leaf_lbl_prefix=leaf_lbl_prefix)
-            t_iter = energy.leaf_temperature(g, meteo, t_soil, t_sky_eff, solo, True,
+            g.properties()['Tlc'], t_iter = energy.leaf_temperature(g, meteo, t_soil, t_sky_eff, solo, True,
                                              leaf_lbl_prefix, max_iter,
                                              temp_error_threshold, temp_step)
 
