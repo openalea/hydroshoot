@@ -13,7 +13,7 @@ from sympy.solvers import nsolve
 from sympy import Symbol
 from copy import deepcopy
 import time
-
+import warnings
 
 from alinea.caribu.CaribuScene import CaribuScene
 from alinea.caribu.sky_tools import turtle
@@ -199,29 +199,6 @@ def form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L'
 #a_PAR,a_NIR,a_glob,e_sky,e_leaf,e_soil,sigma,lambda_,Cp = [Energy_Prop[ikey] for ikey in nrj_Prop_tuple]
 
 
-def leaf_temperature_init(g, leaf_lbl_prefix='L', tlc=20, ei=0, u=0, E=0, k_soil=0.5, k_sky=0.5, gbH=1.5):
-    leaves = get_leaves(g, leaf_lbl_prefix)
-    pnames = g.property_names()
-    if 'T1c' not in pnames:
-        g.properties()['Tlc'] = {vid: tlc for vid in leaves}
-    if 'Ei' not in pnames:
-        g.properties()['Ei'] = {vid: ei for vid in leaves}
-    if 'u' not in pnames:
-        g.properties()['u'] = {vid: u for vid in leaves}
-    if 'E' not in pnames:
-        g.properties()['E'] = {vid: E for vid in leaves}
-    if 'k_soil' not in pnames:
-        g.properties()['k_soil'] = {vid: k_soil for vid in leaves}
-    if 'k_sky' not in pnames:
-        g.properties()['k_sky'] = {vid: k_sky for vid in leaves}
-    if 'k_leaves' not in pnames:
-        pksoil = g.property('k_soil')
-        pksky = g.property('k_sky')
-        g.properties()['k_leaves'] = {vid: 2 - pksky[vid] - pksoil[vid] for vid in leaves}
-    if 'gbH' not in pnames:
-        g.properties()['gbH'] = {vid: gbH for vid in leaves}
-    return g
-
 
 def leaf_temperature_as_air_temperature(g, meteo, leaf_lbl_prefix='L'):
     """Basic model for leaf temperature, considered equal to air temperature for all leaves
@@ -235,20 +212,34 @@ def leaf_temperature_as_air_temperature(g, meteo, leaf_lbl_prefix='L'):
     return {vid: tair for vid in leaves}
 
 
-def heat_boundary_layer_conductance(g, leaf_lbl_prefix='L', leaf_length_lbl='Length', wind_speed_lbl='u', unit_scene_length='cm'):
+def leaf_wind_as_air_wind(g, meteo, leaf_lbl_prefix='L'):
+    """Basic model for wind speed at leaf level, considered equal to air wind speed for all leaves
+
+    :Parameters:
+    - **g**: an MTG object
+    - **meteo**: (DataFrame): forcing meteorological variables.
+    """
+    leaves = get_leaves(g, leaf_lbl_prefix)
+    u = meteo.u[0]
+    return {vid: u for vid in leaves}
+
+
+def heat_boundary_layer_conductance(g, meteo, leaf_lbl_prefix='L', leaf_length_lbl='Length', wind_speed_lbl='u', unit_scene_length='cm'):
     length_conv = {'mm': 1.e-3, 'cm': 1.e-2, 'm': 1.}[unit_scene_length]
     leaves = get_leaves(g, leaf_lbl_prefix)
     #                gbH = node.gb*1.37*0.9184 * Cp # Boundary layer conductance for heat [mol m2 s-1. The 0.9184 see Campbell and Norman (1998) in Gutschick (2016)
     #                gbH = 3.9 * (macro_meteo['u']/l_w)**0.5
     length = g.property(leaf_length_lbl)
-    wind_speed = g.property(wind_speed_lbl)
+    if wind_speed_lbl in g.property_names():
+        wind_speed = g.property(wind_speed_lbl)
+    else:
+        wind_speed = leaf_wind_as_air_wind(g, meteo, leaf_lbl_prefix)
     def _gbH(length, u):
         l_w = length * 0.72  # leaf length in the downwind direction [m]
         d_bl = 4. * (l_w / max(1.e-3, u)) ** 0.5 / 1000.  # Boundary layer thikness in [m] (Nobel, 2009 pp.337)
         # TODO: Replace the constant thermal conductivity coefficient of the air (0.026 W m-1 C-1) by a model accounting for air temperature, humidity and pressure (cf. Nobel, 2009 Appendix I)
         return 2. * 0.026 / d_bl  # Boundary layer conductance to heat [W m-2 K-1]
     return {vid: _gbH(length[vid] * length_conv, wind_speed[vid]) for vid in leaves}
-
 
 
 def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True, simple_ff=True,
@@ -275,6 +266,20 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True, simple_ff=True,
         t_prev = deepcopy(g.property('Tlc'))
     else:
         t_prev = leaf_temperature_as_air_temperature(g, meteo, leaf_lbl_prefix)
+
+    try:
+        pnames = g.property_names()
+        assert 'Ei' in pnames
+        assert 'E' in pnames
+        assert 'k_soil' in pnames
+        assert 'k_sky' in pnames
+        if solo:
+            assert 'k_leaves' in pnames
+        else:
+            assert 'vis_a_vis' in pnames
+    except AssertionError:
+        warnings.warn('leaf_temperature needs more properties on g to be estimated. leaf temperature set to tair for all leaves')
+        return t_prev
 
     # Macro-scale climatic data to be used if micro-scale variable are missing
     T_sky, T_air, T_soil, Pa = t_sky_eff + 273.15, meteo.Tac[0] + 273.15, t_soil + 273.15, meteo.Pa[0]
@@ -435,7 +440,8 @@ def soil_temperature(g, meteo, T_sky, soil_lbl_prefix='other'):
 
     return t_soil0
 
-def forced_soil_temperatue(imeteo):
+
+def forced_soil_temperature(imeteo):
     """ A very simple model of soil temperature"""
     dt_soil = [3, 3, 3, 3, 3, 3, 3, 3, 10, 15, 20, 20, 20, 20, 20, 15, 6, 5, 4, 3, 3, 3, 3, 3]
     t_soil = imeteo.Tac[0] + dt_soil[imeteo.index.hour[0]]

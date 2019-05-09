@@ -1,5 +1,5 @@
 from non_regression_data import potted_syrah, meteo
-from hydroshoot.energy import pgl_scene, form_factors_simplified, leaf_temperature_init, leaf_temperature, forced_soil_temperatue
+from hydroshoot.energy import pgl_scene, form_factors_simplified, leaf_temperature_init, leaf_temperature, forced_soil_temperature
 from numpy.testing import assert_almost_equal
 import openalea.plantgl.all as pgl
 
@@ -43,7 +43,7 @@ def test_form_factors_simplified():
 
 def test_forced_soil_temperature():
     met = meteo().iloc[[12], :]
-    tsoil = forced_soil_temperatue(met)
+    tsoil = forced_soil_temperature(met)
     assert tsoil == met.Tac[0] + 20
 
 def test_leaf_temperature():
