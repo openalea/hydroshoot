@@ -223,6 +223,18 @@ def leaf_temperature_init(g, leaf_lbl_prefix='L', tlc=20, ei=0, u=0, E=0, k_soil
     return g
 
 
+def leaf_temperature_as_air_temperature(g, meteo, leaf_lbl_prefix='L'):
+    """Basic model for leaf temperature, considered equal to air temperature for all leaves
+
+    :Parameters:
+    - **g**: an MTG object
+    - **meteo**: (DataFrame): forcing meteorological variables.
+    """
+    leaves = get_leaves(g, leaf_lbl_prefix)
+    tair = meteo.Tac[0]
+    return {vid: tair for vid in leaves}
+
+
 def heat_boundary_layer_conductance(g, leaf_lbl_prefix='L', leaf_length_lbl='Length', wind_speed_lbl='u', unit_scene_length='cm'):
     length_conv = {'mm': 1.e-3, 'cm': 1.e-2, 'm': 1.}[unit_scene_length]
     leaves = get_leaves(g, leaf_lbl_prefix)
@@ -257,21 +269,25 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True, simple_ff=True,
     - **max_iter**: integer, the allowable number of itrations (for solo=True)
     - **t_error_crit**: float, the allowable error in leaf temperature (for solo=True)
     """
-    # Climatic data for energy balance module
-    macro_meteo = {'T_sky': t_sky_eff + 273.15, 'T_soil': t_soil + 273.15,
-                   'T_air': meteo.Tac[0] + 273.15, 'Pa': meteo.Pa[0],
-                   'u': meteo.u[0]}
+    leaves = get_leaves(g, leaf_lbl_prefix)
+    # initialise with tair or actual leaf temperature if present on mtg
+    if 'Tlc' in g.property_names():
+        t_prev = deepcopy(g.property('Tlc'))
+    else:
+        t_prev = leaf_temperature_as_air_temperature(g, meteo, leaf_lbl_prefix)
+
+    # Macro-scale climatic data to be used if micro-scale variable are missing
+    T_sky, T_air, T_soil, Pa = t_sky_eff + 273.15, meteo.Tac[0] + 273.15, t_soil + 273.15, meteo.Pa[0]
+
 #   Iterative calculation of leaves temperature
     if solo:
         t_error_trace = []
         it_step = t_step
         for it in range(max_iter):
-            t_prev = deepcopy(g.property('Tlc'))
-#            T_leaves = mean([g.node(vid).Tlc for vid in g.property('Tlc').keys() if g.node(vid).label.startswith(leaf_lbl_prefix)]) + 273.15
-            T_leaves = mean([g.node(vid).Tlc for vid in g.property('Tlc').keys()]) + 273.15
+            T_leaves = mean(t_prev.values()) + 273.15
             t_dict = {}
 #           +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            for vid in g.property('Tlc').keys():
+            for vid in leaves:
                 node = g.node(vid)
                 E_glob = node.Ei/(0.48*4.6) # Ei not Eabs
                 k_sky = node.k_sky
@@ -280,15 +296,13 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True, simple_ff=True,
                 u = node.u
                 gbH = node.gbH
                 E = node.E
-                T_sky, T_air, T_soil, Pa = [macro_meteo[ikey] for ikey in ('T_sky', 'T_air', 'T_soil', 'Pa')]
-                t_leaf = node.Tlc if 'Tlc' in node.properties() else T_air - 273.15
-                
+                t_leaf = t_prev[vid]
 
                 if not simple_ff:
-                    E_leaves = -sigma*sum([node.vis_a_vis[ivid]*(g.node(ivid).Tlc+273.15)**4 \
+                    E_leaves = -sigma*sum([node.vis_a_vis[ivid]*(t_prev[ivid]+273.15)**4 \
                             for ivid in node.vis_a_vis.keys()])
                 else:
-#                    E_leaves = k_leaves*sigma*(T_leaves)**4
+#                   E_leaves = k_leaves*sigma*(T_leaves)**4
                     E_leaves = k_leaves*sigma*(t_leaf + 273.15)**4
 
                 def _VineEnergyX(T_leaf):
@@ -305,13 +319,10 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True, simple_ff=True,
                 t_leaf0 = optimize.newton_krylov(_VineEnergyX, t_leaf+273.15) - 273.15
                 t_dict[vid] = t_leaf0
 
-            g.properties()['Tlc'] = t_dict
+            t_new = t_dict
 
-#           +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            t_new = deepcopy(g.property('Tlc'))
-
-#           Evaluation of leaf temperature conversion creterion
-            error_dict={vtx:abs(t_prev[vtx]-t_new[vtx]) for vtx in g.property('Tlc').keys()}
+#           Evaluation of leaf temperature conversion criterion
+            error_dict={vtx:abs(t_prev[vtx]-t_new[vtx]) for vtx in leaves}
             
             t_error = max(error_dict.values())
             t_error_trace.append(t_error)
@@ -325,13 +336,13 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True, simple_ff=True,
                 except:
                     pass
 
-                t_new_dict = {}
+                t_next = {}
                 for vtx_id in t_new.keys():
                     tx = t_prev[vtx_id] + it_step*(t_new[vtx_id]-t_prev[vtx_id])
-                    t_new_dict[vtx_id] = tx
+                    t_next[vtx_id] = tx
 
 #               t_new_dict = {vtx_id:0.5*(t_prev[vtx_id]+t_new[vtx_id]) for vtx_id in t_new.keys()}
-                g.properties()['Tlc'] = t_new_dict
+                t_prev = t_next
 
                 
 #                g.properties()['Tlc'] = {vtx_id:0.5*(t_prev[vtx_id]+t_new[vtx_id]) for vtx_id in t_new.keys()}
@@ -340,9 +351,7 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True, simple_ff=True,
 #   Matrix iterative calculation of leaves temperature ('not solo' case)
     else:
         t_lst = []
-        t_dict = {}
-
-        t_dict={vid:Symbol('t%d'%vid) for vid in g.property('geometry').keys()}
+        t_dict={vid:Symbol('t%d'%vid) for vid in leaves}
     #    for vid in g.property('geometry').keys():
     ##        if g.node(vid).label.startswith(leaf_lbl_prefix):
     #        exec('t%d = %s' % (vid, None))
@@ -352,49 +361,46 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True, simple_ff=True,
 
         eq_lst = []
         t_leaf_lst = []
-        for vid in g.property('geometry').keys():
-            if g.node(vid).label.startswith(leaf_lbl_prefix):
-                node = g.node(vid)
-                E_glob = node.Ei/(0.48*4.6) # Ei not Eabs
-                k_sky = node.k_sky
-                k_leaves = node.k_leaves
-                k_soil = node.k_soil
-                gbH = node.gbH
-                E = node.E
-                T_sky, T_air, T_soil, Pa = [macro_meteo[ikey] for ikey in ('T_sky', 'T_air', 'T_soil', 'Pa')]
-                t_leaf = node.Tlc if 'Tlc' in node.properties() else T_air - 273.15
+        for vid in leaves:
+            node = g.node(vid)
+            E_glob = node.Ei/(0.48*4.6) # Ei not Eabs
+            k_sky = node.k_sky
+            k_leaves = node.k_leaves
+            k_soil = node.k_soil
+            gbH = node.gbH
+            E = node.E
+            t_leaf = t_prev[vid]
 
-                t_leaf_lst.append(t_leaf)
-                t_lst.append(t_dict[vid])
+            t_leaf_lst.append(t_leaf)
+            t_lst.append(t_dict[vid])
 
-        #        exec('eq%d = %s' % (vid, None))
+    #        exec('eq%d = %s' % (vid, None))
 
-                eq_aux = 0.
-                for ivid in node.vis_a_vis.keys():
-                    if not g.node(ivid).label.startswith('soil'):
-                        eq_aux += -node.vis_a_vis[ivid] * ((t_dict[ivid])**4)
+            eq_aux = 0.
+            for ivid in node.vis_a_vis.keys():
+                if not g.node(ivid).label.startswith('soil'):
+                    eq_aux += -node.vis_a_vis[ivid] * ((t_dict[ivid])**4)
 
-                eq = (a_glob * E_glob +
-                    e_leaf * sigma * (k_sky * e_sky * (T_sky**4) +
-                    e_leaf * eq_aux + k_soil * e_soil * (T_sky**4) -
-                    2 * (t_dict[vid])**4) -
-                    lambda_ * E - gbH * Cp * (t_dict[vid] - T_air))
+            eq = (a_glob * E_glob +
+                e_leaf * sigma * (k_sky * e_sky * (T_sky**4) +
+                e_leaf * eq_aux + k_soil * e_soil * (T_sky**4) -
+                2 * (t_dict[vid])**4) -
+                lambda_ * E - gbH * Cp * (t_dict[vid] - T_air))
 
-                eq_lst.append(eq)
+            eq_lst.append(eq)
 
         tt = time.time()
         t_leaf0_lst = nsolve(eq_lst, t_lst, t_leaf_lst, verify=False) - 273.15
         print ("---%s seconds ---" % (time.time()-tt))
 
-        ivid = 0
-        for vid in g.property('geometry').keys():
-    #        if g.node(vid).label.startswith(leaf_lbl_prefix):
-            g.node(vid).Tlc = float(t_leaf0_lst[ivid])
+        t_new = {}
+        for ivid, vid in enumerate(leaves):
+            t_new[vid] = float(t_leaf0_lst[ivid])
             ivid += 1
 
         it = 1
 
-    return it
+    return t_new, it
 
 
 def soil_temperature(g, meteo, T_sky, soil_lbl_prefix='other'):
