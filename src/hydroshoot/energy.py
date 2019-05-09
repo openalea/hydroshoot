@@ -15,6 +15,7 @@ from copy import deepcopy
 import time
 import warnings
 
+
 from alinea.caribu.CaribuScene import CaribuScene
 from alinea.caribu.sky_tools import turtle
 import alinea.astk.icosphere as ico
@@ -199,7 +200,6 @@ def form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L'
 #a_PAR,a_NIR,a_glob,e_sky,e_leaf,e_soil,sigma,lambda_,Cp = [Energy_Prop[ikey] for ikey in nrj_Prop_tuple]
 
 
-
 def leaf_temperature_as_air_temperature(g, meteo, leaf_lbl_prefix='L'):
     """Basic model for leaf temperature, considered equal to air temperature for all leaves
 
@@ -236,7 +236,7 @@ def heat_boundary_layer_conductance(g, meteo, leaf_lbl_prefix='L', leaf_length_l
         wind_speed = leaf_wind_as_air_wind(g, meteo, leaf_lbl_prefix)
     def _gbH(length, u):
         l_w = length * 0.72  # leaf length in the downwind direction [m]
-        d_bl = 4. * (l_w / max(1.e-3, u)) ** 0.5 / 1000.  # Boundary layer thikness in [m] (Nobel, 2009 pp.337)
+        d_bl = 4. * (l_w / max(1.e-3, u)) ** 0.5 / 1000.  # Boundary layer thickness in [m] (Nobel, 2009 pp.337)
         # TODO: Replace the constant thermal conductivity coefficient of the air (0.026 W m-1 C-1) by a model accounting for air temperature, humidity and pressure (cf. Nobel, 2009 Appendix I)
         return 2. * 0.026 / d_bl  # Boundary layer conductance to heat [W m-2 K-1]
     return {vid: _gbH(length[vid] * length_conv, wind_speed[vid]) for vid in leaves}
@@ -244,7 +244,7 @@ def heat_boundary_layer_conductance(g, meteo, leaf_lbl_prefix='L', leaf_length_l
 
 def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True, simple_ff=True,
                      leaf_lbl_prefix='L', max_iter=100, t_error_crit=0.01,
-                     t_step = 0.5):
+                     t_step=0.5, gbH=None, k_soil=None, k_sky=None, k_leaves=None, E=None, Ei=None, vis_a_vis=None):
     """
     Returns the "thermal structure", temperatures [degreeC] of each individual leaf and soil elements.
 
@@ -261,26 +261,28 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True, simple_ff=True,
     - **t_error_crit**: float, the allowable error in leaf temperature (for solo=True)
     """
     leaves = get_leaves(g, leaf_lbl_prefix)
+    it = 0
+    pnames = g.property_names()
     # initialise with tair or actual leaf temperature if present on mtg
-    if 'Tlc' in g.property_names():
+    if 'Tlc' in pnames:
         t_prev = deepcopy(g.property('Tlc'))
     else:
         t_prev = leaf_temperature_as_air_temperature(g, meteo, leaf_lbl_prefix)
 
-    try:
-        pnames = g.property_names()
-        assert 'Ei' in pnames
-        assert 'E' in pnames
-        assert 'gbH' in pnames
-        assert 'k_soil' in pnames
-        assert 'k_sky' in pnames
-        if solo:
-            assert 'k_leaves' in pnames
-        else:
-            assert 'vis_a_vis' in pnames
-    except AssertionError:
-        warnings.warn('leaf_temperature needs more properties on g to be estimated. leaf temperature set to tair for all leaves')
-        return t_prev
+    expected = ['gbH', 'Ei', 'E', 'k_soil', 'k_sky']
+    if solo:
+        expected.append('k_leaves')
+    else:
+        expected.append('vis_a_vis')
+    for p in expected:
+        if p not in pnames:
+            arg = eval(p)
+            if arg is not None:
+                g.properties()[p] = {vid: arg for vid in leaves}
+            else:
+                warnings.warn(
+                    'Missing ' + p + ' in mtg properties: leaf temperature is set to tair for all leaves')
+                return t_prev, it
 
     # Macro-scale climatic data to be used if micro-scale variable are missing
     T_sky, T_air, T_soil, Pa = t_sky_eff + 273.15, meteo.Tac[0] + 273.15, t_soil + 273.15, meteo.Pa[0]
@@ -355,6 +357,7 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True, simple_ff=True,
 
 #   Matrix iterative calculation of leaves temperature ('not solo' case)
     else:
+        it = 1
         t_lst = []
         t_dict={vid:Symbol('t%d'%vid) for vid in leaves}
     #    for vid in g.property('geometry').keys():
@@ -402,7 +405,7 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True, simple_ff=True,
             t_new[vid] = float(t_leaf0_lst[ivid])
             ivid += 1
 
-        it = 1
+
 
     return t_new, it
 
