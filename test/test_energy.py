@@ -3,7 +3,6 @@ from hydroshoot.energy import form_factors_simplified, leaf_temperature, forced_
 from numpy.testing import assert_almost_equal
 import openalea.plantgl.all as pgl
 import hydroshoot.energy as energy
-import warnings
 
 
 def test_pgl_scene():
@@ -38,15 +37,9 @@ def test_get_leaves():
 
 def test_form_factors_simplified():
     g = potted_syrah()
-    assert 'k_soil' not in g.property_names()
-    assert 'k_sky' not in g.property_names()
-    assert 'k_leaves' not in g.property_names()
-    g = form_factors_simplified(g, icosphere_level=0)
-    assert 'k_soil' in g.property_names()
-    assert 'k_sky' in g.property_names()
-    assert 'k_leaves' in g.property_names()
+    k_soil, k_sky, k_leaves = form_factors_simplified(g, icosphere_level=0)
     # non regression test
-    assert_almost_equal(sum(g.property('k_leaves').values()), 147.7, 1)
+    assert_almost_equal(sum(k_leaves.values()), 147.7, 1)
 
 
 def test_heat_boundary_layer_conductance():
@@ -69,16 +62,18 @@ def test_leaf_temperature():
     tsoil = 20
     tsky = 2
 
-    with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter('default')
-        tleaf, it = leaf_temperature(g, met, tsoil, tsky)
-        assert len(w) == 1
-        assert len(tleaf) == 46
-        for vid in tleaf:
-            assert tleaf[vid] == met.Tac[0]
+    tleaf, it = leaf_temperature(g, met, tsoil, tsky)
+    assert len(tleaf) == 46
+    first = tleaf.keys()[0]
+    for vid in tleaf:
+        assert tleaf[vid] == tleaf[first]
+        assert tleaf[vid] != met.Tac[0]
 
-    g.properties()['gbH'] = energy.heat_boundary_layer_conductance(g, met)
-    tleaf, it = leaf_temperature(g, met, tsoil, tsky, k_sky=0.5, k_soil=0.5, k_leaves=1, Ei=0, E=0)
+    gbH = energy.heat_boundary_layer_conductance(g, met)
+    tleaf, it = leaf_temperature(g, met, tsoil, tsky, gbh=gbH)
+    first = tleaf.keys()[0]
     assert len(tleaf) == 46
     for vid in tleaf:
         assert tleaf[vid] != met.Tac[0]
+        if vid != first:
+            assert tleaf[vid] != tleaf[first]

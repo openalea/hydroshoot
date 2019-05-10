@@ -144,6 +144,8 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
 
     limit = params.energy.limit
     energy_budget = params.simulation.energy_budget
+    solo = params.energy.solo
+    simplified_form_factors = params.simulation.simplified_form_factors
     print 'Energy_budget: %s' % energy_budget
 
     # Optical properties
@@ -157,18 +159,15 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
     Na_dict = params.exchange.Na_dict
 
     # Computation of the form factor matrix
+    form_factors=None
     if energy_budget:
-        solo = params.energy.solo
-        simplified_form_factors = params.simulation.simplified_form_factors
-        if 'k_sky' not in g.property_names():
-            print 'Computing form factors...'
-
-            if not simplified_form_factors:
-                energy.form_factors_matrix(g, pattern, length_conv, limit=limit)
-            else:
-                g = energy.form_factors_simplified(g, pattern=pattern, infinite=True, leaf_lbl_prefix=leaf_lbl_prefix,
-                                               turtle_sectors=turtle_sectors, icosphere_level=icosphere_level,
-                                               unit_scene_length=unit_scene_length)
+        print 'Computing form factors...'
+        if not simplified_form_factors:
+            form_factors = energy.form_factors_matrix(g, pattern, length_conv, limit=limit)
+        else:
+            form_factors = energy.form_factors_simplified(g, pattern=pattern, infinite=True, leaf_lbl_prefix=leaf_lbl_prefix,
+                                           turtle_sectors=turtle_sectors, icosphere_level=icosphere_level,
+                                           unit_scene_length=unit_scene_length)
 
     # Soil class
     soil_class = params.soil.soil_class
@@ -352,7 +351,7 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
 
         solver.solve_interactions(g, imeteo, psi_soil, t_soil, t_sky_eff,
                                   vid_collar, vid_base, length_conv, time_conv,
-                                  rhyzo_total_volume, params)
+                                  rhyzo_total_volume, params, form_factors, simplified_form_factors)
 
         # Write mtg to an external file
         if scene is not None:

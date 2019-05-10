@@ -4,7 +4,7 @@ from hydroshoot import hydraulic, exchange, energy
 
 
 def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_base,
-                       length_conv, time_conv, rhyzo_total_volume, params):
+                       length_conv, time_conv, rhyzo_total_volume, params, form_factors, simplified_form_factors):
     """Computes gas-exchange, energy and hydraulic structure of plant's shoot jointly.
 
     Args:
@@ -161,10 +161,16 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
 
         # Compute leaf temperature
         if energy_budget:
-            g.properties()['gbH'] = energy.heat_boundary_layer_conductance(g, meteo, leaf_lbl_prefix=leaf_lbl_prefix)
-            g.properties()['Tlc'], t_iter = energy.leaf_temperature(g, meteo, t_soil, t_sky_eff, solo, True,
-                                             leaf_lbl_prefix, max_iter,
-                                             temp_error_threshold, temp_step)
+            gbH = energy.heat_boundary_layer_conductance(g, meteo, leaf_lbl_prefix=leaf_lbl_prefix)
+            t_init = g.property('Tlc')
+            ev = g.property('E')
+            ei = g.property('Ei')
+            g.properties()['Tlc'], t_iter = energy.leaf_temperature(g, meteo, t_soil, t_sky_eff, t_init=t_init,
+                                                                    form_factors=form_factors, gbh=gbH, ev=ev, ei=ei,
+                                                                    solo=solo, ff_type=simplified_form_factors,
+                                                                    leaf_lbl_prefix=leaf_lbl_prefix, max_iter=max_iter,
+                                                                    t_error_crit=temp_error_threshold, t_step=temp_step)
+
 
             # t_iter_list.append(t_iter)
             t_new = deepcopy(g.property('Tlc'))
