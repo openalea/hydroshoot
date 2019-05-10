@@ -41,6 +41,15 @@ def get_leaves(g, leaf_lbl_prefix='L'):
     return [vid for vid in g.VtxList() if
                              vid > 0 and label[vid].startswith(leaf_lbl_prefix)]
 
+
+def get_leaves_length(g, leaf_lbl_prefix='L', length_lbl='Length', unit_scene_length='cm'):
+    """get length of leaves of g [m]"""
+    conv = {'mm': 1.e-3, 'cm': 1.e-2, 'm': 1.}[unit_scene_length]
+    leaves = get_leaves(g, leaf_lbl_prefix)
+    length = g.property(length_lbl)
+    return {k: v * conv for k, v in length.iteritems() if k in leaves}
+
+
 #def energy_params(a_PAR=0.87, a_NIR=0.35, a_glob=0.6, e_sky=1.0, e_leaf=0.96,
 #                    sigma=5.670373e-8, e_soil = 0.95, lambda_=44.00e3, Cp = 29.07):
 #    """
@@ -234,16 +243,13 @@ def _gbH(length, u):
     return 2. * 0.026 / d_bl  # Boundary layer conductance to heat [W m-2 K-1]
 
 
-def heat_boundary_layer_conductance(g, meteo, leaf_lbl_prefix='L', leaf_length_lbl='Length', wind_speed_lbl='u', unit_scene_length='cm'):
-    length_conv = {'mm': 1.e-3, 'cm': 1.e-2, 'm': 1.}[unit_scene_length]
-    leaves = get_leaves(g, leaf_lbl_prefix)
-    length = g.property(leaf_length_lbl)
-    if wind_speed_lbl in g.property_names():
-        wind_speed = g.property(wind_speed_lbl)
+def heat_boundary_layer_conductance(leaves_length, wind_speed=0):
+    u = {}
+    if isinstance(wind_speed, dict):
+        u = wind_speed
     else:
-        wind_speed = leaf_wind_as_air_wind(g, meteo, leaf_lbl_prefix)
-
-    return {vid: _gbH(length[vid] * length_conv, wind_speed[vid]) for vid in leaves}
+        u = {vid: wind_speed for vid in leaves_length}
+    return {vid: _gbH(leaves_length[vid], u[vid]) for vid in leaves_length}
 
 
 def leaf_temperature(g, meteo, t_soil, t_sky_eff, t_init=None, form_factors=None, gbh=None, ev=None, ei=None, solo=True,
@@ -262,10 +268,10 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, t_init=None, form_factors=None
         if None (default) (0.5, 0.5, 0.5) is used for all leaves
     - **gbh**: (float or dict) [W m-2 K-1] boundary layer conductance for heat, given as a single scalar or a property dict.
         if None (default) a default model is called with length=10cm and wind_speed as found in meteo
-    - **ev**: (float or dict) [mol m-2 s-1] evaporation flux used for initialisation, given as a single scalar or a property dict.
+    - **ev**: (float or dict) [mol m-2 s-1] evaporation flux, given as a single scalar or a property dict.
         if None (default) evaporation is set to zero for all leaves
-    - **ei**: (float or dict) [mol m-2 s-1] evaporation flux used for initialisation, given as a single scalar or a property dict.
-        if None (default) evaporation is set to zero for all leaves
+    - **ei**: (float or dict) [mol m-2 s-1] PAR irradiance on leaves, given as a single scalar or a property dict.
+        if None (default) PAR irradiance is set to zero for all leaves
     - **solo**: logical,
         - True (default), calculates energy budget for each element, assuming the temperatures of surrounding leaves constant (from previous calculation step)
         - False, computes simultaneously all temperatures using `sympy.solvers.nsolve` (**very costly!!!**)
