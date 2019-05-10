@@ -21,6 +21,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
         params (params): [-] :class:`hydroshoot.params.Params()` object
 
     """
+    unit_scene_length = params.simulation.unit_scene_length
 
     hydraulic_structure = params.simulation.hydraulic_structure
     negligible_shoot_resistance = params.simulation.negligible_shoot_resistance
@@ -161,7 +162,9 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
 
         # Compute leaf temperature
         if energy_budget:
-            gbH = energy.heat_boundary_layer_conductance(g, meteo, leaf_lbl_prefix=leaf_lbl_prefix)
+            leaves_length = energy.get_leaves_length(g, leaf_lbl_prefix=leaf_lbl_prefix, unit_scene_length=unit_scene_length)
+            leaf_wind_speed = energy.leaf_wind_as_air_wind(g, meteo, leaf_lbl_prefix)
+            gbH = energy.heat_boundary_layer_conductance(leaves_length, leaf_wind_speed)
             t_init = g.property('Tlc')
             ev = g.property('E')
             ei = g.property('Ei')

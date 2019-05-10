@@ -45,7 +45,8 @@ def test_form_factors_simplified():
 def test_heat_boundary_layer_conductance():
     g = potted_syrah()
     met = meteo().iloc[[12], :]
-    gbH = energy.heat_boundary_layer_conductance(g, met)
+    l = energy.get_leaves_length(g)
+    gbH = energy.heat_boundary_layer_conductance(l, met.u[0])
     assert len(gbH) == 46
     assert_almost_equal(sum(gbH.values()) / len(gbH), 47, 0)
 
@@ -69,7 +70,9 @@ def test_leaf_temperature():
         assert tleaf[vid] == tleaf[first]
         assert tleaf[vid] != met.Tac[0]
 
-    gbH = energy.heat_boundary_layer_conductance(g, met)
+    l = energy.get_leaves_length(g)
+    u = energy.leaf_wind_as_air_wind(g, met)
+    gbH = energy.heat_boundary_layer_conductance(l, u)
     tleaf, it = leaf_temperature(g, met, tsoil, tsky, gbh=gbH)
     first = tleaf.keys()[0]
     assert len(tleaf) == 46
