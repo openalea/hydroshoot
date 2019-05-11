@@ -17,7 +17,6 @@ O = 210 # Oxygen partial pressure [mmol mol-1]
 R = 0.0083144598 # Ideal gaz constant [kJ K-1 mol-1]
 
 
-#TODO: Update the `meteo_utils` module.
 #==============================================================================
 # Farquhar Parameters
 #==============================================================================
@@ -48,8 +47,8 @@ def par_photo_default(Vcm25= 89.0, Jm25 = 143.0, cRd = 0.008, TPU25 = 10.0,
    - **alpha**, **alpha_T_limit**, **a1**, **a2**, **a3**: parameters regulating electron transport for sunlit and shaded leaves (**not used**)
    - **c**: empirical parameter defining the temperature response curves of each of Kc, Ko, Vcm, Jm, TPU, Rd and Tx
    - **deltaHa**: Activation energy of the Arrhenius functions [kJ molCO2-1] 
-   - **ds**: float, enthalpie of activation [KJ mol-1]
-   - **dHd**: float, enthalpie of deactivation [KJ mol-1]
+   - **ds**: float, enthalpy of activation [KJ mol-1]
+   - **dHd**: float, enthalpy of deactivation [KJ mol-1]
    """
 
     par_photodef = {}
@@ -77,6 +76,7 @@ def par_photo_default(Vcm25= 89.0, Jm25 = 143.0, cRd = 0.008, TPU25 = 10.0,
 
     return par_photodef
 
+
 def par_25_N_dict(Vcm25_N = (34.02, -3.13), Jm25_N = (78.27, -17.3),
              Rd_N = (0.42, -0.01), TPU25_N = (6.24, -1.92)):
     """
@@ -98,82 +98,113 @@ def par_25_N_dict(Vcm25_N = (34.02, -3.13), Jm25_N = (78.27, -17.3),
     return par_dict
 
 
-def leaf_Na(ageTT, PPFD10, aN=-0.0008, bN=3.3, aM=6.471, bM=56.635):
+def leaf_Na(age_gdd, ppfd_10, a_n=-0.0008, b_n=3.3, a_m=6.471, b_m=56.635):
+    """Computes Nitrogen content per unit leaf area.
+
+    Args:
+        age_gdd (float): [°Cd] leaf age given in cumulative degree-days temperature since budburst
+        ppfd_10 (float): [umol m-2 s-1] cumulative intercepted irradiance (PPFD) over the 10 days prior to simulation
+            period
+        a_n (float): [gN gDM-1 °Cd-1] slope of the linear relationship between nitrogen content per unit mass
+            area and leaf age
+        b_n (float): [gN gDM-1] intercept of the linear relationship between nitrogen content per unit mass
+            area and leaf age
+        a_m (float): [gDM s umol-1] slope of the linear relationship between leaf dry matter per unit leaf area
+            and absorbed ppfd over the past 10 days
+        b_m (float): [gDM m-2] intercept of the linear relationship between leaf dry matter per unit leaf area
+            and absorbed ppfd over the past 10 days
+
+    Returns:
+         (float): [gN m-2] nitrogen content per unit leaf area
+
+    References:
+        Prieto et al. (2012)
+            A leaf gas exchange model that accounts for intra-canopy variability by considering leaf nitrogen content
+            and local acclimation to radiation in grapevine (Vitis vinifera L.).
+            Plant, Cell and Environment 35, 1313 - 1328
+
+    Notes:
+        Deflaut parameters' values are given for Syrah from experiments in Montpellier (France).
+
     """
-    Rerturns Nitrogen content per area (Na) [g m-2] according to Prieto et al. 2012 (doi: 10.1111/j.1365-3040.2012.02491.x).
-    Deflaut parameter values are given for Montpellier Experiments on Syrah.
 
-   :Parameters:
-   - **ageTT**: float, cumulative degree-day temperature from budburst
-   - **PPFD10**: float, cumulative intercepted irradiance (PPFD) over the past 10 days prior to simulation period
-   - **aN** and **bN**: float, shape parameters for the linear relationship Nm=f(TT), (cf. Eq.5 in Prieto et al. 2012)
-   - **aM** and **bM**: float, shape parameters for the linear relationship LMA=f(PPFD10), (cf. Eq.6 in Prieto et al. 2012)
-    """
+    leaf_mass_per_area = a_m * log(max(1.e-3, ppfd_10)) + b_m
+    nitrogen_content_per_leaf_mass = a_n * age_gdd + b_n
+    nitrogen_content_per_leaf_area = leaf_mass_per_area * nitrogen_content_per_leaf_mass / 100.
 
-    LMA = aM * log(max(1.e-3,PPFD10)) + bM
-    Nmass = aN*ageTT + bN
-    Na = LMA*Nmass/100. #a cause d'erreur d'unite ds le papier
-
-    return max(Na, 0.)
-    # petit difference d'arrondi sur aN et bN?
+    return max(0., nitrogen_content_per_leaf_area)
 
 
 #==============================================================================
 # compute An
 #==============================================================================
 
-def arrhenius_1(param,Tlc,par_photo):
-    """
-    Estimates the effect of temperature on the photosynthetic parameters `Tx`, `Kc`, `Ko` as described in Bernacchi et al. (2003)
-    
-    :Parameters:
-    - **param**: string, one of 'Tx', 'Kc', 'Ko'
-    - **Tlc**: float, leaf temperature [degreeC]
-    - **par_photo**: a dictionart containing paramter default values of the Farquhar's model, at 25 degrees temperature
+def arrhenius_1(param_name, leaf_temperature, photo_params):
+    """Computes the effect of temperature on the photosynthetic parameters `Tx`, `Kc`, and `Ko`.
+
+    Args:
+        param_name (str): name of the parameter to be considered, one of 'Tx', 'Kc', and 'Ko'
+        leaf_temperature (float): [°C] leaf temperature
+        photo_params (dict): default values at 25 °C of Farquhar's model (cf. :func:`par_photo_default`)
+
+    Returns:
+        (float): the value of the given :arg:`param_name` at the given :arg:`leaf_temperature`
+
+    References:
+        Bernacchi et al. (2003)
+            In vivo temperature response functions of parameters required to model RuBP-limited photosynthesis.
+            Plant, Cell and Environment 26, 1419 –  1430
+
     """
 
     param_list = {
-    'Tx':('Tx25','RespT_Tx'),
-    'Kc':('Kc25','RespT_Kc'),
-    'Ko':('Ko25','RespT_Ko')}
+        'Tx': ('Tx25', 'RespT_Tx'),
+        'Kc': ('Kc25', 'RespT_Kc'),
+        'Ko': ('Ko25', 'RespT_Ko')}
 
-    Tak = utils.celsius_to_kelvin(Tlc)
-#    indice1 = param_list[param][0]
-    indice2 = param_list[param][1]
-#    p25 = par_photo[indice1]
-    c, deltaHa = [par_photo[indice2][x] for x in ('c','deltaHa')]
-    p = exp(c - (deltaHa /(R*Tak)))
+    temp_k = utils.celsius_to_kelvin(leaf_temperature)
+    param_key = param_list[param_name][1]
+    shape_param, activation_energy = [photo_params[param_key][x] for x in ('c', 'deltaHa')]
+    param_value = exp(shape_param - (activation_energy / (R * temp_k)))
 
-    return p
+    return param_value
 
 
-def arrhenius_2(param,Tlc,par_photo):
+def arrhenius_2(param_name, leaf_temperature, photo_params):
+    """Computes the effect of temperature on the photosynthetic parameters `Vcmax`, `Jmax`, `TPUmax`, and `Rdmax`.
+
+    Args:
+        param_name (str): name of the parameter to be considered, one of `Vcmax`, `Jmax`, `TPUmax`, and `Rdmax`
+        leaf_temperature (float): [°C] leaf temperature
+        photo_params (dict): default values at 25 °C of Farquhar's model (cf. :func:`par_photo_default`)
+
+    Returns:
+        (float): the value of the given :arg:`param_name` at the given :arg:`leaf_temperature`
+
+    References:
+        Bernacchi et al. (2003)
+            In vivo temperature response functions of parameters required to model RuBP-limited photosynthesis.
+            Plant, Cell and Environment 26, 1419 –  1430
+
     """
-    Estimates the effect of temperature on the photosynthetic parameters `Vcmax`, `Jmax`, `TPUmax`, `Rdmax` as described in Bernacchi et al. (2003)
 
-    :Parameters:
-    - **param**: string, one of the following 'Vcmax', 'Jmax', 'TPUmax', 'Rdmax'
-    - **Tlc**: float, leaf temperature [degreeC]
-    - **par_photo**: a dictionart containing paramter values of the Farquhar's model
-    """
-
-    ds = par_photo['ds']
-    dHd = par_photo['dHd']
+    enthalpy_activation = photo_params['ds']
+    enthalpy_deactivation = photo_params['dHd']
 
     param_list = {
-    'Vcmax':('Vcm25','RespT_Vcm'),
-    'Jmax':('Jm25','RespT_Jm'),
-    'TPUmax':('TPU25','RespT_TPU'),
-    'Rdmax': ('Rd','RespT_Rd')}
+        'Vcmax': ('Vcm25', 'RespT_Vcm'),
+        'Jmax': ('Jm25', 'RespT_Jm'),
+        'TPUmax': ('TPU25', 'RespT_TPU'),
+        'Rdmax': ('Rd', 'RespT_Rd')}
 
-    Tak = utils.celsius_to_kelvin(Tlc)
-    indice1 = param_list[param][0]
-    indice2 = param_list[param][1]
-    p25 = par_photo[indice1]
-    c, deltaHa = [par_photo[indice2][x] for x in ('c','deltaHa')]
-    p = p25*(exp(c - (deltaHa /(R*Tak)))) / (1. + exp((ds*Tak-dHd)/(R*Tak)))
+    temp_k = utils.celsius_to_kelvin(leaf_temperature)
+    param_key = param_list[param_name][1]
+    param_value_at_25 = photo_params[param_list[param_name][0]]
+    shape_param, activation_energy = [photo_params[param_key][x] for x in ('c', 'deltaHa')]
+    param_value = param_value_at_25 * (exp(shape_param - (activation_energy / (R * temp_k)))) / (
+            1. + exp((enthalpy_activation * temp_k - enthalpy_deactivation) / (R * temp_k)))
 
-    return p
+    return param_value
 
 
 def dHd_sensibility(psi, Tleaf, dHd_max=200., dHd_min1=195.,dHd_min2=190.,
