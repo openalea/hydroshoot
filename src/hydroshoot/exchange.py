@@ -207,171 +207,88 @@ def arrhenius_2(param_name, leaf_temperature, photo_params):
     return param_value
 
 
-def dHd_sensibility(psi, Tleaf, dHd_max=200., dHd_min1=195.,dHd_min2=190.,
-                    psi_max=-.75, psi_min=-2., Tleaf_1=35, Tleaf_2=40):
-    """
-    """
-    dHd_min = dHd_min1 - (dHd_min1 - dHd_min2)*min(1,max(0,(Tleaf - Tleaf_1))/float(Tleaf_2-Tleaf_1))
-    dHd = dHd_max - max(0, (dHd_max - dHd_min)*min(1, (psi - psi_max)/float(psi_min-psi_max)))
+def dHd_sensibility(psi, temp, dhd_max=200.,
+                    dhd_inhib_beg=195., dHd_inhib_max=190.,
+                    psi_inhib_beg=-.75, psi_inhib_max=-2.,
+                    temp_inhib_beg=35, temp_inhib_max=40):
+    """Calculates the combined effect of irradiance and heat stress on the enthalpy of deactivation parameter.
 
+    Args:
+        psi (float): [MPa] leaf water potential
+        temp (float): [°C] leaf temperature
+        dhd_max (float): [KJ mol-1] maximum value of enthalpy of deactivation
+        dhd_inhib_beg (float): [KJ mol-1] value of enthalpy of deactivation at the begining of photoinhibition
+        dHd_inhib_max (float): [KJ mol-1] value of enthalpy of deactivation under maximum photoinhibition
+        psi_inhib_beg (float): [MPa] leaf water potential at which photoinhibition begins
+        psi_inhib_max (float): [MPa] leaf water potential at which photoinhibition is maximum
+        temp_inhib_beg (float): [°C] leaf temperature at which photoinhibition begins
+        temp_inhib_max (float): [°C] leaf temperature at which photoinhibition is maximum
 
-    return dHd
+    Returns:
+        (float): [KJ mol-1] value of enthalpy of deactivation after considering photoinhibition
 
-
-#def compute_an_2(par_photo, PPFD, Tlc, Ci):
-#    """
-#    Estimates net CO2 assimilation according to Farquhar et al. (1980).
-#    Grapevine data are collected from Schultz FPB 2003 & Nikolov 1995
-#
-#    :Parameters:
-#    - **par_photo**: a dictionary of Farquhar's model parameters
-#    - **PPFD**: float, ?incident? PPFD [umol m-2 s-1]
-#    - **Tlc**: float, leaf temperature [degreeC]
-#    - **Ci**: float, intercellular CO2 concentration [umol mol-1]
-#
-#    :Returns:
-#    - **An**: net CO2 assimilation rate [umol m-2 s-1]
-#    """
-#
-#    T = arrhenius_1('Tx',Tlc,par_photo) # CO2 compensation point in the absence of mitochondrial respiration [umol mol-1]
-#    Kc = arrhenius_1('Kc',Tlc,par_photo) # Michaelis-Menten constant for the carboxylase [umol mol-1]
-#    Ko = arrhenius_1('Ko',Tlc,par_photo) # Michaelis-Menten constant for the oxygenase [mmol mol-1]
-#
-#    Vcmax = arrhenius_2('Vcmax',Tlc,par_photo) # Maximum RuBP-saturated rate of carboxylation [umol m-2 s-1]
-#    Jmax = arrhenius_2('Jmax',Tlc,par_photo) # Maximum of electron transport [umol m-2 s-1]
-#    TPU = arrhenius_2('TPUmax',Tlc,par_photo) # The rate of triose phosphate transport [umol m-2 s-1]
-#    Rd = arrhenius_2('Rdmax',Tlc,par_photo) # Mitochondrial respiration rate in the light [umol m-2 s-1]
-#
-#    alpha = par_photo['alpha'][0] # Leaf absorptance to photosynthetic photon flux [-]
-#    for i in range(1,len(par_photo['alpha'])):
-#        if par_photo['alpha_T_limit'][i-1]< Tlc < par_photo['alpha_T_limit'][i]:
-#            alpha = par_photo['alpha'][i]
-#
-#    J = (alpha*PPFD)/((1+((alpha**2*PPFD**2)/(Jmax**2)))**0.5)  # Flux d'electrons en fonction de la temperature de la feuille et du niveau d'eclairement
-#
-#    # TODO: check ci*0.1013 formula correctness   
-#    # The Ci values must be expressed in Pa, so multiplied by 0.1
-#    Ac = (Vcmax*(Ci-T))/(Ci+Kc*(1+O/Ko))         # Rubisco-limited An (see Eq. 2 in Schultz 2003 for values)
-#    Aj = (J*(Ci-T))/(4*(Ci+2.*T))                # RuBP-limited An (see Eq. 2 in Schultz 2003 for values)
-#    Ap = (TPU*3)                                 # Export-limited An (see Sharkey, 2007 for values)
-#
-#    An = min([Ac, Aj, Ap]) - Rd
-#    #An = Vc*(1-T/(Ci))-Rd
-#
-#    return An
-
-def compute_an_2par(par_photo, PPFD, Tlc):
-    """
-    Getting photosynthetic variables for the anaytical solution of Evers et al. (2010).
-
-    :Parameters:
-    - **par_photo**: a dictionart containing paramter values of the Farquhar's model
-    - **PPFD**: float, photosynthetic photon flux density [umol m-2 s-1]
-    - **Tlc**: float, leaf temperature [degreeC]
     """
 
-    T = arrhenius_1('Tx',Tlc,par_photo)
-    Kc = arrhenius_1('Kc',Tlc,par_photo)
-    Ko = arrhenius_1('Ko',Tlc,par_photo)
+    dhd_temp_effect = dhd_inhib_beg - (dhd_inhib_beg - dHd_inhib_max) * min(1.,
+                                                                            max(0., (temp - temp_inhib_beg)) / float(
+                                                                                temp_inhib_max - temp_inhib_beg))
+    dhd_psi_effect = dhd_max - max(0., (dhd_max - dhd_temp_effect) * min(1., (psi - psi_inhib_beg) / float(
+        psi_inhib_max - psi_inhib_beg)))
 
-    Vcmax = arrhenius_2('Vcmax',Tlc,par_photo)
-    Jmax = arrhenius_2('Jmax',Tlc,par_photo)
-    TPU = arrhenius_2('TPUmax',Tlc,par_photo)
-    Rd = arrhenius_2('Rdmax',Tlc,par_photo)
+    return dhd_psi_effect
 
-#    alpha = par_photo['alpha'][0] # Leaf absorptance to photosynthetic photon flux [-]
-#    for i in range(1,len(par_photo['alpha'])):
-#        if par_photo['alpha_T_limit'][i-1]< Tlc < par_photo['alpha_T_limit'][i]:
-#            alpha = par_photo['alpha'][i]
+
+def compute_an_2par(params_photo, ppfd, leaf_temp):
+    """Calculates the photosynthetic variables required for the analytical solution of net assimilation rate -
+    stomatal conductance.
+
+    Args:
+        params_photo (dict):
+        ppfd (float): [umol m-2 s-1] absorbed photosynthetic photon flux density
+        leaf_temp (float): [°C] leaf temperature
+
+    Returns:
+        Vcmax (float): [umol m-2 s-1] maximum RuBP-saturated rate of carboxylation
+        Kc*(1+O/Ko) (float): where
+            Kc [umol mol-1] is Michaelis-Menten constant for the carboxylase
+            Ko [mmol mol-1] is Michaelis-Menten constant for the oxygenase
+            O [mmol mol-1] is oxygen partial pressure
+        J/4. (float): where J [umol m-2 s-1] is electron transport
+        2.*T (float): where T [umol mol-1] is CO2 compensation point in the absence of mitochondrial respiration
+        3*TPU (float): where TPU [umol m-2 s-1] is the rate of triose phosphate transport
+        -T (float): [umol m-2 s-1] rate of triose phosphate transport
+        Rd (float): [umol m-2 s-1] rate of mitochondrial respiration
+
+    References:
+        Evers et al. (2010)
+            Simulation of wheat growth and development based on organ-level photosynthesis and assimilate allocation.
+            Journal of Experimental Botany 61, 2203 - 2216.
+
+    """
+
+    gamma = arrhenius_1('Tx', leaf_temp, params_photo)
+    k_c = arrhenius_1('Kc', leaf_temp, params_photo)
+    k_o = arrhenius_1('Ko', leaf_temp, params_photo)
+
+    v_cmax = arrhenius_2('Vcmax', leaf_temp, params_photo)
+    j_max = arrhenius_2('Jmax', leaf_temp, params_photo)
+    tpu = arrhenius_2('TPUmax', leaf_temp, params_photo)
+    r_d = arrhenius_2('Rdmax', leaf_temp, params_photo)
+
     alpha = .24
 
-    J = (alpha*PPFD)/((1+((alpha**2*PPFD**2)/(Jmax**2)))**0.5)  # Flux d'electrons en fonction de la temperature de la feuille et du niveau d'eclairement
+    j = (alpha * ppfd) / ((1 + ((alpha ** 2 * ppfd ** 2) / (j_max ** 2))) ** 0.5)
 
-    x1c = Vcmax
-    x2c = Kc*(1+O/Ko)
+    x1c = v_cmax
+    x2c = k_c * (1 + O / k_o)
 
-    x1j = J/4.
-    x2j = 2.*T
+    x1j = j / 4.
+    x2j = 2. * gamma
 
-    x1t = 3*TPU
-    x2t = -T
+    x1t = 3 * tpu
+    x2t = -gamma
 
-    return x1c,x2c,x1j,x2j,x1t,x2t,Rd
-
-
-#==============================================================================
-# Numerical solution of the An - gs - ci variables
-#==============================================================================
-
-#def incrementCi(Ca, An, gs, gb): # 22/06/2011: sacar el meteo_data, ea, es_l del parentesis y del parentesis de la linea 44
-#    """
-#    Calculates the chloroplast CO2 partial pressure issued from Fick's first law.
-#    
-#    :Parameters:
-#    - **Ca**: air CO2 concentration [umol mol-1]
-#    - **An**: net CO2 assimilation rate [umol m-2 s-1]
-#    - **gs**: stomatal conductance for water [mol m-2 s-1]
-#    - **gb**: boundary layer conductance for water [mol m-2 s-1].
-#    
-#    :Note:
-#    gs and gb are converted to CO2 conductances via division by 1.6 and 1.37, respectively.
-#    
-#    """
-#    return Ca-An*(1.6/gs+1.37/gb)
-
-
-#def coupling_Anci_iter(par_photo, meteo_leaf, psi, Ci, Tlc, w=0.1, iterCi=50, deltaci=0.0001):
-#    """
-#    Estimates simultaneously the values of net CO2 assimilation rate (An) and
-#    intercellular CO2 concentration (Ci), by an iterative scheme.
-#    
-#    :Warning:
-#    This function does not work under water deficit.
-#    Use instead :func:`compute_an_analytic`.
-#    
-#    :Parameters:
-#    - **par_photo**: a dictionary of Farquhar's model parameters
-#    - **meteo_leaf**: list of meteorological data
-#    - **w**: float, leaf Characteristic dimension in relation to wind speed [m]
-#    - **iterCi**: integer, the maximum number of desired iterations
-#    - **deltaci**: float, the tolerance in error between two consecutive values of `Ci` [umol mol-1]
-#    - **Tlc**: float, leaf temperature [degreeC].
-#    
-#    :Returns:
-#    - **An**: net CO2 assimilation rate [umol m-2 s-1]
-#    - **Cinew**: intercellular CO2 concentration [umol mol-1]
-#    - **gs**, **gb**: floats, resp. stomatal and boundary layer conductances for water [mol m2 s-1]
-#    """
-#    Tac = meteo_leaf['Tac']
-#    PPFD = meteo_leaf['PPFD'] 
-#    hs = meteo_leaf['hs'] 
-#    Ca = meteo_leaf['Ca']
-#    
-#    VPD = mutils.vapor_pressure_deficit(Tac,Tlc,hs)
-#    gb = mutils.boundary_layer_conductance(meteo_leaf['u'], w)
-#    
-#    i = 0
-#    while i<iterCi :
-#        An = compute_an_2(par_photo, PPFD, Tlc, Ci)
-#
-#        Cs = Ca-An*(1.37/gb)
-#        x1c,x2c,x1j,x2j,x1t,x2t,Rd = compute_an_2par(par_photo, PPFD, Tlc)
-#        Tx = x2j/2.
-#        gs = BWB_gs.stomatal_conductance_leuning(An,VPD,Cs,Tx,psi)
-#
-#        Cinew = Ca-An*(1.6/gs+1.37/gb)
-#        
-#        if abs(Cinew-Ci) < deltaci:
-#            #print 'nb iteration Ci_'+ str(i)
-#            #Ci = Cinew
-#            break 
-#        else:
-#            Ci = Cinew
-#            if i>iterCi-2:
-#                print 'warning ! Ci calculation does not converge to a solution'   
-#        i=i+1
-#
-#    return An, Cinew, gs, gb
+    return x1c, x2c, x1j, x2j, x1t, x2t, r_d
 
 
 #==============================================================================
@@ -663,8 +580,8 @@ def gas_exchange_rates(g, par_photo, par_photo_N, par_gs, meteo, E_type2,
                 leaf_par_photo['TPU25'] = par_photo_N['TPU25_N'][0]*node.Na+par_photo_N['TPU25_N'][1]
                 leaf_par_photo['Rd'] = par_photo_N['Rd_N'][0]*node.Na+par_photo_N['Rd_N'][1]
                 dHd_max = leaf_par_photo['dHd']
-                dHd = dHd_sensibility(psi, Tlc, dHd_max=dHd_max, dHd_min1=195.,dHd_min2=190.,
-                    psi_max=-.75, psi_min=-2., Tleaf_1=32, Tleaf_2=33)
+                dHd = dHd_sensibility(psi, Tlc, dhd_max=dHd_max, dhd_inhib_beg=195., dHd_inhib_max=190.,
+                                      psi_inhib_beg=-.75, psi_inhib_max=-2., temp_inhib_beg=32, temp_inhib_max=33)
 
                 leaf_par_photo['dHd'] = dHd
                 node.par_photo = leaf_par_photo
