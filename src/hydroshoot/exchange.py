@@ -294,31 +294,51 @@ def compute_an_2par(params_photo, ppfd, leaf_temp):
 #==============================================================================
 # Analytical solution of the An - gs - ci processes
 #==============================================================================
-def fvpd_3(model, vpd, psi, psi_crit=-0.37, c1=5.278, c2=1.85, D0=30.):
+def fvpd_3(model, vpd, psi, psi_crit=-0.37, m0=5.278, steepness_tuzet=1.85, d0_leuning=30.):
+    """Calculates the effect of water deficit on stomatal conductance.
+
+    Args:
+        model (str): stomatal conductance reduction model, one of 'misson','tuzet', 'linear' or 'vpd'
+        vpd (float): [kPa] vapor pressure deficit
+        psi (float): [MPa] leaf water potential
+        psi_crit (float): [MPa] critical leaf water potential (the meaning varies according to the selected
+            :arg:`model`)
+        m0 (float): [mmol(H2O) umol-1(CO2)] slope between the stomatal conductance and assimilated CO2 rates
+        steepness_tuzet (float): [MPa-1] steepness of the sigmoidal reduction function of tuzet's model
+        d0_leuning (float): [kPa-1] shape factor shaping VPD's effect on the reduction function of leuning's model
+
+    Returns:
+        (float): [mmol(H2O) umol-1(CO2)] the slope between the stomatal conductance and assimilated CO2 rates after
+            accounting for the effect of water deficit
+
+    References:
+        Leuning (1995)
+            A critical appraisal of a combined stomatal photosynthesis model for C3 plants.
+            Plant, Cell and Environment 18, 339355.
+        Tuzet et al. (2003)
+            A coupled model of stomatal conductance, photosynthesis and transpiration.
+            Plant, Cell and Environment 26, 10971116.
+        Misson et al. (2004)
+            A comparison of three approaches to modeling leaf gas exchange in annually drought-stressed ponderosa pine
+                forest.
+            Tree Physiology 24, 529 541.
+
     """
-    """
-    if model =='misson':
-        m = 1. / (1. + (psi/psi_crit)** c2)
+    if model == 'misson':
+        reduction_factor = 1. / (1. + (psi / psi_crit) ** steepness_tuzet)
     elif model == 'tuzet':
-        m = (1. + exp(c2 * psi_crit)) / (1. + exp(float(c2 * (psi_crit - psi))))
+        reduction_factor = (1. + exp(steepness_tuzet * psi_crit)) / (1. + exp(float(steepness_tuzet * (psi_crit - psi))))
     elif model == 'linear':
-        m = 1 - min(1,float(psi/psi_crit))
+        reduction_factor = 1. - min(1., float(psi / psi_crit))
     elif model == 'vpd':
-        m = 1. / (1. + vpd / float(D0))
+        reduction_factor = 1. / (1. + vpd / float(d0_leuning))
     else:
-        raise ValueError ("The 'model' argument must be one of the following ('misson','tuzet', 'linear').")
-    return c1 * m
+        raise ValueError("The 'model' argument must be one of the following ('misson','tuzet', 'linear' or 'vpd').")
+    return m0 * reduction_factor
 
 
-def g0_sensibility(psi, psi_crit=-0.1, n=3):
-    """
-    """
-    return 1. / (1. + (psi/psi_crit)**n)
-
-
-def gm(temp, gm25=0.1025, EA_gm=49600., DEA_gm=437400., Sgm=1400.):
-    """
-    Returns gm, the mesophyll conductance to CO2 diffusion [umol m-2 s-1 ubar-1].
+def gm(leaf_temperature, gm25=0.1025, activation_energy=49600., deactivation_energy=437400., entropy=1400.):
+    """Calculates mesophyll conductance to CO2.
 
     :Parameters:
     - **temp**: float, leaf temperature [degreeC]
@@ -326,10 +346,24 @@ def gm(temp, gm25=0.1025, EA_gm=49600., DEA_gm=437400., Sgm=1400.):
     - **EA_gm**: the activation energy for parameter X [J mol-1]; Yin 2009; Bernacci 2002 plant physiology
     - **DEA_gm**: the deactivation energy, resource?
     - **Sgm**: an entropy term [J K-1 mol -1]
+
+
+    Args:
+        leaf_temperature (float): [°C] leaf temperature
+        gm25 (float): [mol m-2 leaf s-1 bar-1] mesophyll conductance for CO2 at 25 °C (Bernacchi 2002 for tobaco)
+        activation_energy (float): [J mol-1] activation energy (Yin 2009; Bernacci 2002 plant physiology
+        deactivation_energy (float): [J mol-1] deactivation energy
+        entropy (float): [J K-1 mol -1]
+
+    Returns:
+        (float)
+
     """
 
-    R2 = R * 1.e3 #Ideal gaz constant in [J K-1 mol-1]
-    gm = gm25*exp((1./298.-1./(temp+273.))*EA_gm/R2)*(1.+exp(Sgm/R2-DEA_gm/298./R2))/(1.+exp(Sgm/R2-1./(temp+273.)*DEA_gm/R2))
+    R2 = R * 1.e3  # Ideal gaz constant in [J K-1 mol-1]
+    gm = gm25 * exp((1. / 298. - 1. / (leaf_temperature + 273.)) * activation_energy / R2) * (
+                1. + exp(entropy / R2 - deactivation_energy / 298. / R2)) / (
+                     1. + exp(entropy / R2 - 1. / (leaf_temperature + 273.) * deactivation_energy / R2))
 
     return gm
 
@@ -381,7 +415,7 @@ def compute_amono_analytic(x1, x2, temp, vpd, gammax, Rd, psi, model='misson',
     - **D0** and **n**: float, shape parameters
     """
 
-    f_VPD = fvpd_3(model, vpd, psi, psi_crit=psi0, c1=m0, c2=n, D0=D0)
+    f_VPD = fvpd_3(model, vpd, psi, psi_crit=psi0, m0=m0, steepness_tuzet=n, d0_leuning=D0)
 #    if psi < -1.5: f_VPD = 0
 
     cube_a = g0*(x2+gammax)+(g0/gm(temp)+f_VPD)*(x1-Rd)
@@ -429,7 +463,7 @@ def compute_an_analytic(temp, vpd, x1c, x2c, x1j, x2j, x1t, x2t, Rd, psi,
     - **gsw**: stomatal conductance for water [mol m-2 s-1]
     """
 
-    f_VPD = fvpd_3(model, vpd, psi, psi_crit=psi0, c1=m0, c2=n, D0=D0)
+    f_VPD = fvpd_3(model, vpd, psi, psi_crit=psi0, m0=m0, steepness_tuzet=n, d0_leuning=D0)
 
     gammax = x2j/2.
     ci_asterisk = gammax-Rd/gm(temp)
