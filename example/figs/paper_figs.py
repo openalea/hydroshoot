@@ -123,8 +123,8 @@ def plot_figure_13():
 
     fig.tight_layout()
     fig.savefig('fig_13.png')
+
     pyplot.show(fig)
-    #pyplot.close(fig)
 
 
 def plot_meteo_vsp():
@@ -200,7 +200,7 @@ def plot_figure_11():
         q3_obs = np.array([])
         for row, date in enumerate(datet):
             pos = date.toordinal() + date.hour / 24.
-            leaf_temp_obs = obs.loc[date, ['Tleaf%d' % d for d in (2,3,4,5,6,8,9,10)]]
+            leaf_temp_obs = obs.loc[date, ['Tleaf%d' % d for d in (2, 3, 4, 5, 6, 8, 9, 10)]]
             leaf_temp_obs = leaf_temp_obs[~np.isnan(leaf_temp_obs)]
             axs[0, iax].boxplot(leaf_temp_obs, positions=[pos], widths=0.01)
             q1_obs = np.append(q1_obs, min(leaf_temp_obs))
@@ -230,7 +230,7 @@ def plot_figure_11():
     axs[0, 0].set_ylabel('$\mathregular{Temperature\/[^{\circ}C]}$')
     axs[1, 0].set_ylabel('$\mathregular{T_{leaf, sim}\/[^{\circ}C]}$')
 
-    for ax_upper, ax_lower in zip(axs[0,:], axs[1,:]):
+    for ax_upper, ax_lower in zip(axs[0, :], axs[1, :]):
         ax_upper.set(xlim=(beg_date, end_date), ylim=(5, 50), xlabel='Date')
         ax_upper.set_xticklabels(datet, rotation=45)
         ax_upper.xaxis.set_major_locator(dates.DayLocator())
@@ -262,6 +262,6 @@ if __name__ == '__main__':
 
     example_pth = Path(__file__).parents[2] / 'example'
 
-    # plot_figure_13()
+    plot_figure_13()
     # # plot_meteo_vsp()
-    # plot_figure_11()
+    plot_figure_11()
