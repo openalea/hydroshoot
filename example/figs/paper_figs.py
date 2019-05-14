@@ -163,7 +163,7 @@ def plot_figure_11():
         axs[0, iax].grid()
         axs[1, iax].grid()
 
-        # Set dates ************************
+        # set dates ************************
         beg_date = datetime(2009, 7, 29, 00, 00, 0, )
         end_date = datetime(2009, 8, 1, 23, 00, 0, )
         datet = pd.date_range(beg_date, end_date, freq='H')
@@ -183,16 +183,16 @@ def plot_figure_11():
 
         # plot simulated temperature magnitude
         med_sim = np.array([])
-        q_1_sim = np.array([])
-        q_3_sim = np.array([])
+        q1_sim = np.array([])
+        q3_sim = np.array([])
         for date in datet:
             g, _ = mtg_load(str(pth) + '/output/mtg', date.strftime('%Y%m%d%H%M%S'))
             leaf_temp_sim = g.property('Tlc').values()
-            q_1_sim = np.append(q_1_sim, min(leaf_temp_sim))
-            q_3_sim = np.append(q_3_sim, max(leaf_temp_sim))
+            q1_sim = np.append(q1_sim, min(leaf_temp_sim))
+            q3_sim = np.append(q3_sim, max(leaf_temp_sim))
             med_sim = np.append(med_sim, np.median(leaf_temp_sim))
             print(date)
-        axs[0, iax].fill_between(datet, q_1_sim, q_3_sim, color='red', alpha=0.5, zorder=0)
+        axs[0, iax].fill_between(datet, q1_sim, q3_sim, color='red', alpha=0.5, zorder=0)
 
         # plot observed temperature magnitude
         med_obs = np.array([])
@@ -212,7 +212,7 @@ def plot_figure_11():
         axs[1, iax].plot((10, 50), (10, 50), 'k--')
         axs[1, iax].errorbar(x=med_obs, y=med_sim,
                              xerr=(np.nan_to_num(med_obs - q1_obs), np.nan_to_num(q3_obs - med_obs)),
-                             yerr=(np.nan_to_num(med_sim - q_1_sim), np.nan_to_num(q_3_sim - med_sim)),
+                             yerr=(np.nan_to_num(med_sim - q1_sim), np.nan_to_num(q3_sim - med_sim)),
                              fmt='ro', ecolor='0.5', capthick=1)
 
         # plot MBE and RMSE results on it
@@ -248,6 +248,134 @@ def plot_figure_11():
     pyplot.show(fig)
 
 
+def plot_figure_12():
+    """Generates figure 12 of the paper. This figure compares, leaf-to-leaf, simulated to observed leaf and leaf-to-air
+    temperature.
+    """
+
+    fig, axs = pyplot.subplots(ncols=3, figsize=(13, 4.5))
+    [ax.grid() for ax in axs]
+
+    daily_temp_obs = np.array([])
+    daily_temp_sim = np.array([])
+    daily_temp_air = np.array([])
+
+    for iax, training in enumerate(('vsp_ww_grapevine', 'vsp_ws_grapevine')):
+
+        pth = example_pth / training
+
+        # set dates ************************
+        beg_date = datetime(2009, 7, 29, 00, 00, 0, )
+        end_date = datetime(2009, 8, 1, 23, 00, 0, )
+        datet = pd.date_range(beg_date, end_date, freq='H')
+
+        # read observations
+        obs = pd.read_csv(pth / 'temp.obs', sep=';', decimal='.', index_col='date')
+        obs.index = [datetime.strptime(s, "%d/%m/%Y %H:%M") for s in obs.index]
+
+        # read simulations
+        sims = pd.read_csv(pth / 'output' / 'time_series.output',
+                           sep=';', decimal='.', index_col='time')
+        sims.index = [datetime.strptime(s, "%Y-%m-%d %H:%M:%S") for s in sims.index]
+        sims.index = pd.DatetimeIndex(sims.index)
+
+        # plot simulated temperature magnitude
+        med_sim = np.array([])
+        q_1_sim = np.array([])
+        q_3_sim = np.array([])
+        for date in datet:
+            g, _ = mtg_load(str(pth) + '/output/mtg', date.strftime('%Y%m%d%H%M%S'))
+            leaf_temp_sim = g.property('Tlc').values()
+            q_1_sim = np.append(q_1_sim, min(leaf_temp_sim))
+            q_3_sim = np.append(q_3_sim, max(leaf_temp_sim))
+            med_sim = np.append(med_sim, np.median(leaf_temp_sim))
+            print(date)
+
+        # get observed temperature magnitude
+        med_obs = np.array([])
+        q1_obs = np.array([])
+        q3_obs = np.array([])
+        for row, date in enumerate(datet):
+            pos = date.toordinal() + date.hour / 24.
+            leaf_temp_obs = obs.loc[date, ['Tleaf%d' % d for d in (2, 3, 4, 5, 6, 8, 9, 10)]]
+            leaf_temp_obs = leaf_temp_obs[~np.isnan(leaf_temp_obs)]
+            q1_obs = np.append(q1_obs, min(leaf_temp_obs))
+            q3_obs = np.append(q3_obs, max(leaf_temp_obs))
+            med_obs = np.append(med_obs, np.median(leaf_temp_obs))
+            print(date)
+
+        # read meteo data
+        meteo_df = pd.read_csv(pth / 'meteo.input', sep=';', decimal='.', index_col='time')
+        meteo_df.index = pd.DatetimeIndex(meteo_df.index)
+
+        air_temperature = meteo_df.loc[datet, 'Tac']
+
+        daily_temp_obs = np.append(daily_temp_obs, q1_obs)
+        daily_temp_obs = np.append(daily_temp_obs, q3_obs)
+
+        daily_temp_sim = np.append(daily_temp_sim, q_1_sim)
+        daily_temp_sim = np.append(daily_temp_sim, q_3_sim)
+
+        daily_temp_air = np.append(daily_temp_air, air_temperature)
+        daily_temp_air = np.append(daily_temp_air, air_temperature)
+
+        # minimum temperature
+        axs[0].plot(q1_obs - air_temperature, q_1_sim - air_temperature,
+                    ['b^', 'r^'][iax], label=['WW', 'WD'][iax])
+        # maximum temperature
+        axs[0].plot(q3_obs - air_temperature, q_3_sim - air_temperature,
+                    ['bo', 'ro'][iax], label=['WW', 'WD'][iax])
+
+        axs[1].plot(q1_obs, q_1_sim, ['b^', 'r^'][iax], label=['WW', 'WD'][iax])
+        axs[1].plot(q3_obs, q_3_sim, ['bo', 'ro'][iax], label=['WW', 'WD'][iax])
+
+        axs[2].plot(q3_obs - q1_obs, q_3_sim - q_1_sim, ['bs', 'rs'][iax], label=['WW', 'WD'][iax])
+
+    # some layout
+    axs[0].plot((-8, 12), (-8, 12), 'k--')
+    axs[0].set(xlabel='$\mathregular{T_{leaf, obs}-T_{air}\/[^\circ C]}$',
+               ylabel='$\mathregular{T_{leaf, sim}-T_{air}\/[^\circ C]}$',
+               xlim=(-8, 12), ylim=(-8, 12))
+
+    axs[1].plot((10, 45), (10, 45), 'k--')
+    axs[1].set(xlabel='$\mathregular{T_{leaf, obs}\/[^\circ C]}$',
+               ylabel='$\mathregular{T_{leaf, sim}\/[^\circ C]}$')
+
+    axs[2].plot((-2, 14), (-2, 14), 'k--')
+    axs[2].set(xlabel='$\mathregular{\Delta T_{leaf, obs}\/[^\circ C]}$',
+               ylabel='$\mathregular{\Delta T_{leaf, sim}\/[^\circ C]}$')
+
+    for i in range(3):
+        if i == 0:
+            x, y = daily_temp_obs - daily_temp_air, daily_temp_sim - daily_temp_air
+        elif i == 1:
+            x, y = daily_temp_obs, daily_temp_sim
+        else:
+            x = np.array([])
+            x = np.append(x, daily_temp_obs[96:2 * 96] - daily_temp_obs[:96])
+            x = np.append(x, daily_temp_obs[3 * 96:4 * 96] - daily_temp_obs[2 * 96:3 * 96])
+            y = np.array([])
+            y = np.append(y, daily_temp_sim[96:2 * 96] - daily_temp_sim[:96])
+            y = np.append(y, daily_temp_sim[3 * 96:4 * 96] - daily_temp_sim[2 * 96:3 * 96])
+
+        diff_y_x = (y - x)[~np.isnan(y - x)]
+        bias = (diff_y_x).mean()
+        rmse = np.sqrt((diff_y_x ** 2).mean())
+
+        axs[i].text(0.05, 0.80, '$\mathregular{MBE\/=\/%.3f}$' % bias,
+                    transform=axs[i].transAxes, fontdict={'size': 7})
+        axs[i].text(0.05, 0.75, '$\mathregular{RMSE\/=\/%.1f}$' % rmse,
+                    transform=axs[i].transAxes, fontdict={'size': 7})
+
+        axs[i].text(0.05, 0.9, ['(a)', '(b)', '(c)'][i],
+                    transform=axs[i].transAxes, fontdict={'size': 10})
+
+    fig.tight_layout()
+    fig.savefig('fig12.png')
+
+    pyplot.show(fig)
+
+
 if __name__ == '__main__':
     import pandas as pd
     import numpy as np
@@ -262,6 +390,7 @@ if __name__ == '__main__':
 
     example_pth = Path(__file__).parents[2] / 'example'
 
-    plot_figure_13()
+    # plot_figure_13()
     # # plot_meteo_vsp()
-    plot_figure_11()
+    # plot_figure_11()
+    plot_figure_12()
