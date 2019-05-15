@@ -496,6 +496,91 @@ def plot_figure_14():
     pyplot.show(fig)
 
 
+def plot_figure_15():
+    """Generates figure 15 of the paper. This figure compares simulated to observed plant photosynthesis and
+    transpiration rates using 4 simulation parameters' sets (modularity test)
+    """
+    # set dates
+    beg_date = datetime(2009, 7, 29, 00, 00, 0, )
+    end_date = datetime(2009, 8, 1, 23, 00, 0, )
+    datet = pd.date_range(beg_date, end_date, freq='H')
+
+    style = ('b-', 'k--', 'k-.', 'k-', 'k:')
+    vpd_air = np.vectorize(VPDa)
+
+    fig, axs = pyplot.subplots(nrows=2, ncols=2, sharey='row', sharex='all')
+    [ax.grid() for ax in axs.flatten()]
+
+    for i_treat, treat in enumerate(('ww', 'ws')):
+
+        pth = example_pth / ('vsp_%s_grapevine' % treat)
+
+        # read and plot observations
+        obs_df = pd.read_csv(pth / 'gas.obs', sep=';', decimal='.')
+        obs_df.time = pd.DatetimeIndex(obs_df.time)
+        obs_df = obs_df.set_index(obs_df.time)
+
+        axs[0, i_treat].plot(obs_df['time'], obs_df['An_plante'],
+                             color='0.8', marker='o', markeredgecolor='none', label='$\mathregular{A_{n,\/obs}}$')
+        axs[1, i_treat].plot(obs_df['time'], obs_df['E_plante'],
+                             color='0.8', marker='o', markeredgecolor='none', label='$\mathregular{E_{obs}}$')
+
+        # read and plot vpd
+        meteo_df = pd.read_csv(pth / 'meteo.input', sep=';', decimal='.', index_col='time')
+        meteo_df.index = pd.DatetimeIndex(meteo_df.index)
+        meteo_df['vpd'] = vpd_air(meteo_df.Tac, meteo_df.Tac, meteo_df.hs)
+        axt = axs[1, i_treat].twinx()
+        axt.plot(datet, meteo_df.loc[datet, 'vpd'], 'r-')
+
+        # read and plot simulations
+        for case in range(5):
+            if case == 0:
+                sim_pth = pth / 'output' / 'time_series.output'
+            else:
+                sim_pth = example_pth / 'modularity' / treat / ('sim_%d' % case) / 'output' / 'time_series.output'
+
+            sims = pd.read_csv(sim_pth, sep=';', decimal='.', index_col='time')
+            sims.index = [datetime.strptime(s, "%Y-%m-%d %H:%M:%S") for s in sims.index]
+            sims.index = pd.DatetimeIndex(sims.index)
+
+            axs[0, i_treat].plot(sims['An'], style[case], label='sim0', linewidth=1)
+            axs[1, i_treat].plot(sims['E'], style[case], label='sim0', linewidth=1)
+
+    for i, ax in enumerate(axs.flatten()):
+        ax.text(0.05, 0.9, ('(a)', '(b)', '(c)', '(d)')[i], transform=ax.transAxes)
+
+    axs[0, 0].set(
+        ylabel='$\mathregular{A_{n, plant}\/[\mu mol\/s^{-1}]}$',
+        ylim=(-20, 50))
+    axs[1, 0].set(
+        xlabel='Date',
+        ylabel='$\mathregular{E_{plant}\/[g\/h^{-1}]}$',
+        xlim=(beg_date, end_date),
+        ylim=(-200, 1600))
+    axs[1, 1].set(xlabel='Date')
+    [ax.set_ylim(0, 5) for ax in fig.get_axes()[-2:]]
+    fig.get_axes()[-1].set(ylabel='VPD [kPa]')
+
+    for ax in axs[1, :].flatten():
+        ax.set_xticklabels(datet, rotation=90)
+        ax.xaxis.set_major_locator(dates.DayLocator())
+        ax.xaxis.set_major_formatter(dates.DateFormatter('%d %m'))
+
+    fig.tight_layout()
+    fig.subplots_adjust(bottom=0.25)
+
+    h1, l1 = axs[1, 1].get_legend_handles_labels()
+    h2, l2 = fig.get_axes()[-1].get_legend_handles_labels()
+
+    axs[1, 1].legend(h1 + h2, ['obs'] + ['sim%d' % d for d in range(5)] + ['VPD'], frameon=True,
+                     bbox_to_anchor=(-1.5, -0.7, 2, .102), loc=3, ncol=8,
+                     prop={'size': 11})
+
+    fig.savefig('fig_15.png')
+
+    pyplot.show(fig)
+
+
 if __name__ == '__main__':
     import pandas as pd
     import numpy as np
@@ -505,6 +590,7 @@ if __name__ == '__main__':
     from matplotlib import dates, pyplot
 
     from hydroshoot.architecture import mtg_load
+    from hydroshoot.utilities import vapor_pressure_deficit as VPDa
 
     pyplot.style.use('seaborn-ticks')
 
@@ -513,4 +599,6 @@ if __name__ == '__main__':
     plot_figure_11()
     plot_figure_12()
     plot_figure_13()
+    plot_figure_14()
+    plot_figure_15()
     # # plot_meteo_vsp()
