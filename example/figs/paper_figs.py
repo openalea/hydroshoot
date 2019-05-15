@@ -371,7 +371,127 @@ def plot_figure_12():
                     transform=axs[i].transAxes, fontdict={'size': 10})
 
     fig.tight_layout()
-    fig.savefig('fig12.png')
+    fig.savefig('fig_12.png')
+
+    pyplot.show(fig)
+
+
+def plot_figure_14():
+    """Generates figure 14 of the paper. This figure compares, simulated to observed plant transpiration rates.
+    """
+
+    fig, axs = pyplot.subplots(nrows=3, ncols=4, sharex='col', sharey='row', figsize=(10, 6))
+
+    for i_treat, training in enumerate(('gdc_can1_grapevine', 'gdc_can2_grapevine', 'gdc_can3_grapevine')):
+
+        pth = example_pth / training
+
+        beg_date = datetime(2012, 8, 01, 00, 00, 0, )
+        end_date = datetime(2012, 8, 04, 23, 00, 0, )
+        datet = pd.date_range(beg_date, end_date, freq='H')
+
+        # read observations
+        obs_df = pd.read_csv(pth / 'sapflow.obs', sep=';', decimal='.', index_col='date')
+        obs_df.index = [datetime.strptime(s, "%d/%m/%Y %H:%M") for s in obs_df.index]
+        # obs_df.index = pd.DatetimeIndex(obs_df.idnex)
+
+        time_group = []
+        for itime in obs_df.index:
+            if itime.minute < 30:
+                time = itime - pd.Timedelta(minutes=itime.minute)
+            else:
+                time = itime + pd.Timedelta(minutes=60 - itime.minute)
+            time_group.append(time)
+        obs_df['itime'] = time_group
+
+        obs_grouped = obs_df.groupby('itime').aggregate(np.mean)
+        obs_grouped['itime'] = obs_grouped.index
+
+        # read simulations
+        sims = pd.read_csv(pth / 'output' / 'time_series.output',
+                           sep=';', decimal='.', index_col='time')
+        sims.index = [datetime.strptime(s, "%Y-%m-%d %H:%M:%S") for s in sims.index]
+        sims.index = pd.DatetimeIndex(sims.index)
+
+        sims['itime'] = sims.index
+        m_df = pd.merge(obs_grouped, sims)
+
+        x = m_df['west'].values + m_df['east'].values
+        y = m_df['sapWest'].values + m_df['sapEast'].values
+
+        x_index = np.isfinite(x)
+        y_index = np.isfinite(y)
+        xy_index = x_index * y_index
+        x, y = x[xy_index], y[xy_index]
+
+        for iax, ax in enumerate(axs[i_treat, :]):
+            ax.xaxis.grid(which='minor', zorder=0)
+            ax.yaxis.grid(which='major', zorder=0)
+
+            ax.plot(sims.index, sims.sapEast, c='r', linewidth=1)
+            ax.plot(sims.index, sims.sapWest, c='b', linewidth=1)
+
+            ax.plot(obs_df.index, obs_df['east'], label='East', color='red',
+                    marker='o', markeredgecolor='none', alpha=0.1)
+            ax.plot(obs_df.index, obs_df['west'], label='West', color='blue',
+                    marker='o', markeredgecolor='none', alpha=0.1)
+
+            x_t = x[i_treat * 24:i_treat * 24 + 23]
+            y_t = y[i_treat * 24:i_treat * 24 + 23]
+
+            x_index = np.isfinite(x_t)
+            y_index = np.isfinite(y_t)
+            xy_index = x_index * y_index
+            x_t, y_t = x_t[xy_index], y_t[xy_index]
+
+            bias = (y_t - x_t).mean()
+            rmse = np.sqrt(((x_t - y_t) ** 2).mean())
+
+            ax.text(0.45, 0.875,
+                    '$\mathregular{MBE\/=\/%.1f}$' % bias,
+                    transform=ax.transAxes, fontdict={'size': 7})
+            ax.text(0.45, 0.775,
+                    '$\mathregular{RMSE\/=\/%.1f}$' % rmse,
+                    transform=ax.transAxes, fontdict={'size': 7})
+
+    # some layout
+    for day in range(4):
+        day_sdate = datetime(2012, 8, 01, 00, 00, 0, ) + timedelta(days=day)
+        day_edate = day_sdate + timedelta(hours=23)
+        for can in range(3):
+            axs[can, day].set_xlim(day_sdate, day_edate)
+
+    axs[1, 0].set_ylabel('$\mathregular{E\/[g\/h^{-1}]}$')
+
+    axs[0, 0].set_ylim(0, 800)
+    axs[1, 0].set_ylim(0, 450)
+    axs[2, 0].set_ylim(0, 500)
+
+    for can in range(3):
+        axs[can, 3].text(0.5, 0.5, 'Canopy%s' % str(can + 1),
+                         transform=axs[can, 3].transAxes, fontdict={'size': 11})
+
+    for ax in axs[2, :]:
+        ax.set_xlabel('Date')
+        ax.set_xticklabels(pd.date_range(day_sdate, day_edate, freq='H'),
+                           rotation=90)
+        ax.xaxis.set_major_locator(dates.DayLocator())
+        ax.xaxis.set_major_formatter(dates.DateFormatter('%d %m'))
+        ax.xaxis.set_minor_locator(dates.HourLocator(interval=3))
+        ax.xaxis.set_minor_formatter(dates.DateFormatter('%H'))
+        ax.tick_params(axis='x', which='major', pad=15)
+
+    fig.tight_layout()
+    fig.subplots_adjust(left=0.13, bottom=0.3)
+
+    h1, l1 = axs[2, 2].get_legend_handles_labels()
+
+    axs[2, 0].legend(h1, ('$\mathregular{SapEast_{sim}}$', '$\mathregular{SapWest_{sim}}$',
+                          '$\mathregular{SapEast_{obs}}$', '$\mathregular{SapWest_{obs}}$'),
+                     frameon=True, bbox_to_anchor=(-0., -1.5, 2, .102),
+                     loc=3, ncol=8)
+
+    fig.savefig('fig_14.png')
 
     pyplot.show(fig)
 
@@ -380,7 +500,7 @@ if __name__ == '__main__':
     import pandas as pd
     import numpy as np
     from pathlib import Path
-    from datetime import datetime
+    from datetime import datetime, timedelta
     from scipy.stats import linregress
     from matplotlib import dates, pyplot
 
@@ -390,7 +510,7 @@ if __name__ == '__main__':
 
     example_pth = Path(__file__).parents[2] / 'example'
 
-    # plot_figure_13()
-    # # plot_meteo_vsp()
-    # plot_figure_11()
+    plot_figure_11()
     plot_figure_12()
+    plot_figure_13()
+    # # plot_meteo_vsp()
