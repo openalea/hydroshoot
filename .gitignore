@@ -100,4 +100,7 @@ example/modularity/ws/sim_1/output/
 example/modularity/ws/sim_2/output/
 example/modularity/ws/sim_3/output/
 example/modularity/ws/sim_4/output/
+example/virtual_canopies/gdc/output/
+example/virtual_canopies/vsp/output/
+example/virtual_canopies/lyre/output/
 doc/
