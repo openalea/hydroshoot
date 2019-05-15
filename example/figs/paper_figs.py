@@ -581,6 +581,74 @@ def plot_figure_15():
     pyplot.show(fig)
 
 
+def write_table_1():
+    """Generates table 1 of the paper. This table compares simulated to observed plant photosynthesis and
+    transpiration rates using 4 simulation parameters' sets (modularity test)
+    """
+    indices = [['ww'] * 5 + ['ws'] * 5,
+               ['sim%d' % d for d in range(5)] * 2]
+    multiple_index = pd.MultiIndex.from_tuples(list(zip(*indices)), names=['treat', 'sim'])
+
+    df = pd.DataFrame(columns=('an_mbe', 'an_rmse', 'e_mbe', 'e_rmse'),
+                      index=multiple_index)
+
+    for i_treat, treat in enumerate(('ww', 'ws')):
+
+        pth = example_pth / ('vsp_%s_grapevine' % treat)
+
+        # read observations
+        obs_df = pd.read_csv(pth / 'gas.obs', sep=';', decimal='.')
+        obs_df.time = pd.DatetimeIndex(obs_df.time)
+        obs_df = obs_df.set_index(obs_df.time)
+
+        # read simulations
+        for case in range(5):
+            if case == 0:
+                sim_pth = pth / 'output' / 'time_series.output'
+            else:
+                sim_pth = example_pth / 'modularity' / treat / ('sim_%d' % case) / 'output' / 'time_series.output'
+
+            sims_df = pd.read_csv(sim_pth, sep=';', decimal='.', index_col='time')
+            sims_df.index = [datetime.strptime(s, "%Y-%m-%d %H:%M:%S") for s in sims_df.index]
+            sims_df.index = pd.DatetimeIndex(sims_df.index)
+
+            # match sims to obs
+            sims_df['itime'] = sims_df.index
+            obs_df['time'] = pd.DatetimeIndex(obs_df.time)
+
+            time_group = []
+            for itime in obs_df.index:
+                if itime.minute < 30:
+                    time = itime - pd.Timedelta(minutes=itime.minute)
+                else:
+                    time = itime + pd.Timedelta(minutes=60 - itime.minute)
+                time_group.append(time)
+            obs_df['itime'] = time_group
+
+            obs_grouped = obs_df.groupby('itime').aggregate(np.mean)
+            obs_grouped['itime'] = obs_grouped.index
+
+            m_df = pd.merge(obs_grouped, sims_df)
+
+            for gas in ('An', 'E'):
+                rate_obs = m_df['%s_plante' % gas].values
+                rate_sim = m_df[gas].values
+
+                x_index = np.isfinite(rate_obs)
+                y_index = np.isfinite(rate_sim)
+                xy_index = x_index * y_index
+                rate_obs, rate_sim = rate_obs[xy_index], rate_sim[xy_index]
+
+                bias = (rate_sim - rate_obs).mean()
+                rmse = np.sqrt(((rate_obs - rate_sim) ** 2).mean())
+
+                df.loc[(treat, 'sim%d' % case), '%s_mbe' % gas.lower()] = bias
+                df.loc[(treat, 'sim%d' % case), '%s_rmse' % gas.lower()] = rmse
+
+    print(df)
+    df.to_csv('table_1.csv')
+
+
 if __name__ == '__main__':
     import pandas as pd
     import numpy as np
@@ -601,4 +669,5 @@ if __name__ == '__main__':
     plot_figure_13()
     plot_figure_14()
     plot_figure_15()
+    write_table_1()
     # # plot_meteo_vsp()
