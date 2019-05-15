@@ -81,6 +81,59 @@ def plot_figure_9():
     fig.savefig('fig_9.png')
 
 
+def plot_figure_10():
+    """Generates figure 10 of the paper. This figure compares, simulated to observed stomatal conductance rates.
+    """
+
+    beg_date = datetime(2012, 8, 01, 00, 00, 0, )
+    end_date = datetime(2012, 8, 03, 00, 00, 0, )
+    datet = pd.date_range(beg_date, end_date, freq='D')
+
+    fig, axs = pyplot.subplots(nrows=3, ncols=3, sharex='all', sharey='all')
+
+    for it, training in enumerate(('gdc_can1_grapevine', 'gdc_can2_grapevine', 'gdc_can3_grapevine')):
+
+        pth = example_pth / training
+
+        for i_day, date in enumerate(datet):
+            ax = axs[it, i_day]
+            obs_date = date + pd.Timedelta(hours=13)
+            g, _ = mtg_load(str(pth) + '/output/mtg', obs_date.strftime('%Y%m%d%H%M%S'))
+            ax = display.property_map(g, 'gs', ax=ax, prop2='Eabs', color='grey',
+                                      colormap='autumn', colorbar=False)
+
+            obs_df = pd.read_csv(pth / 'var.obs', sep=';', index_col='date')
+            obs_df.index = pd.DatetimeIndex(obs_df.index)
+            gs_leaf = obs_df.loc[date, 'gs'] / 1000.
+            ax.add_patch(patches.Rectangle((max(gs_leaf), 50),
+                                           min(gs_leaf) - max(gs_leaf), 250,
+                                           color='0.8', zorder=-1))
+            if i_day == 0:
+                ax.text(0.05, 0.075, 'Canopy%d' % (it + 1), transform=ax.transAxes)
+
+            if it == 0:
+                ax.text(0.75, 0.85, '0%d 0%d' % (obs_date.day, obs_date.month), transform=ax.transAxes)
+
+    [axi.set_xticklabels(axi.get_xticks(), rotation=90) for axi in axs[2]]
+
+    for ax, axi in enumerate(axs):
+        if ax < 2:
+            [axi[i_day].set_xlabel('') for i_day in range(3)]
+        [axi[i_day].set_ylabel('') for i_day in (1, 2)]
+        [axi[i_day].legend_.remove() for i_day in range(3)]
+
+    fig.tight_layout()
+
+    fig.subplots_adjust(bottom=0.3)
+    cbar_ax = fig.add_axes([0.35, 0.1, 0.30, 0.04])
+    norm = colors.Normalize(0, vmax=2000)
+    cbar = colorbar.ColorbarBase(cbar_ax, cmap='autumn', orientation='horizontal', norm=norm)
+    cbar.ax.set_xticklabels(cbar.ax.get_xticklabels(), rotation=90)
+    cbar.set_label('$\mathregular{PPFD\/[\mu mol\/m^{-1}\/s^{-1}]}$', labelpad=-20, x=-0.4)
+
+    fig.savefig('fig_10.png')
+
+
 def plot_figure_11():
     """Generates figure 11 of the paper. This figure compares simulated to observed leaf temperatures.
     """
@@ -718,6 +771,8 @@ if __name__ == '__main__':
 
     example_pth = Path(__file__).parents[2] / 'example'
 
+    plot_figure_9()
+    plot_figure_10()
     plot_figure_11()
     plot_figure_12()
     plot_figure_13()
