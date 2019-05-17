@@ -648,8 +648,8 @@ def plot_figure_14():
             ax.plot(obs_df.index, obs_df['west'], label='West', color='blue',
                     marker='o', markeredgecolor='none', alpha=0.1)
 
-            x_t = x[i_treat * 24:i_treat * 24 + 23]
-            y_t = y[i_treat * 24:i_treat * 24 + 23]
+            x_t = x[iax * 24:iax * 24 + 23]
+            y_t = y[iax * 24:iax * 24 + 23]
 
             x_index = np.isfinite(x_t)
             y_index = np.isfinite(y_t)
@@ -878,13 +878,13 @@ if __name__ == '__main__':
     example_pth = Path(__file__).parents[2] / 'example'
 
     plot_figure_6()
-    # plot_figure_7()
-    # plot_figure_8()
-    # plot_figure_9()
-    # plot_figure_10()
-    # plot_figure_11()
-    # plot_figure_12()
-    # plot_figure_13()
-    # plot_figure_14()
-    # plot_figure_15()
-    # write_table_1()
+    plot_figure_7()
+    plot_figure_8()
+    plot_figure_9()
+    plot_figure_10()
+    plot_figure_11()
+    plot_figure_12()
+    plot_figure_13()
+    plot_figure_14()
+    plot_figure_15()
+    write_table_1()
