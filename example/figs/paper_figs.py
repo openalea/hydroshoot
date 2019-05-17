@@ -365,7 +365,7 @@ def plot_figure_13():
     end_date = datetime(2009, 8, 1, 23, 00, 0, )
     datet = pd.date_range(beg_date, end_date, freq='H')
 
-    fig, axs = pyplot.subplots(nrows=2, ncols=3, figsize=(10, 6))
+    fig, axs = pyplot.subplots(nrows=2, ncols=3, figsize=(11, 6))
     [ax.grid() for ax in axs.flatten()]
 
     for iax, training in enumerate(('vsp_ww_grapevine', 'vsp_ws_grapevine')):
@@ -458,7 +458,7 @@ def plot_figure_13():
         xlim=(beg_date, end_date), ylim=(-20, 50))
     axs[1, 1].set(
         xlabel='Date',
-        ylabel='$\mathregular{A_{n, plant}\/[\mu mol\/s^{-1}]}$',
+        ylabel='$\mathregular{E_{plant}\/[g\/h^{-1}]}$',
         xlim=(beg_date, end_date), ylim=(-200, 1000))
     axs[0, 2].set(
         xlabel='$\mathregular{A_{n, plant, obs}\/[\mu mol\/s^{-1}]}$',
@@ -771,12 +771,12 @@ if __name__ == '__main__':
 
     example_pth = Path(__file__).parents[2] / 'example'
 
-    plot_figure_9()
-    plot_figure_10()
-    plot_figure_11()
-    plot_figure_12()
+    # plot_figure_9()
+    # plot_figure_10()
+    # plot_figure_11()
+    # plot_figure_12()
     plot_figure_13()
-    plot_figure_14()
-    plot_figure_15()
-    write_table_1()
+    # plot_figure_14()
+    # plot_figure_15()
+    # write_table_1()
     # # plot_meteo_vsp()
