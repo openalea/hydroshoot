@@ -18,7 +18,7 @@ def plot_figure_6():
     meteo_df.index = pd.DatetimeIndex(meteo_df.index)
     meteo_df = meteo_df.loc[datet]
 
-    fig, axs = pyplot.subplots(nrows=2, ncols=2, sharex=True)
+    fig, axs = pyplot.subplots(nrows=2, ncols=2, sharex=True, figsize=(9, 6))
     [ax.grid() for ax in axs.flatten()]
 
     axs[1, 0].plot(datet, meteo_df['Tac'], 'k--')
@@ -89,6 +89,8 @@ def plot_figure_7():
     for ax in axs[:, 1]:
         ax.tick_params(axis='y', which='both', labelleft='off')
         ax.set_xticklabels(np.arange(-1.7, -1.1, 0.1), rotation=90)
+
+    axs[2, 1].set_xlabel('$\mathregular{\Psi\/[MPa]}$')
 
     fig.tight_layout()
 
