@@ -466,9 +466,6 @@ def plot_figure_14():
 
         pth = example_pth / training
 
-        beg_date = datetime(2012, 8, 01, 00, 00, 0, )
-        end_date = datetime(2012, 8, 04, 23, 00, 0, )
-
         # read observations
         obs_df = pd.read_csv(pth / 'sapflow.obs', sep=';', decimal='.', index_col='date')
         obs_df.index = [datetime.strptime(s, "%d/%m/%Y %H:%M") for s in obs_df.index]
