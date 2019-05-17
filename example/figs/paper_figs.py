@@ -2,32 +2,6 @@
 # -*- coding: utf-8 -*-
 
 
-def plot_meteo_vsp():
-    beg_date = datetime(2009, 7, 29, 00, 00, 0, )
-    end_date = datetime(2009, 8, 1, 23, 00, 0, )
-    datet = pd.date_range(beg_date, end_date, freq='H')
-
-    fig, axs = pyplot.subplots(nrows=3)
-    [ax.grid() for ax in axs.flatten()]
-
-    for iax, training in enumerate(('vsp_ww_grapevine', 'vsp_ws_grapevine')):
-        pth = example_pth / training
-
-        # read meteo
-        obs_tab = pd.read_csv(pth / 'meteo.input', sep=';', decimal='.', header=0)
-        obs_tab.time = pd.DatetimeIndex(obs_tab.time)
-        obs_tab = obs_tab.set_index(obs_tab.time)
-        obs_tab = obs_tab.loc[datet]
-        obs_tab['depression'] = ([0] * 10 + [1] * 5 + [0] * 9) * 4
-
-        axs[0].plot(obs_tab['time'], obs_tab['Tac'],
-                    ('b-', 'r-')[iax], label=('ww', 'wd')[iax])
-        axs[1].plot(obs_tab[obs_tab['depression'] == 1]['Rg'], obs_tab[obs_tab['depression'] == 1]['Tac'],
-                    ('bo', 'ro')[iax])
-    axs[2].plot(obs_tab['time'], obs_tab['Rg'])
-    pyplot.show(fig)
-
-
 def plot_figure_9():
     """Generates figure 9 of the paper. This figure compares, simulated to observed xylem water potential.
     """
@@ -494,7 +468,6 @@ def plot_figure_14():
 
         beg_date = datetime(2012, 8, 01, 00, 00, 0, )
         end_date = datetime(2012, 8, 04, 23, 00, 0, )
-        datet = pd.date_range(beg_date, end_date, freq='H')
 
         # read observations
         obs_df = pd.read_csv(pth / 'sapflow.obs', sep=';', decimal='.', index_col='date')
@@ -594,8 +567,8 @@ def plot_figure_14():
 
     axs[2, 0].legend(h1, ('$\mathregular{SapEast_{sim}}$', '$\mathregular{SapWest_{sim}}$',
                           '$\mathregular{SapEast_{obs}}$', '$\mathregular{SapWest_{obs}}$'),
-                     frameon=True, bbox_to_anchor=(-0., -1.5, 2, .102),
-                     loc=3, ncol=8)
+                     frameon=True, bbox_to_anchor=(0.5, -1.65, 2, .102),
+                     loc=3, ncol=8, prop={'size': 11})
 
     fig.savefig('fig_14.png')
 
@@ -771,12 +744,12 @@ if __name__ == '__main__':
 
     example_pth = Path(__file__).parents[2] / 'example'
 
-    # plot_figure_9()
-    # plot_figure_10()
-    # plot_figure_11()
-    # plot_figure_12()
+    plot_figure_9()
+    plot_figure_10()
+    plot_figure_11()
+    plot_figure_12()
     plot_figure_13()
-    # plot_figure_14()
-    # plot_figure_15()
-    # write_table_1()
-    # # plot_meteo_vsp()
+    plot_figure_14()
+    plot_figure_15()
+    write_table_1()
+
