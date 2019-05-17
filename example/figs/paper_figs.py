@@ -35,7 +35,7 @@ def plot_figure_6():
         axs[1, 1].plot(datet, sims_df['E'], label=training, color=training_color[training])
 
     for iax, ax in enumerate(axs.flatten()):
-        ax.text(0.9, 0.9, ('(a)', '(c)', '(b)', '(d)')[iax], transform=ax.transAxes)
+        ax.text(0.9, 0.9, ('(a)', '(b)', '(c)', '(d)')[iax], transform=ax.transAxes)
 
     axs[0, 0].set(xlim=(beg_date, end_date), ylim=(0, 600),
                   ylabel='$\mathregular{\Phi_{R_g, plant}\/[W\/m^{-2}]}$')
@@ -878,13 +878,13 @@ if __name__ == '__main__':
     example_pth = Path(__file__).parents[2] / 'example'
 
     plot_figure_6()
-    plot_figure_7()
-    plot_figure_8()
-    plot_figure_9()
-    plot_figure_10()
-    plot_figure_11()
-    plot_figure_12()
-    plot_figure_13()
-    plot_figure_14()
-    plot_figure_15()
-    write_table_1()
+    # plot_figure_7()
+    # plot_figure_8()
+    # plot_figure_9()
+    # plot_figure_10()
+    # plot_figure_11()
+    # plot_figure_12()
+    # plot_figure_13()
+    # plot_figure_14()
+    # plot_figure_15()
+    # write_table_1()
