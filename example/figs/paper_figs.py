@@ -861,6 +861,75 @@ def write_table_1():
     df.to_csv('table_1.csv')
 
 
+def estimate_energy_balance_contribution():
+    """Generates table 1 of the paper. This table compares simulated to observed plant photosynthesis and
+    transpiration rates using 4 simulation parameters' sets (modularity test)
+    """
+    indices = [['ww'] * 4 + ['ws'] * 4,
+               ['day%d' % d for d in range(1, 5)] * 2]
+    multiple_index = pd.MultiIndex.from_tuples(list(zip(*indices)), names=['treat', 'day'])
+
+    df = pd.DataFrame(columns=('e_obs', 'e_sim0', 'e_sim3'),
+                      index=multiple_index)
+
+    for i_treat, treat in enumerate(('ww', 'ws')):
+
+        pth = example_pth / ('vsp_%s_grapevine' % treat)
+
+        # read observations
+        obs_df = pd.read_csv(pth / 'gas.obs', sep=';', decimal='.')
+        obs_df.time = pd.DatetimeIndex(obs_df.time)
+        obs_df = obs_df.set_index(obs_df.time)
+
+        # read simulations
+        for case in (0, 3):
+            if case == 0:
+                sim_pth = pth / 'output' / 'time_series.output'
+            else:
+                sim_pth = example_pth / 'modularity' / treat / ('sim_%d' % case) / 'output' / 'time_series.output'
+
+            sims_df = pd.read_csv(sim_pth, sep=';', decimal='.', index_col='time')
+            sims_df.index = [datetime.strptime(s, "%Y-%m-%d %H:%M:%S") for s in sims_df.index]
+            sims_df.index = pd.DatetimeIndex(sims_df.index)
+
+            # match sims to obs
+            sims_df['itime'] = sims_df.index
+            obs_df['time'] = pd.DatetimeIndex(obs_df.time)
+
+            time_group = []
+            for itime in obs_df.index:
+                if itime.minute < 30:
+                    time = itime - pd.Timedelta(minutes=itime.minute)
+                else:
+                    time = itime + pd.Timedelta(minutes=60 - itime.minute)
+                time_group.append(time)
+            obs_df['itime'] = time_group
+
+            obs_grouped = obs_df.groupby('itime').aggregate(np.mean)
+            obs_grouped['itime'] = obs_grouped.index
+
+            m_df = pd.merge(obs_grouped, sims_df)
+
+            rate_obs = m_df['E_plante'].values
+            rate_sim = m_df['E'].values
+
+            for day in range(4):
+                rate_obs_daily = rate_obs[day * 24: day * 24 + 24]
+                rate_sim_daily = rate_sim[day * 24: day * 24 + 24]
+
+                x_index = np.isfinite(rate_obs_daily)
+                y_index = np.isfinite(rate_sim_daily)
+                xy_index = x_index * y_index
+                rate_obs_daily, rate_sim_daily = rate_obs_daily[xy_index], rate_sim_daily[xy_index]
+
+                df.loc[(treat, 'day%d' % (day + 1)), 'e_obs'] = sum(rate_obs_daily)
+                df.loc[(treat, 'day%d' % (day + 1)), 'e_sim%d' % case] = sum(rate_sim_daily)
+
+    df['energy_effect'] = (df['e_sim3'] - df['e_sim0']) / df['e_sim0']
+
+    print(df)
+
+
 if __name__ == '__main__':
     import pandas as pd
     import numpy as np
@@ -888,3 +957,4 @@ if __name__ == '__main__':
     plot_figure_14()
     plot_figure_15()
     write_table_1()
+    estimate_energy_balance_contribution()
