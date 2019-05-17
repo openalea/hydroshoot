@@ -3,7 +3,7 @@
 
 
 def plot_figure_6():
-    """Generates figure 96of the paper. This figure traces the hourly values of absorbed irradiance, leaf temeprature,
+    """Generates figure 6 of the paper. This figure traces the hourly values of absorbed irradiance, leaf temeprature,
     net plant carbon assimilation rate, and net plant transpiration rate.
     """
 
@@ -56,7 +56,43 @@ def plot_figure_6():
 
     fig.tight_layout()
 
-    fig.savefig('fig_6')
+    fig.savefig('fig_6.png')
+
+
+def plot_figure_7():
+    """Generates figure 7 of the paper. This figure shows a snapshot at solar midday of water potential distribution
+    across three virtual canopies.
+    """
+    training_color = {'gdc': 'blue', 'vsp': 'red', 'lyre': 'green'}
+
+    obs_date = datetime(2009, 7, 29, 14, 00, 0, )
+
+    fig, axs = pyplot.subplots(nrows=3, ncols=2, sharex=True,
+                               gridspec_kw={'width_ratios': [0.8, 0.2]})
+
+    for i, training in enumerate(('vsp', 'gdc', 'lyre')):
+        pth = example_pth / 'virtual_canopies' / training
+
+        g, _ = mtg_load(str(pth) + '/output/', 'mtg%s' % obs_date.strftime('%Y%m%d%H%M%S'))
+
+        axs[i, 0] = display.property_map(g, 'psi_head', color=training_color[training],
+                                         ax=axs[i, 0])
+        axs[i, 0].set(ylim=(0, 250), xlim=(-1.7, -1.2))
+        axs[i, 0].legend([training])
+        axs[i, 0].xaxis.labelpad = 5
+
+        axs[i, 1].boxplot(g.property('psi_head').values(), vert=False, sym='')
+
+    # some layout
+    [ax.set_xlabel('') for ax in axs[:2, 0]]
+
+    for ax in axs[:, 1]:
+        ax.tick_params(axis='y', which='both', labelleft='off')
+        ax.set_xticklabels(np.arange(-1.7, -1.1, 0.1), rotation=90)
+
+    fig.tight_layout()
+
+    fig.savefig('fig_7.png')
 
 
 def plot_figure_9():
@@ -76,7 +112,7 @@ def plot_figure_9():
         for i_day, date in enumerate(datet):
             ax = axs[it, i_day]
             obs_date = date + pd.Timedelta(hours=13)
-            g, _ = mtg_load(str(pth) + '/output/mtg', obs_date.strftime('%Y%m%d%H%M%S'))
+            g, _ = mtg_load(str(pth) + '/output/', 'mtg%s' % obs_date.strftime('%Y%m%d%H%M%S'))
             ax = display.property_map(g, 'psi_head', ax=ax, prop2='Eabs', color='grey',
                                       colormap='autumn', colorbar=False)
 
@@ -129,7 +165,7 @@ def plot_figure_10():
         for i_day, date in enumerate(datet):
             ax = axs[it, i_day]
             obs_date = date + pd.Timedelta(hours=13)
-            g, _ = mtg_load(str(pth) + '/output/mtg', obs_date.strftime('%Y%m%d%H%M%S'))
+            g, _ = mtg_load(str(pth) + '/output/', 'mtg%s' % obs_date.strftime('%Y%m%d%H%M%S'))
             ax = display.property_map(g, 'gs', ax=ax, prop2='Eabs', color='grey',
                                       colormap='autumn', colorbar=False)
 
@@ -198,7 +234,7 @@ def plot_figure_11():
         q1_sim = np.array([])
         q3_sim = np.array([])
         for date in datet:
-            g, _ = mtg_load(str(pth) + '/output/mtg', date.strftime('%Y%m%d%H%M%S'))
+            g, _ = mtg_load(str(pth) + '/output/', 'mtg%s' % obs_date.strftime('%Y%m%d%H%M%S'))
             leaf_temp_sim = g.property('Tlc').values()
             q1_sim = np.append(q1_sim, min(leaf_temp_sim))
             q3_sim = np.append(q3_sim, max(leaf_temp_sim))
@@ -296,7 +332,7 @@ def plot_figure_12():
         q_1_sim = np.array([])
         q_3_sim = np.array([])
         for date in datet:
-            g, _ = mtg_load(str(pth) + '/output/mtg', date.strftime('%Y%m%d%H%M%S'))
+            g, _ = mtg_load(str(pth) + '/output/', 'mtg%s' % obs_date.strftime('%Y%m%d%H%M%S'))
             leaf_temp_sim = g.property('Tlc').values()
             q_1_sim = np.append(q_1_sim, min(leaf_temp_sim))
             q_3_sim = np.append(q_3_sim, max(leaf_temp_sim))
@@ -799,6 +835,7 @@ if __name__ == '__main__':
     example_pth = Path(__file__).parents[2] / 'example'
 
     plot_figure_6()
+    plot_figure_7()
     # plot_figure_9()
     # plot_figure_10()
     # plot_figure_11()
