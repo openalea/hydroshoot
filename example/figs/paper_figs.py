@@ -460,7 +460,7 @@ def plot_figure_14():
     """Generates figure 14 of the paper. This figure compares, simulated to observed plant transpiration rates.
     """
 
-    fig, axs = pyplot.subplots(nrows=3, ncols=4, sharex='col', sharey='row', figsize=(10, 6))
+    fig, axs = pyplot.subplots(nrows=3, ncols=4, sharex='col', sharey='row', figsize=(10, 7.5))
 
     for i_treat, training in enumerate(('gdc_can1_grapevine', 'gdc_can2_grapevine', 'gdc_can3_grapevine')):
 
@@ -523,10 +523,10 @@ def plot_figure_14():
             bias = (y_t - x_t).mean()
             rmse = np.sqrt(((x_t - y_t) ** 2).mean())
 
-            ax.text(0.45, 0.875,
+            ax.text(0.55, 0.875,
                     '$\mathregular{MBE\/=\/%.1f}$' % bias,
                     transform=ax.transAxes, fontdict={'size': 7})
-            ax.text(0.45, 0.775,
+            ax.text(0.55, 0.775,
                     '$\mathregular{RMSE\/=\/%.1f}$' % rmse,
                     transform=ax.transAxes, fontdict={'size': 7})
 
@@ -544,8 +544,8 @@ def plot_figure_14():
     axs[2, 0].set_ylim(0, 500)
 
     for can in range(3):
-        axs[can, 3].text(0.5, 0.5, 'Canopy%s' % str(can + 1),
-                         transform=axs[can, 3].transAxes, fontdict={'size': 11})
+        axs[can, 0].text(0.05, 0.85, 'Canopy%s' % str(can + 1),
+                         transform=axs[can, 0].transAxes, fontdict={'size': 11})
 
     for ax in axs[2, :]:
         ax.set_xlabel('Date')
@@ -564,7 +564,7 @@ def plot_figure_14():
 
     axs[2, 0].legend(h1, ('$\mathregular{SapEast_{sim}}$', '$\mathregular{SapWest_{sim}}$',
                           '$\mathregular{SapEast_{obs}}$', '$\mathregular{SapWest_{obs}}$'),
-                     frameon=True, bbox_to_anchor=(0.5, -1.65, 2, .102),
+                     frameon=True, bbox_to_anchor=(0.5, -1.2, 2, .102),
                      loc=3, ncol=8, prop={'size': 11})
 
     fig.savefig('fig_14.png')
@@ -741,12 +741,12 @@ if __name__ == '__main__':
 
     example_pth = Path(__file__).parents[2] / 'example'
 
-    plot_figure_9()
-    plot_figure_10()
-    plot_figure_11()
-    plot_figure_12()
-    plot_figure_13()
+    # plot_figure_9()
+    # plot_figure_10()
+    # plot_figure_11()
+    # plot_figure_12()
+    # plot_figure_13()
     plot_figure_14()
-    plot_figure_15()
-    write_table_1()
+    # plot_figure_15()
+    # write_table_1()
 
