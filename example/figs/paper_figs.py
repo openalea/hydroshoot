@@ -2,6 +2,63 @@
 # -*- coding: utf-8 -*-
 
 
+def plot_figure_6():
+    """Generates figure 96of the paper. This figure traces the hourly values of absorbed irradiance, leaf temeprature,
+    net plant carbon assimilation rate, and net plant transpiration rate.
+    """
+
+    training_color = {'gdc': 'blue', 'vsp': 'red', 'lyre': 'green'}
+
+    beg_date = datetime(2009, 7, 29, 00, 00, 0, )
+    end_date = datetime(2009, 7, 29, 23, 00, 0, )
+    datet = pd.date_range(beg_date, end_date, freq='H')
+
+    meteo_df = pd.read_csv(example_pth / 'virtual_canopies' / 'gdc' / 'meteo.input',
+                           sep=';', decimal='.', index_col='time')  # all simus have the same meteo data
+    meteo_df.index = pd.DatetimeIndex(meteo_df.index)
+    meteo_df = meteo_df.loc[datet]
+
+    fig, axs = pyplot.subplots(nrows=2, ncols=2, sharex=True)
+    [ax.grid() for ax in axs.flatten()]
+
+    axs[1, 0].plot(datet, meteo_df['Tac'], 'k--')
+
+    for training in ('gdc', 'vsp', 'lyre'):
+        pth = example_pth / 'virtual_canopies' / training
+
+        sims_df = pd.read_csv(pth / 'output' / 'time_series.output', sep=';', decimal='.', index_col='time')
+        sims_df.index = [datetime.strptime(s, "%Y-%m-%d %H:%M:%S") for s in sims_df.index]
+
+        axs[0, 0].plot(datet, sims_df['Rg'], label=training, color=training_color[training])
+        axs[0, 1].plot(datet, sims_df['An'], label=training, color=training_color[training])
+        axs[1, 0].plot(datet, sims_df['Tleaf'], label=training, color=training_color[training])
+        axs[1, 1].plot(datet, sims_df['E'], label=training, color=training_color[training])
+
+    axs[0, 0].set(xlim=(beg_date, end_date), ylim=(0, 600),
+                  ylabel='$\mathregular{\Phi_{R_g, plant}\/[W\/m^{-2}]}$')
+    axs[1, 0].set(xlabel='hour', ylim=(10, 40),
+                  ylabel='$\mathregular{Temperature\/[^\circ C]}$')
+    axs[0, 1].set(ylim=(-10, 35),
+                  ylabel='$\mathregular{A_{n, plant}\/[\mu mol\/s^{-1}]}$')
+    axs[1, 1].set(xlabel='hour', ylim=(0, 400),
+                  ylabel='$\mathregular{E_{plant}\/[g\/h^{-1}]}$')
+
+    for ax in axs[1, :]:
+        ax.set(xlim=(beg_date, end_date))
+        ax.set_xticklabels(datet, rotation=90)
+        ax.xaxis.set_major_locator(dates.HourLocator())
+        ax.xaxis.set_major_formatter(dates.DateFormatter('%H'))
+
+    axs[0, 0].legend(loc='upper left')
+
+    handles, _ = axs[1, 0].get_legend_handles_labels()
+    axs[1, 0].legend(handles=[handles[0], ], labels=('$\mathregular{T_{air}}$',), loc='upper left')
+
+    fig.tight_layout()
+
+    fig.savefig('fig_6')
+
+
 def plot_figure_9():
     """Generates figure 9 of the paper. This figure compares, simulated to observed xylem water potential.
     """
@@ -741,12 +798,12 @@ if __name__ == '__main__':
 
     example_pth = Path(__file__).parents[2] / 'example'
 
+    plot_figure_6()
     # plot_figure_9()
     # plot_figure_10()
     # plot_figure_11()
     # plot_figure_12()
     # plot_figure_13()
-    plot_figure_14()
+    # plot_figure_14()
     # plot_figure_15()
     # write_table_1()
-
