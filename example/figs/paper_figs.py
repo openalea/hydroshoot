@@ -34,6 +34,9 @@ def plot_figure_6():
         axs[1, 0].plot(datet, sims_df['Tleaf'], label=training, color=training_color[training])
         axs[1, 1].plot(datet, sims_df['E'], label=training, color=training_color[training])
 
+    for iax, ax in enumerate(axs.flatten()):
+        ax.text(0.9, 0.9, ('(a)', '(c)', '(b)', '(d)')[iax], transform=ax.transAxes)
+
     axs[0, 0].set(xlim=(beg_date, end_date), ylim=(0, 600),
                   ylabel='$\mathregular{\Phi_{R_g, plant}\/[W\/m^{-2}]}$')
     axs[1, 0].set(xlabel='hour', ylim=(10, 40),
