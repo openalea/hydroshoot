@@ -936,12 +936,13 @@ if __name__ == '__main__':
     from pathlib import Path
     from datetime import datetime, timedelta
     from scipy.stats import linregress
-    from matplotlib import dates, pyplot, patches, colors, colorbar
+    from matplotlib import dates, pyplot, patches, colors, colorbar, rcParams
 
     from hydroshoot.architecture import mtg_load
     from hydroshoot.utilities import vapor_pressure_deficit as VPDa
     from hydroshoot import display
 
+    rcParams.update({'font.size': 11})
     pyplot.style.use('seaborn-ticks')
 
     example_pth = Path(__file__).parents[2] / 'example'
