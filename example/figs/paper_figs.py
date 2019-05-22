@@ -126,7 +126,7 @@ def plot_figure_8():
         axs[i, 0] = display.property_map(g, 'Tlc', color=training_color[training],
                                          ax=axs[i, 0])
         axs[i, 0].set(ylim=(0, 250))
-        axs[i, 0].legend([training])
+        axs[i, 0].legend([training], prop={'size': 11})
         axs[i, 0].xaxis.labelpad = 5
 
         axs[i, 1].boxplot(g.property('Tlc').values(), vert=False, sym='')
