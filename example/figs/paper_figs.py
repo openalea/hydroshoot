@@ -230,10 +230,12 @@ def plot_figure_10():
                                            min(gs_leaf) - max(gs_leaf), 250,
                                            color='0.8', zorder=-1))
             if i_day == 0:
-                ax.text(0.05, 0.075, 'Canopy%d' % (it + 1), transform=ax.transAxes)
+                ax.text(0.05, 0.075, 'Canopy%d' % (it + 1),
+                        transform=ax.transAxes, fontdict={'size': 11})
 
             if it == 0:
-                ax.text(0.75, 0.85, '0%d 0%d' % (obs_date.day, obs_date.month), transform=ax.transAxes)
+                ax.text(0.675, 0.825, obs_date.strftime('%-d %b'),
+                        transform=ax.transAxes, fontdict={'size': 11})
 
     [axi.set_xticklabels(axi.get_xticks(), rotation=90) for axi in axs[2]]
 
