@@ -357,7 +357,7 @@ def plot_figure_12():
     temperature.
     """
 
-    fig, axs = pyplot.subplots(ncols=3, figsize=(6.69, 4.5))
+    fig, axs = pyplot.subplots(ncols=3, figsize=(6.69, 2.7))
     [ax.grid() for ax in axs]
 
     daily_temp_obs = np.array([])
@@ -444,10 +444,14 @@ def plot_figure_12():
     axs[1].plot((10, 45), (10, 45), 'k--')
     axs[1].set(xlabel='$\mathregular{T_{leaf, obs}\/[^\circ C]}$',
                ylabel='$\mathregular{T_{leaf, sim}\/[^\circ C]}$')
+    axs[1].xaxis.set_major_locator(ticker.MultipleLocator(20))
 
     axs[2].plot((-2, 14), (-2, 14), 'k--')
     axs[2].set(xlabel='$\mathregular{\Delta T_{leaf, obs}\/[^\circ C]}$',
                ylabel='$\mathregular{\Delta T_{leaf, sim}\/[^\circ C]}$')
+    axs[2].xaxis.set_major_locator(ticker.IndexLocator(base=2, offset=2))
+    axs[2].xaxis.set_major_locator(ticker.MultipleLocator(5))
+
 
     for i in range(3):
         if i == 0:
@@ -466,15 +470,16 @@ def plot_figure_12():
         bias = (diff_y_x).mean()
         rmse = np.sqrt((diff_y_x ** 2).mean())
 
-        axs[i].text(0.05, 0.80, '$\mathregular{MBE\/=\/%.3f}$' % bias,
-                    transform=axs[i].transAxes, fontdict={'size': 7})
-        axs[i].text(0.05, 0.75, '$\mathregular{RMSE\/=\/%.1f}$' % rmse,
-                    transform=axs[i].transAxes, fontdict={'size': 7})
+        axs[i].text(0.05, -0.6, '$\mathregular{MBE\/=\/%.3f}$' % bias,
+                    transform=axs[i].transAxes, fontdict={'size': 11})
+        axs[i].text(0.05, -0.7, '$\mathregular{RMSE\/=\/%.1f}$' % rmse,
+                    transform=axs[i].transAxes, fontdict={'size': 11})
 
-        axs[i].text(0.05, 0.9, ['(a)', '(b)', '(c)'][i],
-                    transform=axs[i].transAxes, fontdict={'size': 10})
+        axs[i].text(0.05, 0.875, ['(a)', '(b)', '(c)'][i],
+                    transform=axs[i].transAxes, fontdict={'size': 11})
 
     fig.tight_layout()
+    fig.subplots_adjust(bottom=0.4)
     fig.savefig('fig_12.png', dpi=600.)
     pyplot.close(fig)
 
@@ -945,7 +950,7 @@ if __name__ == '__main__':
     from pathlib import Path
     from datetime import datetime, timedelta
     from scipy.stats import linregress
-    from matplotlib import dates, pyplot, patches, colors, colorbar, rcParams
+    from matplotlib import dates, pyplot, patches, colors, colorbar, rcParams, ticker
 
     from hydroshoot.architecture import mtg_load
     from hydroshoot.utilities import vapor_pressure_deficit as VPDa
