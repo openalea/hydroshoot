@@ -87,7 +87,7 @@ def plot_figure_7():
         axs[i, 0] = display.property_map(g, 'psi_head', color=training_color[training],
                                          ax=axs[i, 0])
         axs[i, 0].set(ylim=(0, 250), xlim=(-1.7, -1.2))
-        axs[i, 0].legend([training])
+        axs[i, 0].legend([training], prop={'size': 11})
         axs[i, 0].xaxis.labelpad = 5
 
         axs[i, 1].boxplot(g.property('psi_head').values(), vert=False, sym='')
