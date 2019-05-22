@@ -174,10 +174,12 @@ def plot_figure_9():
                                            min(psi_leaf) - max(psi_leaf), 250,
                                            color='0.8', zorder=-1))
             if i_day == 0:
-                ax.text(0.05, 0.075, 'Canopy%d' % (it + 1), transform=ax.transAxes)
+                ax.text(0.05, 0.075, 'Canopy%d' % (it + 1),
+                        transform=ax.transAxes, fontdict={'size': 11})
 
             if it == 0:
-                ax.text(0.75, 0.85, '0%d 0%d' % (obs_date.day, obs_date.month), transform=ax.transAxes)
+                ax.text(0.675, 0.825, obs_date.strftime('%-d %b'),
+                        transform=ax.transAxes, fontdict={'size': 11})
 
     [axi.set_xticklabels(axi.get_xticks(), rotation=90) for axi in axs[2]]
 
@@ -194,7 +196,7 @@ def plot_figure_9():
     norm = colors.Normalize(0, vmax=2000)
     cbar = colorbar.ColorbarBase(cbar_ax, cmap='autumn', orientation='horizontal', norm=norm)
     cbar.ax.set_xticklabels(cbar.ax.get_xticklabels(), rotation=90)
-    cbar.set_label('$\mathregular{PPFD\/[\mu mol\/m^{-1}\/s^{-1}]}$', labelpad=-20, x=-0.4)
+    cbar.set_label('$\mathregular{PPFD\/[\mu mol\/m^{-2}_{leaf}\/s^{-1}]}$', labelpad=-20, x=-0.4)
 
     fig.savefig('fig_9.png', dpi=600.)
     pyplot.close(fig)
