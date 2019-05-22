@@ -60,6 +60,7 @@ def plot_figure_6():
     fig.tight_layout()
 
     fig.savefig('fig_6.jpg', dpi=600.)
+    pyplot.close(fig)
 
 
 def plot_figure_7():
@@ -98,6 +99,7 @@ def plot_figure_7():
     fig.tight_layout()
 
     fig.savefig('fig_7.jpg', dpi=600.)
+    pyplot.close(fig)
 
 
 def plot_figure_8():
@@ -136,6 +138,7 @@ def plot_figure_8():
     fig.tight_layout()
 
     fig.savefig('fig_8.jpg', dpi=600.)
+    pyplot.close(fig)
 
 
 def plot_figure_9():
@@ -189,6 +192,7 @@ def plot_figure_9():
     cbar.set_label('$\mathregular{PPFD\/[\mu mol\/m^{-1}\/s^{-1}]}$', labelpad=-20, x=-0.4)
 
     fig.savefig('fig_9.jpg', dpi=600.)
+    pyplot.close(fig)
 
 
 def plot_figure_10():
@@ -242,6 +246,7 @@ def plot_figure_10():
     cbar.set_label('$\mathregular{PPFD\/[\mu mol\/m^{-1}\/s^{-1}]}$', labelpad=-20, x=-0.4)
 
     fig.savefig('fig_10.jpg', dpi=600.)
+    pyplot.close(fig)
 
 
 def plot_figure_11():
@@ -335,8 +340,7 @@ def plot_figure_11():
 
     fig.tight_layout()
     fig.savefig('fig_11.jpg', dpi=600.)
-
-    pyplot.show(fig)
+    pyplot.close(fig)
 
 
 def plot_figure_12():
@@ -463,8 +467,7 @@ def plot_figure_12():
 
     fig.tight_layout()
     fig.savefig('fig_12.jpg', dpi=600.)
-
-    pyplot.show(fig)
+    pyplot.close(fig)
 
 
 def plot_figure_13():
@@ -588,8 +591,7 @@ def plot_figure_13():
 
     fig.tight_layout()
     fig.savefig('fig_13.jpg', dpi=600.)
-
-    pyplot.show(fig)
+    pyplot.close(fig)
 
 
 def plot_figure_14():
@@ -704,8 +706,7 @@ def plot_figure_14():
                      loc=3, ncol=8, prop={'size': 11})
 
     fig.savefig('fig_14.jpg', dpi=600.)
-
-    pyplot.show(fig)
+    pyplot.close(fig)
 
 
 def plot_figure_15():
@@ -789,8 +790,7 @@ def plot_figure_15():
                      prop={'size': 11})
 
     fig.savefig('fig_15.jpg', dpi=600.)
-
-    pyplot.show(fig)
+    pyplot.close(fig)
 
 
 def write_table_1():
