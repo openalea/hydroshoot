@@ -492,6 +492,26 @@ def plot_figure_13():
     end_date = datetime(2009, 8, 1, 23, 00, 0, )
     datet = pd.date_range(beg_date, end_date, freq='H')
 
+    gs1 = gridspec.GridSpec(2, 2)
+    gs1.update(right=0.68, wspace=0.1)
+    ax1 = pyplot.subplot(gs1[0, 0])
+    ax2 = pyplot.subplot(gs1[0, 1], sharex=ax1, sharey=ax1)
+    ax3 = pyplot.subplot(gs1[1, 0], sharex=ax1)
+    ax4 = pyplot.subplot(gs1[1, 1], sharex=ax1, sharey=ax3)
+
+    gs2 = gridspec.GridSpec(2, 1)
+    gs2.update(left=0.7)
+    ax5 = pyplot.subplot(gs2[0])
+    ax6 = pyplot.subplot(gs2[1])
+
+
+    fig = ax1.get_figure()
+    fig.set_figheight(6)
+    fig.set_figwidth(6.69)
+    axs = fig.get_axes()
+    axs = np.array([axs[[0, 1, 4]], ,
+                    ])
+    gs1 = fig.add_gridspec(nrows=3, ncols=3, left=0.05, right=0.48, wspace=0.05)
     fig, axs = pyplot.subplots(nrows=2, ncols=3, figsize=(6.69, 6))
     [ax.grid() for ax in axs.flatten()]
 
@@ -950,7 +970,7 @@ if __name__ == '__main__':
     from pathlib import Path
     from datetime import datetime, timedelta
     from scipy.stats import linregress
-    from matplotlib import dates, pyplot, patches, colors, colorbar, rcParams, ticker
+    from matplotlib import dates, pyplot, patches, colors, colorbar, rcParams, ticker, gridspec
 
     from hydroshoot.architecture import mtg_load
     from hydroshoot.utilities import vapor_pressure_deficit as VPDa
