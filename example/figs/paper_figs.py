@@ -192,7 +192,7 @@ def plot_figure_9():
     fig.tight_layout()
 
     fig.subplots_adjust(bottom=0.3)
-    cbar_ax = fig.add_axes([0.35, 0.1, 0.30, 0.04])
+    cbar_ax = fig.add_axes([0.395, 0.1, 0.30, 0.04])
     norm = colors.Normalize(0, vmax=2000)
     cbar = colorbar.ColorbarBase(cbar_ax, cmap='autumn', orientation='horizontal', norm=norm)
     cbar.ax.set_xticklabels(cbar.ax.get_xticklabels(), rotation=90)
@@ -248,7 +248,7 @@ def plot_figure_10():
     fig.tight_layout()
 
     fig.subplots_adjust(bottom=0.3)
-    cbar_ax = fig.add_axes([0.35, 0.1, 0.30, 0.04])
+    cbar_ax = fig.add_axes([0.395, 0.1, 0.30, 0.04])
     norm = colors.Normalize(0, vmax=2000)
     cbar = colorbar.ColorbarBase(cbar_ax, cmap='autumn', orientation='horizontal', norm=norm)
     cbar.ax.set_xticklabels(cbar.ax.get_xticklabels(), rotation=90)
