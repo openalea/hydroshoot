@@ -325,10 +325,10 @@ def plot_figure_11():
         bias = diff_obs_sim.mean()
         rmse = np.sqrt(diff_obs_sim ** 2).mean()
 
-        axs[1, iax].text(0.05, 0.80, '$\mathregular{MBE\/=\/%.3f}$' % bias,
-                         transform=axs[1, iax].transAxes, fontdict={'size': 7})
-        axs[1, iax].text(0.05, 0.75, '$\mathregular{RMSE\/=\/%.1f}$' % rmse,
-                         transform=axs[1, iax].transAxes, fontdict={'size': 7})
+        axs[1, iax].text(0.50, 0.20, '$\mathregular{MBE\/=\/%.3f}$' % bias,
+                         transform=axs[1, iax].transAxes, fontdict={'size': 11})
+        axs[1, iax].text(0.50, 0.10, '$\mathregular{RMSE\/=\/%.1f}$' % rmse,
+                         transform=axs[1, iax].transAxes, fontdict={'size': 11})
 
     # some layout
 
@@ -336,16 +336,16 @@ def plot_figure_11():
     axs[1, 0].set_ylabel('$\mathregular{T_{leaf, sim}\/[^{\circ}C]}$')
 
     for ax_upper, ax_lower in zip(axs[0, :], axs[1, :]):
-        ax_upper.set(xlim=(beg_date, end_date), ylim=(5, 50), xlabel='Date')
+        ax_upper.set(xlim=(beg_date, end_date), ylim=(5, 50), xlabel='')
         ax_upper.set_xticklabels(datet, rotation=45)
         ax_upper.xaxis.set_major_locator(dates.DayLocator())
-        ax_upper.xaxis.set_major_formatter(dates.DateFormatter('%d %m'))
+        ax_upper.xaxis.set_major_formatter(dates.DateFormatter('%-d %b'))
         ax_lower.set(xlim=(10, 50), ylim=(10, 50),
                      xlabel='$\mathregular{T_{leaf, obs}\/[^{\circ}C]}$')
 
     for iax, ax in enumerate(axs.flatten()):
-        ax.text(0.05, 0.9, ('(a)', '(c)', '(b)', '(d)')[iax],
-                transform=ax.transAxes, fontdict={'size': 10})
+        ax.text(0.05, 0.875, ('(a)', '(c)', '(b)', '(d)')[iax],
+                transform=ax.transAxes, fontdict={'size': 11})
 
     fig.tight_layout()
     fig.savefig('fig_11.png', dpi=600.)
