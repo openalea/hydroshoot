@@ -59,7 +59,7 @@ def plot_figure_6():
 
     fig.tight_layout()
 
-    fig.savefig('fig_6.png')
+    fig.savefig('fig_6.jpg', dpi=600.)
 
 
 def plot_figure_7():
@@ -97,7 +97,7 @@ def plot_figure_7():
 
     fig.tight_layout()
 
-    fig.savefig('fig_7.png')
+    fig.savefig('fig_7.jpg', dpi=600.)
 
 
 def plot_figure_8():
@@ -135,7 +135,7 @@ def plot_figure_8():
 
     fig.tight_layout()
 
-    fig.savefig('fig_8.png')
+    fig.savefig('fig_8.jpg', dpi=600.)
 
 
 def plot_figure_9():
@@ -188,7 +188,7 @@ def plot_figure_9():
     cbar.ax.set_xticklabels(cbar.ax.get_xticklabels(), rotation=90)
     cbar.set_label('$\mathregular{PPFD\/[\mu mol\/m^{-1}\/s^{-1}]}$', labelpad=-20, x=-0.4)
 
-    fig.savefig('fig_9.png')
+    fig.savefig('fig_9.jpg', dpi=600.)
 
 
 def plot_figure_10():
@@ -241,7 +241,7 @@ def plot_figure_10():
     cbar.ax.set_xticklabels(cbar.ax.get_xticklabels(), rotation=90)
     cbar.set_label('$\mathregular{PPFD\/[\mu mol\/m^{-1}\/s^{-1}]}$', labelpad=-20, x=-0.4)
 
-    fig.savefig('fig_10.png')
+    fig.savefig('fig_10.jpg', dpi=600.)
 
 
 def plot_figure_11():
@@ -334,7 +334,7 @@ def plot_figure_11():
                 transform=ax.transAxes, fontdict={'size': 10})
 
     fig.tight_layout()
-    fig.savefig('fig_11.png')
+    fig.savefig('fig_11.jpg', dpi=600.)
 
     pyplot.show(fig)
 
@@ -462,7 +462,7 @@ def plot_figure_12():
                     transform=axs[i].transAxes, fontdict={'size': 10})
 
     fig.tight_layout()
-    fig.savefig('fig_12.png')
+    fig.savefig('fig_12.jpg', dpi=600.)
 
     pyplot.show(fig)
 
@@ -587,7 +587,7 @@ def plot_figure_13():
         ax.xaxis.set_major_formatter(dates.DateFormatter('%d %m'))
 
     fig.tight_layout()
-    fig.savefig('fig_13.png')
+    fig.savefig('fig_13.jpg', dpi=600.)
 
     pyplot.show(fig)
 
@@ -703,7 +703,7 @@ def plot_figure_14():
                      frameon=True, bbox_to_anchor=(0.5, -1.2, 2, .102),
                      loc=3, ncol=8, prop={'size': 11})
 
-    fig.savefig('fig_14.png')
+    fig.savefig('fig_14.jpg', dpi=600.)
 
     pyplot.show(fig)
 
@@ -788,7 +788,7 @@ def plot_figure_15():
                      bbox_to_anchor=(-1.5, -0.7, 2, .102), loc=3, ncol=8,
                      prop={'size': 11})
 
-    fig.savefig('fig_15.png')
+    fig.savefig('fig_15.jpg', dpi=600.)
 
     pyplot.show(fig)
 
