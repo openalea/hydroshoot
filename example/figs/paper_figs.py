@@ -34,11 +34,14 @@ def plot_figure_6():
         axs[1, 0].plot(datet, sims_df['Tleaf'], label=training, color=training_color[training])
         axs[1, 1].plot(datet, sims_df['E'], label=training, color=training_color[training])
 
+
+    # some layout
     for iax, ax in enumerate(axs.flatten()):
-        ax.text(0.9, 0.9, ('(a)', '(b)', '(c)', '(d)')[iax], transform=ax.transAxes)
+        ax.text(0.875, 0.9, ('(a)', '(b)', '(c)', '(d)')[iax],
+                transform=ax.transAxes, fontdict={'size': 11})
 
     axs[0, 0].set(xlim=(beg_date, end_date), ylim=(0, 600),
-                  ylabel='$\mathregular{\Phi_{R_g, plant}\/[W\/m^{-2}]}$')
+                  ylabel='$\mathregular{\Phi_{R_g, plant}\/[W\/m^{-2}_{ground}]}$')
     axs[1, 0].set(xlabel='hour', ylim=(10, 40),
                   ylabel='$\mathregular{Temperature\/[^\circ C]}$')
     axs[0, 1].set(ylim=(-10, 35),
@@ -52,10 +55,12 @@ def plot_figure_6():
         ax.xaxis.set_major_locator(dates.HourLocator())
         ax.xaxis.set_major_formatter(dates.DateFormatter('%H'))
 
-    axs[0, 0].legend(loc='upper left')
-
+    axs[0, 0].legend(loc='upper left', prop={'size': 11})
     handles, _ = axs[1, 0].get_legend_handles_labels()
-    axs[1, 0].legend(handles=[handles[0], ], labels=('$\mathregular{T_{air}}$',), loc='upper left')
+    axs[1, 0].legend(handles=[handles[0], ], labels=('$\mathregular{T_{air}}$',), loc='upper left',
+                     prop={'size': 11})
+
+    axs[1, 0].set_xticks(axs[1, 0].get_xticks()[:-1:2])
 
     fig.tight_layout()
 
