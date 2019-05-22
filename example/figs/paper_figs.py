@@ -18,7 +18,7 @@ def plot_figure_6():
     meteo_df.index = pd.DatetimeIndex(meteo_df.index)
     meteo_df = meteo_df.loc[datet]
 
-    fig, axs = pyplot.subplots(nrows=2, ncols=2, sharex=True, figsize=(9, 6))
+    fig, axs = pyplot.subplots(nrows=2, ncols=2, sharex=True, figsize=(6.69, 6))
     [ax.grid() for ax in axs.flatten()]
 
     axs[1, 0].plot(datet, meteo_df['Tac'], 'k--')
@@ -59,7 +59,7 @@ def plot_figure_6():
 
     fig.tight_layout()
 
-    fig.savefig('fig_6.jpg', dpi=600.)
+    fig.savefig('fig_6.png', dpi=600.)
     pyplot.close(fig)
 
 
@@ -71,7 +71,7 @@ def plot_figure_7():
 
     obs_date = datetime(2009, 7, 29, 14, 00, 0, )
 
-    fig, axs = pyplot.subplots(nrows=3, ncols=2, sharex=True,
+    fig, axs = pyplot.subplots(nrows=3, ncols=2, sharex=True, figsize=(6.69, 6),
                                gridspec_kw={'width_ratios': [0.8, 0.2]})
 
     for i, training in enumerate(('vsp', 'gdc', 'lyre')):
@@ -98,7 +98,7 @@ def plot_figure_7():
 
     fig.tight_layout()
 
-    fig.savefig('fig_7.jpg', dpi=600.)
+    fig.savefig('fig_7.png', dpi=600.)
     pyplot.close(fig)
 
 
@@ -110,7 +110,7 @@ def plot_figure_8():
 
     obs_date = datetime(2009, 7, 29, 14, 00, 0, )
 
-    fig, axs = pyplot.subplots(nrows=3, ncols=2, sharex=True,
+    fig, axs = pyplot.subplots(nrows=3, ncols=2, sharex=True, figsize=(6.69, 6),
                                gridspec_kw={'width_ratios': [0.8, 0.2]})
 
     for i, training in enumerate(('vsp', 'gdc', 'lyre')):
@@ -137,7 +137,7 @@ def plot_figure_8():
 
     fig.tight_layout()
 
-    fig.savefig('fig_8.jpg', dpi=600.)
+    fig.savefig('fig_8.png', dpi=600.)
     pyplot.close(fig)
 
 
@@ -149,7 +149,7 @@ def plot_figure_9():
     end_date = datetime(2012, 8, 03, 00, 00, 0, )
     datet = pd.date_range(beg_date, end_date, freq='D')
 
-    fig, axs = pyplot.subplots(nrows=3, ncols=3, sharex='all', sharey='all')
+    fig, axs = pyplot.subplots(nrows=3, ncols=3, sharex='all', sharey='all', figsize=(6.69, 6))
 
     for it, training in enumerate(('gdc_can1_grapevine', 'gdc_can2_grapevine', 'gdc_can3_grapevine')):
 
@@ -191,7 +191,7 @@ def plot_figure_9():
     cbar.ax.set_xticklabels(cbar.ax.get_xticklabels(), rotation=90)
     cbar.set_label('$\mathregular{PPFD\/[\mu mol\/m^{-1}\/s^{-1}]}$', labelpad=-20, x=-0.4)
 
-    fig.savefig('fig_9.jpg', dpi=600.)
+    fig.savefig('fig_9.png', dpi=600.)
     pyplot.close(fig)
 
 
@@ -203,7 +203,7 @@ def plot_figure_10():
     end_date = datetime(2012, 8, 03, 00, 00, 0, )
     datet = pd.date_range(beg_date, end_date, freq='D')
 
-    fig, axs = pyplot.subplots(nrows=3, ncols=3, sharex='all', sharey='all')
+    fig, axs = pyplot.subplots(nrows=3, ncols=3, sharex='all', sharey='all', figsize=(6.69, 6))
 
     for it, training in enumerate(('gdc_can1_grapevine', 'gdc_can2_grapevine', 'gdc_can3_grapevine')):
 
@@ -245,14 +245,14 @@ def plot_figure_10():
     cbar.ax.set_xticklabels(cbar.ax.get_xticklabels(), rotation=90)
     cbar.set_label('$\mathregular{PPFD\/[\mu mol\/m^{-1}\/s^{-1}]}$', labelpad=-20, x=-0.4)
 
-    fig.savefig('fig_10.jpg', dpi=600.)
+    fig.savefig('fig_10.png', dpi=600.)
     pyplot.close(fig)
 
 
 def plot_figure_11():
     """Generates figure 11 of the paper. This figure compares simulated to observed leaf temperatures.
     """
-    fig, axs = pyplot.subplots(nrows=2, ncols=2, sharey='row')
+    fig, axs = pyplot.subplots(nrows=2, ncols=2, sharey='row', figsize=(6.69, 6))
 
     for iax, training in enumerate(('vsp_ww_grapevine', 'vsp_ws_grapevine')):
         pth = example_pth / training
@@ -339,7 +339,7 @@ def plot_figure_11():
                 transform=ax.transAxes, fontdict={'size': 10})
 
     fig.tight_layout()
-    fig.savefig('fig_11.jpg', dpi=600.)
+    fig.savefig('fig_11.png', dpi=600.)
     pyplot.close(fig)
 
 
@@ -348,7 +348,7 @@ def plot_figure_12():
     temperature.
     """
 
-    fig, axs = pyplot.subplots(ncols=3, figsize=(13, 4.5))
+    fig, axs = pyplot.subplots(ncols=3, figsize=(6.69, 4.5))
     [ax.grid() for ax in axs]
 
     daily_temp_obs = np.array([])
@@ -466,7 +466,7 @@ def plot_figure_12():
                     transform=axs[i].transAxes, fontdict={'size': 10})
 
     fig.tight_layout()
-    fig.savefig('fig_12.jpg', dpi=600.)
+    fig.savefig('fig_12.png', dpi=600.)
     pyplot.close(fig)
 
 
@@ -478,7 +478,7 @@ def plot_figure_13():
     end_date = datetime(2009, 8, 1, 23, 00, 0, )
     datet = pd.date_range(beg_date, end_date, freq='H')
 
-    fig, axs = pyplot.subplots(nrows=2, ncols=3, figsize=(11, 6))
+    fig, axs = pyplot.subplots(nrows=2, ncols=3, figsize=(6.69, 6))
     [ax.grid() for ax in axs.flatten()]
 
     for iax, training in enumerate(('vsp_ww_grapevine', 'vsp_ws_grapevine')):
@@ -590,7 +590,7 @@ def plot_figure_13():
         ax.xaxis.set_major_formatter(dates.DateFormatter('%d %m'))
 
     fig.tight_layout()
-    fig.savefig('fig_13.jpg', dpi=600.)
+    fig.savefig('fig_13.png', dpi=600.)
     pyplot.close(fig)
 
 
@@ -598,7 +598,7 @@ def plot_figure_14():
     """Generates figure 14 of the paper. This figure compares, simulated to observed plant transpiration rates.
     """
 
-    fig, axs = pyplot.subplots(nrows=3, ncols=4, sharex='col', sharey='row', figsize=(10, 7.5))
+    fig, axs = pyplot.subplots(nrows=3, ncols=4, sharex='col', sharey='row', figsize=(6.69, 6))
 
     for i_treat, training in enumerate(('gdc_can1_grapevine', 'gdc_can2_grapevine', 'gdc_can3_grapevine')):
 
@@ -705,7 +705,7 @@ def plot_figure_14():
                      frameon=True, bbox_to_anchor=(0.5, -1.2, 2, .102),
                      loc=3, ncol=8, prop={'size': 11})
 
-    fig.savefig('fig_14.jpg', dpi=600.)
+    fig.savefig('fig_14.png', dpi=600.)
     pyplot.close(fig)
 
 
@@ -721,7 +721,7 @@ def plot_figure_15():
     style = ('b-', 'k--', 'k-.', 'k-', 'k:')
     vpd_air = np.vectorize(VPDa)
 
-    fig, axs = pyplot.subplots(nrows=2, ncols=2, sharey='row', sharex='all')
+    fig, axs = pyplot.subplots(nrows=2, ncols=2, sharey='row', sharex='all', figsize=(6.69, 6))
     [ax.grid() for ax in axs.flatten()]
 
     for i_treat, treat in enumerate(('ww', 'ws')):
@@ -789,7 +789,7 @@ def plot_figure_15():
                      bbox_to_anchor=(-1.5, -0.7, 2, .102), loc=3, ncol=8,
                      prop={'size': 11})
 
-    fig.savefig('fig_15.jpg', dpi=600.)
+    fig.savefig('fig_15.png', dpi=600.)
     pyplot.close(fig)
 
 
