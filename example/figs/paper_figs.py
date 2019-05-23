@@ -505,12 +505,11 @@ def plot_figure_13():
     ax5 = pyplot.subplot(gs2[0])
     ax6 = pyplot.subplot(gs2[1])
 
-    # fig = ax1.get_figure()
     fig.set_figheight(6)
     fig.set_figwidth(6.69)
     axs = np.array([[ax1, ax2, ax5],
                     [ax3, ax4, ax6]])
-    # fig, axs = pyplot.subplots(nrows=2, ncols=3, figsize=(6.69, 6))
+
     [ax.grid() for ax in axs.flatten()]
 
     for iax, training in enumerate(('vsp_ww_grapevine', 'vsp_ws_grapevine')):
