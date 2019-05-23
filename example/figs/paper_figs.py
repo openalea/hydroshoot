@@ -970,7 +970,6 @@ if __name__ == '__main__':
     import numpy as np
     from pathlib import Path
     from datetime import datetime, timedelta
-    from scipy.stats import linregress
     from matplotlib import dates, pyplot, patches, colors, colorbar, rcParams, ticker, gridspec
 
     from hydroshoot.architecture import mtg_load
@@ -982,15 +981,15 @@ if __name__ == '__main__':
 
     example_pth = Path(__file__).parents[2] / 'example'
 
-    # plot_figure_6()
-    # plot_figure_7()
-    # plot_figure_8()
-    # plot_figure_9()
+    plot_figure_6()
+    plot_figure_7()
+    plot_figure_8()
+    plot_figure_9()
     plot_figure_10()
-    # plot_figure_11()
-    # plot_figure_12()
-    # plot_figure_13()
-    # plot_figure_14()
-    # plot_figure_15()
-    # write_table_1()
-    # estimate_energy_balance_contribution()
+    plot_figure_11()
+    plot_figure_12()
+    plot_figure_13()
+    plot_figure_14()
+    plot_figure_15()
+    write_table_1()
+    estimate_energy_balance_contribution()
