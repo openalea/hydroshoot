@@ -797,24 +797,24 @@ def plot_figure_15():
             axs[1, i_treat].plot(sims['E'], style[case], label='sim0', linewidth=1)
 
     for i, ax in enumerate(axs.flatten()):
-        ax.text(0.05, 0.9, ('(a)', '(b)', '(c)', '(d)')[i], transform=ax.transAxes)
+        ax.text(0.05, 0.9, ('(a)', '(b)', '(c)', '(d)')[i], transform=ax.transAxes,
+                fontdict={'size': 11})
 
     axs[0, 0].set(
         ylabel='$\mathregular{A_{n, plant}\/[\mu mol\/s^{-1}]}$',
         ylim=(-20, 50))
     axs[1, 0].set(
-        xlabel='Date',
         ylabel='$\mathregular{E_{plant}\/[g\/h^{-1}]}$',
         xlim=(beg_date, end_date),
         ylim=(-200, 1600))
-    axs[1, 1].set(xlabel='Date')
+
     [ax.set_ylim(0, 5) for ax in fig.get_axes()[-2:]]
     fig.get_axes()[-1].set(ylabel='VPD [kPa]')
 
     for ax in axs[1, :].flatten():
         ax.set_xticklabels(datet, rotation=90)
         ax.xaxis.set_major_locator(dates.DayLocator())
-        ax.xaxis.set_major_formatter(dates.DateFormatter('%d %m'))
+        ax.xaxis.set_major_formatter(dates.DateFormatter('%-d %b'))
 
     fig.tight_layout()
     fig.subplots_adjust(bottom=0.25)
@@ -822,8 +822,8 @@ def plot_figure_15():
     h1, l1 = axs[1, 1].get_legend_handles_labels()
     h2, l2 = fig.get_axes()[-1].get_legend_handles_labels()
 
-    axs[1, 1].legend(h1 + h2, ['obs'] + ['sim%d' % d for d in range(5)] + ['VPD'], frameon=True,
-                     bbox_to_anchor=(-1.5, -0.7, 2, .102), loc=3, ncol=8,
+    axs[1, 0].legend(h1 + h2, ['obs'] + ['sim%d' % d for d in range(5)] + ['VPD'], frameon=True,
+                     bbox_to_anchor=(0.15, -0.75, 2, .102), loc=3, ncol=4,
                      prop={'size': 11})
 
     fig.savefig('fig_15.png', dpi=600.)
@@ -984,15 +984,15 @@ if __name__ == '__main__':
 
     example_pth = Path(__file__).parents[2] / 'example'
 
-    # plot_figure_6()
-    # plot_figure_7()
-    # plot_figure_8()
-    # plot_figure_9()
-    # plot_figure_10()
-    # plot_figure_11()
-    # plot_figure_12()
-    # plot_figure_13()
+    plot_figure_6()
+    plot_figure_7()
+    plot_figure_8()
+    plot_figure_9()
+    plot_figure_10()
+    plot_figure_11()
+    plot_figure_12()
+    plot_figure_13()
     plot_figure_14()
-    # plot_figure_15()
-    # write_table_1()
-    # estimate_energy_balance_contribution()
+    plot_figure_15()
+    write_table_1()
+    estimate_energy_balance_contribution()
