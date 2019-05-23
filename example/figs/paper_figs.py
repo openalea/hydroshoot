@@ -494,14 +494,14 @@ def plot_figure_13():
 
     fig = pyplot.figure()
     gs1 = gridspec.GridSpec(2, 2)
-    gs1.update(left=0.08, right=0.65, top=0.975, bottom=0.125, wspace=0.1, hspace=0.35)
+    gs1.update(left=0.135, right=0.65, top=0.975, bottom=0.125, wspace=0.1, hspace=0.35)
     ax1 = pyplot.subplot(gs1[0, 0])
-    ax2 = pyplot.subplot(gs1[0, 1], sharex=ax1, sharey=ax1)
+    ax2 = pyplot.subplot(gs1[0, 1], sharex=ax1)
     ax3 = pyplot.subplot(gs1[1, 0], sharex=ax1)
-    ax4 = pyplot.subplot(gs1[1, 1], sharex=ax1, sharey=ax3)
+    ax4 = pyplot.subplot(gs1[1, 1], sharex=ax1)
 
     gs2 = gridspec.GridSpec(2, 1)
-    gs2.update(left=0.67, right=0.85, top=0.975, bottom=0.125, hspace=0.35)
+    gs2.update(left=0.67, right=0.865, top=0.975, bottom=0.125, hspace=0.35)
     ax5 = pyplot.subplot(gs2[0])
     ax6 = pyplot.subplot(gs2[1])
 
@@ -568,21 +568,21 @@ def plot_figure_13():
             bias = (y - x).mean()
             rmse = np.sqrt(((x - y) ** 2).mean())
 
-            axs[egas, iax].text(0.55, 0.90,
+            axs[egas, iax].text(0.25, 0.90,
                                 '$\mathregular{MBE\/=\/%.1f}$' % bias,
                                 transform=axs[egas, iax].transAxes,
-                                fontdict={'size': 7})
-            axs[egas, iax].text(0.55, 0.8,
+                                fontdict={'size': 11})
+            axs[egas, iax].text(0.25, 0.8,
                                 '$\mathregular{RMSE\/=\/%.1f}$' % rmse,
                                 transform=axs[egas, iax].transAxes,
-                                fontdict={'size': 7})
+                                fontdict={'size': 11})
 
     axs[0, 2].plot((-20, 50), (-20, 50), 'k--')
     axs[1, 2].plot((-200, 1000), (-200, 1000), 'k--')
 
     for i, ax in enumerate(axs.flatten()):
         ax.text(0.05, 0.9, ('(a)', '(b)', '(e)', '(c)', '(d)', '(f)')[i],
-                transform=ax.transAxes)
+                transform=ax.transAxes, fontdict={'size': 11})
 
     # some layout
     axs[0, 0].set(
@@ -594,9 +594,11 @@ def plot_figure_13():
         xlim=(beg_date, end_date),
         ylim=(-200, 1000))
     axs[0, 1].set(
-        xlim=(beg_date, end_date), ylim=(-20, 50))
+        xlim=(beg_date, end_date),
+        ylim=(-20, 50))
     axs[1, 1].set(
-        xlim=(beg_date, end_date), ylim=(-200, 1000))
+        xlim=(beg_date, end_date),
+        ylim=(-200, 1000))
     axs[0, 2].set(
         xlabel='$\mathregular{A_{n, plant, obs}\/[\mu mol\/s^{-1}]}$',
         ylabel='$\mathregular{A_{n, plant, sim}\/[\mu mol\/s^{-1}]}$',
@@ -609,6 +611,7 @@ def plot_figure_13():
         ylim=(-200, 1000))
 
     axs[0, 1].get_yaxis().set_ticklabels('')
+    axs[1, 1].get_yaxis().set_ticklabels('')
     axs[1, 1].get_yaxis().set_ticklabels('')
     axs[0, 2].yaxis.tick_right()
     axs[1, 2].yaxis.tick_right()
@@ -979,15 +982,15 @@ if __name__ == '__main__':
 
     example_pth = Path(__file__).parents[2] / 'example'
 
-    plot_figure_6()
-    plot_figure_7()
-    plot_figure_8()
-    plot_figure_9()
-    plot_figure_10()
-    plot_figure_11()
-    plot_figure_12()
+    # plot_figure_6()
+    # plot_figure_7()
+    # plot_figure_8()
+    # plot_figure_9()
+    # plot_figure_10()
+    # plot_figure_11()
+    # plot_figure_12()
     plot_figure_13()
-    plot_figure_14()
-    plot_figure_15()
-    write_table_1()
-    estimate_energy_balance_contribution()
+    # plot_figure_14()
+    # plot_figure_15()
+    # write_table_1()
+    # estimate_energy_balance_contribution()
