@@ -633,7 +633,7 @@ def plot_figure_14():
     """Generates figure 14 of the paper. This figure compares, simulated to observed plant transpiration rates.
     """
 
-    fig, axs = pyplot.subplots(nrows=3, ncols=4, sharex='col', sharey='row', figsize=(6.69, 6))
+    fig, axs = pyplot.subplots(nrows=3, ncols=4, sharey='row', figsize=(6.69, 6))
 
     for i_treat, training in enumerate(('gdc_can1_grapevine', 'gdc_can2_grapevine', 'gdc_can3_grapevine')):
 
@@ -642,7 +642,6 @@ def plot_figure_14():
         # read observations
         obs_df = pd.read_csv(pth / 'sapflow.obs', sep=';', decimal='.', index_col='date')
         obs_df.index = [datetime.strptime(s, "%d/%m/%Y %H:%M") for s in obs_df.index]
-        # obs_df.index = pd.DatetimeIndex(obs_df.idnex)
 
         time_group = []
         for itime in obs_df.index:
@@ -696,10 +695,10 @@ def plot_figure_14():
             bias = (y_t - x_t).mean()
             rmse = np.sqrt(((x_t - y_t) ** 2).mean())
 
-            ax.text(0.55, 0.875,
+            ax.text(0.45, 0.675,
                     '$\mathregular{MBE\/=\/%.1f}$' % bias,
                     transform=ax.transAxes, fontdict={'size': 7})
-            ax.text(0.55, 0.775,
+            ax.text(0.45, 0.575,
                     '$\mathregular{RMSE\/=\/%.1f}$' % rmse,
                     transform=ax.transAxes, fontdict={'size': 7})
 
@@ -709,6 +708,18 @@ def plot_figure_14():
         day_edate = day_sdate + timedelta(hours=23)
         for can in range(3):
             axs[can, day].set_xlim(day_sdate, day_edate)
+            axs[can, day].yaxis.set_major_locator(ticker.MultipleLocator(100))
+            if can != 2:
+                axs[can, day].xaxis.set_ticklabels('')
+                axs[can, day].xaxis.set_minor_locator(dates.HourLocator(interval=5))
+            else:
+                axs[can, day].set_xticklabels(pd.date_range(day_sdate, day_edate, freq='H'),
+                                              rotation=90)
+                axs[can, day].xaxis.set_major_locator(dates.DayLocator())
+                axs[can, day].xaxis.set_major_formatter(dates.DateFormatter('%-d %b'))
+                axs[can, day].xaxis.set_minor_locator(dates.HourLocator(interval=5))
+                axs[can, day].xaxis.set_minor_formatter(dates.DateFormatter('%H'))
+                axs[can, day].tick_params(axis='x', which='major', pad=15)
 
     axs[1, 0].set_ylabel('$\mathregular{E\/[g\/h^{-1}]}$')
 
@@ -720,16 +731,6 @@ def plot_figure_14():
         axs[can, 0].text(0.05, 0.85, 'Canopy%s' % str(can + 1),
                          transform=axs[can, 0].transAxes, fontdict={'size': 11})
 
-    for ax in axs[2, :]:
-        ax.set_xlabel('Date')
-        ax.set_xticklabels(pd.date_range(day_sdate, day_edate, freq='H'),
-                           rotation=90)
-        ax.xaxis.set_major_locator(dates.DayLocator())
-        ax.xaxis.set_major_formatter(dates.DateFormatter('%d %m'))
-        ax.xaxis.set_minor_locator(dates.HourLocator(interval=3))
-        ax.xaxis.set_minor_formatter(dates.DateFormatter('%H'))
-        ax.tick_params(axis='x', which='major', pad=15)
-
     fig.tight_layout()
     fig.subplots_adjust(left=0.13, bottom=0.3)
 
@@ -737,8 +738,9 @@ def plot_figure_14():
 
     axs[2, 0].legend(h1, ('$\mathregular{SapEast_{sim}}$', '$\mathregular{SapWest_{sim}}$',
                           '$\mathregular{SapEast_{obs}}$', '$\mathregular{SapWest_{obs}}$'),
-                     frameon=True, bbox_to_anchor=(0.5, -1.2, 2, .102),
+                     frameon=True, bbox_to_anchor=(-0.36, -1.2, 2, .102),
                      loc=3, ncol=8, prop={'size': 11})
+    fig.subplots_adjust(wspace=0.075)
 
     fig.savefig('fig_14.png', dpi=600.)
     pyplot.close(fig)
@@ -989,8 +991,8 @@ if __name__ == '__main__':
     # plot_figure_10()
     # plot_figure_11()
     # plot_figure_12()
-    plot_figure_13()
-    # plot_figure_14()
+    # plot_figure_13()
+    plot_figure_14()
     # plot_figure_15()
     # write_table_1()
     # estimate_energy_balance_contribution()
