@@ -492,27 +492,25 @@ def plot_figure_13():
     end_date = datetime(2009, 8, 1, 23, 00, 0, )
     datet = pd.date_range(beg_date, end_date, freq='H')
 
+    fig = pyplot.figure()
     gs1 = gridspec.GridSpec(2, 2)
-    gs1.update(right=0.68, wspace=0.1)
+    gs1.update(left=0.08, right=0.65, top=0.975, bottom=0.125, wspace=0.1, hspace=0.35)
     ax1 = pyplot.subplot(gs1[0, 0])
     ax2 = pyplot.subplot(gs1[0, 1], sharex=ax1, sharey=ax1)
     ax3 = pyplot.subplot(gs1[1, 0], sharex=ax1)
     ax4 = pyplot.subplot(gs1[1, 1], sharex=ax1, sharey=ax3)
 
     gs2 = gridspec.GridSpec(2, 1)
-    gs2.update(left=0.7)
+    gs2.update(left=0.67, right=0.85, top=0.975, bottom=0.125, hspace=0.35)
     ax5 = pyplot.subplot(gs2[0])
     ax6 = pyplot.subplot(gs2[1])
 
-
-    fig = ax1.get_figure()
+    # fig = ax1.get_figure()
     fig.set_figheight(6)
     fig.set_figwidth(6.69)
-    axs = fig.get_axes()
-    axs = np.array([axs[[0, 1, 4]], ,
-                    ])
-    gs1 = fig.add_gridspec(nrows=3, ncols=3, left=0.05, right=0.48, wspace=0.05)
-    fig, axs = pyplot.subplots(nrows=2, ncols=3, figsize=(6.69, 6))
+    axs = np.array([[ax1, ax2, ax5],
+                    [ax3, ax4, ax6]])
+    # fig, axs = pyplot.subplots(nrows=2, ncols=3, figsize=(6.69, 6))
     [ax.grid() for ax in axs.flatten()]
 
     for iax, training in enumerate(('vsp_ww_grapevine', 'vsp_ws_grapevine')):
@@ -568,16 +566,14 @@ def plot_figure_13():
             xyindex = xindex * yindex
             x, y = x[xyindex], y[xyindex]
 
-            slope, intercept, r_value, p_value, std_err = linregress(x, y)
-            r2 = round(r_value ** 2, 3)
             bias = (y - x).mean()
             rmse = np.sqrt(((x - y) ** 2).mean())
 
-            axs[egas, iax].text(0.65, 0.90,
+            axs[egas, iax].text(0.55, 0.90,
                                 '$\mathregular{MBE\/=\/%.1f}$' % bias,
                                 transform=axs[egas, iax].transAxes,
                                 fontdict={'size': 7})
-            axs[egas, iax].text(0.65, 0.8,
+            axs[egas, iax].text(0.55, 0.8,
                                 '$\mathregular{RMSE\/=\/%.1f}$' % rmse,
                                 transform=axs[egas, iax].transAxes,
                                 fontdict={'size': 7})
@@ -589,23 +585,18 @@ def plot_figure_13():
         ax.text(0.05, 0.9, ('(a)', '(b)', '(e)', '(c)', '(d)', '(f)')[i],
                 transform=ax.transAxes)
 
+    # some layout
     axs[0, 0].set(
-        xlabel='Date',
         ylabel='$\mathregular{A_{n, plant}\/[\mu mol\/s^{-1}]}$',
         xlim=(beg_date, end_date),
         ylim=(-20, 50))
     axs[1, 0].set(
-        xlabel='Date',
         ylabel='$\mathregular{E_{plant}\/[g\/h^{-1}]}$',
         xlim=(beg_date, end_date),
         ylim=(-200, 1000))
     axs[0, 1].set(
-        xlabel='Date',
-        ylabel='$\mathregular{A_{n, plant}\/[\mu mol\/s^{-1}]}$',
         xlim=(beg_date, end_date), ylim=(-20, 50))
     axs[1, 1].set(
-        xlabel='Date',
-        ylabel='$\mathregular{E_{plant}\/[g\/h^{-1}]}$',
         xlim=(beg_date, end_date), ylim=(-200, 1000))
     axs[0, 2].set(
         xlabel='$\mathregular{A_{n, plant, obs}\/[\mu mol\/s^{-1}]}$',
@@ -618,12 +609,20 @@ def plot_figure_13():
         xlim=(-200, 1000),
         ylim=(-200, 1000))
 
+    axs[0, 1].get_yaxis().set_ticklabels('')
+    axs[1, 1].get_yaxis().set_ticklabels('')
+    axs[0, 2].yaxis.tick_right()
+    axs[1, 2].yaxis.tick_right()
+    axs[0, 2].yaxis.set_label_position('right')
+    axs[1, 2].yaxis.set_label_position('right')
+    axs[0, 2].xaxis.set_major_locator(ticker.MultipleLocator(25))
+    axs[1, 2].xaxis.set_major_locator(ticker.MultipleLocator(500))
+
     for ax in axs[:, :2].flatten():
         ax.set_xticklabels(datet, rotation=90)
         ax.xaxis.set_major_locator(dates.DayLocator())
-        ax.xaxis.set_major_formatter(dates.DateFormatter('%d %m'))
+        ax.xaxis.set_major_formatter(dates.DateFormatter('%-d %b'))
 
-    fig.tight_layout()
     fig.savefig('fig_13.png', dpi=600.)
     pyplot.close(fig)
 
