@@ -34,7 +34,6 @@ def plot_figure_6():
         axs[1, 0].plot(datet, sims_df['Tleaf'], label=training, color=training_color[training])
         axs[1, 1].plot(datet, sims_df['E'], label=training, color=training_color[training])
 
-
     # some layout
     for iax, ax in enumerate(axs.flatten()):
         ax.text(0.875, 0.9, ('(a)', '(b)', '(c)', '(d)')[iax],
@@ -451,7 +450,6 @@ def plot_figure_12():
                ylabel='$\mathregular{\Delta T_{leaf, sim}\/[^\circ C]}$')
     axs[2].xaxis.set_major_locator(ticker.IndexLocator(base=2, offset=2))
     axs[2].xaxis.set_major_locator(ticker.MultipleLocator(5))
-
 
     for i in range(3):
         if i == 0:
