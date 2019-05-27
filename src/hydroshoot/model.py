@@ -100,8 +100,8 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
     print 'GDD since budbreak = %d °Cd' % gdd_since_budbreak
 
     # Determination of perennial structure arms (for grapevine)
-    arm_vid = {g.node(vid).label: g.node(vid).components()[0]._vid for vid in g.VtxList(Scale=2) if
-               g.node(vid).label.startswith('arm')}
+    # arm_vid = {g.node(vid).label: g.node(vid).components()[0]._vid for vid in g.VtxList(Scale=2) if
+    #            g.node(vid).label.startswith('arm')}
 
     # Soil reservoir dimensions (inter row, intra row, depth) [m]
     soil_dimensions = params.soil.soil_dimensions
@@ -282,8 +282,8 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
     # ==============================================================================
 
     sapflow = []
-    sapEast = []
-    sapWest = []
+    # sapEast = []
+    # sapWest = []
     an_ls = []
     rg_ls = []
     psi_stem = {}
@@ -362,8 +362,8 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
 
         # Plot stuff..
         sapflow.append(g.node(vid_collar).Flux)
-        sapEast.append(g.node(arm_vid['arm1']).Flux)
-        sapWest.append(g.node(arm_vid['arm2']).Flux)
+        # sapEast.append(g.node(arm_vid['arm1']).Flux)
+        # sapWest.append(g.node(arm_vid['arm2']).Flux)
 
         an_ls.append(g.node(vid_collar).FluxC)
 
@@ -394,7 +394,7 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
     # Plant total transpiration
     sapflow = [flow * time_conv * 1000. for flow in sapflow]
 
-    sapEast, sapWest = [np.array(flow) * time_conv * 1000. for i, flow in enumerate((sapEast, sapWest))]
+    # sapEast, sapWest = [np.array(flow) * time_conv * 1000. for i, flow in enumerate((sapEast, sapWest))]
 
     # Median leaf temperature
     t_ls = [np.median(Tlc_dict[date].values()) for date in meteo.time]
@@ -406,8 +406,8 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
         'Rg': rg_ls,
         'An': an_ls,
         'E': sapflow,
-        'sapEast': sapEast,
-        'sapWest': sapWest,
+        # 'sapEast': sapEast,
+        # 'sapWest': sapWest,
         'Tleaf': t_ls
     }
 
