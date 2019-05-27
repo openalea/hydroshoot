@@ -37,7 +37,7 @@
   },
   "irradiance": {
     "E_type": "Rg_Watt/m2",
-    "E_type2": "Ei",
+    "E_type2": "Eabs",
     "opt_prop": {
       "SW": {
         "leaf": [
@@ -102,7 +102,7 @@
     },
     "par_gs": {
       "model": "misson",
-      "g0": 0.02,
+      "g0": 0.0,
       "m0": 7.3,
       "psi0": -0.65,
       "D0": 1.0,
