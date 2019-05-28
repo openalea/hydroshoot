@@ -7,9 +7,7 @@ Visualization module for HydroShoot
 
 from pandas import DataFrame
 import numpy as np
-#from scipy.spatial import distance
 import matplotlib as mpl
-#import mpl_toolkits.mplot3d as m3d
 from collections import OrderedDict
 
 

@@ -37,7 +37,7 @@
   },
   "irradiance": {
     "E_type": "Rg_Watt/m2",
-    "E_type2": "Ei",
+    "E_type2": "Eabs",
     "opt_prop": {
       "SW": {
         "leaf": [

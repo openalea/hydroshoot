@@ -1,9 +1,13 @@
 package:
   name: hydroshoot
-  version: "0.9.0"
+  version: "1.0.0"
 
 source:
   git_url: ../
+
+build:
+  preserve_egg_dir: True
+  script: python setup.py install
 
 requirements:
   build:
@@ -12,6 +16,16 @@ requirements:
 
   run:
     - python
+    - numpy
+    - scipy
+    - sympy
+    - pandas
+    - jsonschema
+    - pvlib-python
+    - openalea.mtg
+    - openalea.plantgl
+    - alinea.caribu
+    - alinea.astk
 
 about:
   summary: "HydroShoot is an FSPM model to simulate gas-exchange on vine"

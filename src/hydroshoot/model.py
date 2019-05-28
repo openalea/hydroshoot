@@ -16,7 +16,7 @@ from hydroshoot import (architecture, irradiance, exchange, hydraulic, energy,
 from hydroshoot.params import Params
 
 
-def run(g, wd, scene, **kwargs):
+def run(g, wd, scene=None, write_result=True, **kwargs):
     """
     Calculates leaf gas and energy exchange in addition to the hydraulic structure of an individual plant.
 
@@ -45,7 +45,7 @@ def run(g, wd, scene, **kwargs):
     # Initialisation
     # ==============================================================================
     #   Climate data
-    meteo_path = params.simulation.meteo
+    meteo_path = wd + params.simulation.meteo
     meteo_tab = read_csv(meteo_path, sep=';', decimal='.', header=0)
     meteo_tab.time = DatetimeIndex(meteo_tab.time)
     meteo_tab = meteo_tab.set_index(meteo_tab.time)
@@ -144,6 +144,8 @@ def run(g, wd, scene, **kwargs):
 
     limit = params.energy.limit
     energy_budget = params.simulation.energy_budget
+    solo = params.energy.solo
+    simplified_form_factors = params.simulation.simplified_form_factors
     print 'Energy_budget: %s' % energy_budget
 
     # Optical properties
@@ -157,18 +159,15 @@ def run(g, wd, scene, **kwargs):
     Na_dict = params.exchange.Na_dict
 
     # Computation of the form factor matrix
+    form_factors=None
     if energy_budget:
-        solo = params.energy.solo
-        simplified_form_factors = params.simulation.simplified_form_factors
-        if 'k_sky' not in g.property_names():
-            print 'Computing form factors...'
-
-            if not simplified_form_factors:
-                energy.form_factors_matrix(g, pattern, length_conv, limit=limit)
-            else:
-                energy.form_factors_simplified(g, pattern, leaf_lbl_prefix,
-                                               stem_lbl_prefix, turtle_sectors, icosphere_level,
-                                               unit_scene_length)
+        print 'Computing form factors...'
+        if not simplified_form_factors:
+            form_factors = energy.form_factors_matrix(g, pattern, length_conv, limit=limit)
+        else:
+            form_factors = energy.form_factors_simplified(g, pattern=pattern, infinite=True, leaf_lbl_prefix=leaf_lbl_prefix,
+                                           turtle_sectors=turtle_sectors, icosphere_level=icosphere_level,
+                                           unit_scene_length=unit_scene_length)
 
     # Soil class
     soil_class = params.soil.soil_class
@@ -254,17 +253,11 @@ def run(g, wd, scene, **kwargs):
                                                                         None, scene_rotation, None)
 
         # Compute irradiance interception and absorbtion
-        g, caribu_scene = irradiance.hsCaribu(mtg=g, meteo=ppfd10_meteo, local_date=None,
-                                              geo_location=None, E_type=None,
-                                              unit_scene_length=unit_scene_length, tzone=tzone,
-                                              wave_band='SW', source=caribu_source, direct=False,
-                                              infinite=True, nz=50, dz=5, ds=0.5,
-                                              pattern=pattern, turtle_sectors=turtle_sectors,
-                                              turtle_format=turtle_format,
-                                              leaf_lbl_prefix=leaf_lbl_prefix,
-                                              stem_lbl_prefix=stem_lbl_prefix,
-                                              opt_prop=opt_prop, rotation_angle=scene_rotation,
-                                              icosphere_level=None)
+        g, caribu_scene = irradiance.hsCaribu(mtg=g,
+                                              unit_scene_length=unit_scene_length,
+                                              source=caribu_source, direct=False,
+                                              infinite=True, nz=50, ds=0.5,
+                                              pattern=pattern)
 
         g.properties()['Ei10'] = {vid: g.node(vid).Ei * time_conv / 10. / 1.e6 for vid in g.property('Ei').keys()}
 
@@ -336,29 +329,21 @@ def run(g, wd, scene, **kwargs):
                                                                         scene_rotation, None)
 
         # Compute irradiance interception and absorbtion
-        g, caribu_scene = irradiance.hsCaribu(mtg=g, meteo=imeteo, local_date=None,
-                                              geo_location=None, E_type=None,
-                                              unit_scene_length=unit_scene_length, tzone=tzone,
-                                              wave_band='SW', source=caribu_source, direct=False,
-                                              infinite=True, nz=50, dz=5, ds=0.5,
-                                              pattern=pattern, turtle_sectors=turtle_sectors,
-                                              turtle_format=turtle_format,
-                                              leaf_lbl_prefix=leaf_lbl_prefix,
-                                              stem_lbl_prefix=stem_lbl_prefix,
-                                              opt_prop=opt_prop, rotation_angle=scene_rotation,
-                                              icosphere_level=None)
+        g, caribu_scene = irradiance.hsCaribu(mtg=g,
+                                              unit_scene_length=unit_scene_length,
+                                              source=caribu_source, direct=False,
+                                              infinite=True, nz=50, ds=0.5,
+                                              pattern=pattern)
 
-        g.properties()['Ei'] = {vid: 1.2 * g.node(vid).Ei for vid in g.property('Ei').keys()}
+        # g.properties()['Ei'] = {vid: 1.2 * g.node(vid).Ei for vid in g.property('Ei').keys()}
 
         # Trace intercepted irradiance on each time step
         rg_ls.append(sum([g.node(vid).Ei / (0.48 * 4.6) * surface(g.node(vid).geometry) * (length_conv ** 2) \
                           for vid in g.property('geometry') if g.node(vid).label.startswith('L')]))
 
-        #        t_soil = HSEnergy.soil_temperature(g,imeteo,t_sky+273.15,'other')
-        # [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
+
         # Hack forcing of soil temperture (model of soil temperature under development)
-        dt_soil = [3, 3, 3, 3, 3, 3, 3, 3, 10, 15, 20, 20, 20, 20, 20, 15, 6, 5, 4, 3, 3, 3, 3, 3]
-        t_soil = imeteo.Tac[0] + dt_soil[date.hour]
+        t_soil = energy.forced_soil_temperature(imeteo)
 
         # Climatic data for energy balance module
         # TODO: Change the t_sky_eff formula (cf. Gliah et al., 2011, Heat and Mass Transfer, DOI: 10.1007/s00231-011-0780-1)
@@ -366,10 +351,11 @@ def run(g, wd, scene, **kwargs):
 
         solver.solve_interactions(g, imeteo, psi_soil, t_soil, t_sky_eff,
                                   vid_collar, vid_base, length_conv, time_conv,
-                                  rhyzo_total_volume, params)
+                                  rhyzo_total_volume, params, form_factors, simplified_form_factors)
 
         # Write mtg to an external file
-        architecture.mtg_save(g, scene, output_path)
+        if scene is not None:
+            architecture.mtg_save(g, scene, output_path)
 
         # Plot stuff..
         sapflow.append(g.node(vid_collar).Flux)
@@ -405,8 +391,7 @@ def run(g, wd, scene, **kwargs):
     # Plant total transpiration
     sapflow = [flow * time_conv * 1000. for flow in sapflow]
 
-    #    sapflow, sapEast, sapWest = [np.array(flow) * time_conv * 1000. for i, flow in
-    #                                 enumerate((sapflow, sapEast, sapWest))]
+    # sapEast, sapWest = [np.array(flow) * time_conv * 1000. for i, flow in enumerate((sapEast, sapWest))]
 
     # Median leaf temperature
     t_ls = [np.median(Tlc_dict[date].values()) for date in meteo.time]
@@ -427,7 +412,8 @@ def run(g, wd, scene, **kwargs):
     results_df = DataFrame(results_dict, index=meteo.time)
 
     # Write
-    results_df.to_csv(output_path + 'time_series.output',
+    if write_result:
+        results_df.to_csv(output_path + 'time_series.output',
                       sep=';', decimal='.')
 
     time_off = datetime.now()
@@ -438,4 +424,4 @@ def run(g, wd, scene, **kwargs):
     print ("--- Total runtime: %d minute(s) ---" %
            int((time_off - time_on).seconds / 60.))
 
-    return
+    return results_df

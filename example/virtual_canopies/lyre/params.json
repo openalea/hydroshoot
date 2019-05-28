@@ -1,0 +1,216 @@
+{
+  "simulation": {
+    "sdate": "2009-07-29 00:00:00",
+    "edate": "2009-07-29 23:00:00",
+    "latitude": 43.61,
+    "longitude": 3.87,
+	"meteo": "meteo.input",
+    "elevation": 44.0,
+    "tzone": "Europe/Paris",
+    "output_index": "",
+    "unit_scene_length": "cm",
+    "simplified_form_factors": true,
+    "hydraulic_structure": true,
+    "negligible_shoot_resistance": false,
+    "energy_budget": true,
+    "soil_water_deficit": true
+  },
+  "phenology": {
+    "emdate": "2009-04-01 00:00:00",
+    "t_base": 10.0
+  },
+  "mtg_api": {
+    "collar_label": "inT",
+    "leaf_lbl_prefix": "L",
+    "stem_lbl_prefix": [
+      "in",
+      "Pet",
+      "cx"
+    ]
+  },
+  "numerical_resolution": {
+    "max_iter": 100,
+    "psi_step": 1.0,
+    "psi_error_threshold": 0.05,
+    "t_step": 1.0,
+    "t_error_crit": 0.02
+  },
+  "irradiance": {
+    "E_type": "Rg_Watt/m2",
+    "E_type2": "Eabs",
+    "opt_prop": {
+      "SW": {
+        "leaf": [
+          0.06,
+          0.07
+        ],
+        "stem": [
+          0.13
+        ],
+        "other": [
+          0.06,
+          0.07
+        ]
+      },
+      "LW": {
+        "leaf": [
+          0.04,
+          0.07
+        ],
+        "stem": [
+          0.13
+        ],
+        "other": [
+          0.06,
+          0.07
+        ]
+      }
+    },
+    "scene_rotation": 140.0,
+    "turtle_format": "soc",
+    "turtle_sectors": "46",
+    "icosphere_level": null
+  },
+  "energy": {
+    "solo": true,
+    "limit": -0.000000001,
+    "t_cloud": 2.0,
+    "t_sky": -20.0
+  },
+  "hydraulic": {
+    "MassConv": 18.01528,
+    "psi_min": -3.0,
+    "Kx_dict": {
+      "a": 1.6,
+      "b": 2.0,
+      "min_kmax": 0.000111
+    },
+    "par_K_vul": {
+      "model": "misson",
+      "fifty_cent": -0.76,
+      "sig_slope": 1.0
+    }
+  },
+  "exchange": {
+    "rbt": 0.6667,
+    "ca": 400.0,
+    "Na_dict": {
+      "aN": -0.0008,
+      "bN": 3.3,
+      "aM": 6.471,
+      "bM": 56.635
+    },
+    "par_gs": {
+      "model": "misson",
+      "g0": 0.02,
+      "m0": 7.3,
+      "psi0": -0.65,
+      "D0": 5.0,
+      "n": 4.0
+    },
+    "par_photo": {
+      "Vcm25": 89.0,
+      "Jm25": 143.0,
+      "cRd": 0.008,
+      "TPU25": 10.0,
+      "Kc25": 404.9,
+      "Ko25": 278.4,
+      "Tx25": 42.75,
+      "alpha": [
+        0.2,
+        0.2,
+        0.19,
+        0.19,
+        0.14,
+        0.12
+      ],
+      "alpha_T_limit": [
+        15,
+        20,
+        25,
+        30,
+        34,
+        50
+      ],
+      "a1": 0.98,
+      "a2": 0.98,
+      "a3": 0.98,
+      "ds": 0.635,
+      "dHd": 200.0,
+      "RespT_Kc": {
+        "model": "Arrhenius",
+        "c": 38.05,
+        "deltaHa": 79.43
+      },
+      "RespT_Ko": {
+        "model": "Arrhenius",
+        "c": 20.30,
+        "deltaHa": 36.38
+      },
+      "RespT_Vcm": {
+        "model": "Arrhenius",
+        "c": 26.35,
+        "deltaHa": 65.33
+      },
+      "RespT_Jm": {
+        "model": "Arrhenius",
+        "c": 17.57,
+        "deltaHa": 43.54
+      },
+      "RespT_TPU": {
+        "model": "Arrhenius",
+        "c": 21.46,
+        "deltaHa": 53.1
+      },
+      "RespT_Rd": {
+        "model": "Arrhenius",
+        "c": 18.72,
+        "deltaHa": 46.39
+      },
+      "RespT_Tx": {
+        "model": "Arrhenius",
+        "c": 19.02,
+        "deltaHa": 37.83
+      }
+    },
+    "par_photo_N": {
+      "Vcm25_N": [
+        34.02,
+        -3.13
+      ],
+      "Jm25_N": [
+        78.27,
+        -17.3
+      ],
+      "Rd_N": [
+        0.42,
+        -0.01
+      ],
+      "TPU25_N": [
+        6.24,
+        -1.92
+      ]
+    }
+  },
+  "soil": {
+    "soil_class": "Sandy_Loam",
+    "soil_dimensions": [
+      3.6,
+      1.0,
+      1.2
+    ],
+    "rhyzo_solution": false,
+    "rhyzo_radii": [
+      0.167,
+      0.333,
+      0.5
+    ],
+    "rhyzo_coeff": 0.5,
+    "roots": [
+      0.013,
+      0.0001
+    ]
+  }
+}
+
+
