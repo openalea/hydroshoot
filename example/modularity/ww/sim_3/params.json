@@ -1,7 +1,7 @@
 {
   "simulation": {
-    "sdate": "2012-08-01 00:00:00",
-    "edate": "2012-08-04 23:00:00",
+    "sdate": "2009-07-29 00:00:00",
+    "edate": "2009-08-01 23:00:00",
     "latitude": 43.61,
     "longitude": 3.87,
 	"meteo": "meteo.input",
@@ -12,11 +12,11 @@
     "simplified_form_factors": true,
     "hydraulic_structure": true,
     "negligible_shoot_resistance": false,
-    "energy_budget": true,
-    "soil_water_deficit": true
+    "energy_budget": false,
+    "soil_water_deficit": false
   },
   "phenology": {
-    "emdate": "2012-04-01 00:00:00",
+    "emdate": "2009-04-01 00:00:00",
     "t_base": 10.0
   },
   "mtg_api": {
@@ -102,7 +102,7 @@
     },
     "par_gs": {
       "model": "misson",
-      "g0": 0.0,
+      "g0": 0.02,
       "m0": 7.3,
       "psi0": -0.65,
       "D0": 1.0,
@@ -205,7 +205,7 @@
       0.333,
       0.5
     ],
-    "rhyzo_coeff": 0.75,
+    "rhyzo_coeff": 0.25,
     "roots": [
       0.013,
       0.0001

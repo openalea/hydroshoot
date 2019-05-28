@@ -92,3 +92,15 @@ example/vsp_ws_grapevine/output/
 example/gdc_can1_grapevine/output/
 example/gdc_can2_grapevine/output/
 example/gdc_can3_grapevine/output/
+example/modularity/ww/sim_1/output/
+example/modularity/ww/sim_2/output/
+example/modularity/ww/sim_3/output/
+example/modularity/ww/sim_4/output/
+example/modularity/ws/sim_1/output/
+example/modularity/ws/sim_2/output/
+example/modularity/ws/sim_3/output/
+example/modularity/ws/sim_4/output/
+example/virtual_canopies/gdc/output/
+example/virtual_canopies/vsp/output/
+example/virtual_canopies/lyre/output/
+doc/

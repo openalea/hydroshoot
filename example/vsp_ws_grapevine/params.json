@@ -37,7 +37,7 @@
   },
   "irradiance": {
     "E_type": "Rg_Watt/m2",
-    "E_type2": "Ei",
+    "E_type2": "Eabs",
     "opt_prop": {
       "SW": {
         "leaf": [
@@ -195,7 +195,7 @@
   "soil": {
     "soil_class": "Sandy_Loam",
     "soil_dimensions": [
-      1.8,
+      3.6,
       1.0,
       1.2
     ],
