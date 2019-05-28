@@ -144,6 +144,8 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
 
     limit = params.energy.limit
     energy_budget = params.simulation.energy_budget
+    solo = params.energy.solo
+    simplified_form_factors = params.simulation.simplified_form_factors
     print 'Energy_budget: %s' % energy_budget
 
     # Optical properties
@@ -157,18 +159,15 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
     Na_dict = params.exchange.Na_dict
 
     # Computation of the form factor matrix
+    form_factors=None
     if energy_budget:
-        solo = params.energy.solo
-        simplified_form_factors = params.simulation.simplified_form_factors
-        if 'k_sky' not in g.property_names():
-            print 'Computing form factors...'
-
-            if not simplified_form_factors:
-                energy.form_factors_matrix(g, pattern, length_conv, limit=limit)
-            else:
-                energy.form_factors_simplified(g, pattern, leaf_lbl_prefix,
-                                               stem_lbl_prefix, turtle_sectors, icosphere_level,
-                                               unit_scene_length)
+        print 'Computing form factors...'
+        if not simplified_form_factors:
+            form_factors = energy.form_factors_matrix(g, pattern, length_conv, limit=limit)
+        else:
+            form_factors = energy.form_factors_simplified(g, pattern=pattern, infinite=True, leaf_lbl_prefix=leaf_lbl_prefix,
+                                           turtle_sectors=turtle_sectors, icosphere_level=icosphere_level,
+                                           unit_scene_length=unit_scene_length)
 
     # Soil class
     soil_class = params.soil.soil_class
@@ -342,11 +341,9 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
         rg_ls.append(sum([g.node(vid).Ei / (0.48 * 4.6) * surface(g.node(vid).geometry) * (length_conv ** 2) \
                           for vid in g.property('geometry') if g.node(vid).label.startswith('L')]))
 
-        #        t_soil = HSEnergy.soil_temperature(g,imeteo,t_sky+273.15,'other')
-        # [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
+
         # Hack forcing of soil temperture (model of soil temperature under development)
-        dt_soil = [3, 3, 3, 3, 3, 3, 3, 3, 10, 15, 20, 20, 20, 20, 20, 15, 6, 5, 4, 3, 3, 3, 3, 3]
-        t_soil = imeteo.Tac[0] + dt_soil[date.hour]
+        t_soil = energy.forced_soil_temperature(imeteo)
 
         # Climatic data for energy balance module
         # TODO: Change the t_sky_eff formula (cf. Gliah et al., 2011, Heat and Mass Transfer, DOI: 10.1007/s00231-011-0780-1)
@@ -354,7 +351,7 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
 
         solver.solve_interactions(g, imeteo, psi_soil, t_soil, t_sky_eff,
                                   vid_collar, vid_base, length_conv, time_conv,
-                                  rhyzo_total_volume, params)
+                                  rhyzo_total_volume, params, form_factors, simplified_form_factors)
 
         # Write mtg to an external file
         if scene is not None:

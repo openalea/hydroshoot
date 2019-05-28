@@ -4,7 +4,7 @@ from hydroshoot import hydraulic, exchange, energy
 
 
 def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_base,
-                       length_conv, time_conv, rhyzo_total_volume, params):
+                       length_conv, time_conv, rhyzo_total_volume, params, form_factors, simplified_form_factors):
     """Computes gas-exchange, energy and hydraulic structure of plant's shoot jointly.
 
     Args:
@@ -21,6 +21,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
         params (params): [-] :class:`hydroshoot.params.Params()` object
 
     """
+    unit_scene_length = params.simulation.unit_scene_length
 
     hydraulic_structure = params.simulation.hydraulic_structure
     negligible_shoot_resistance = params.simulation.negligible_shoot_resistance
@@ -68,18 +69,12 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
     for vtx_id in traversal.pre_order2(g, vid_base):
         g.node(vtx_id).psi_head = psi_soil
 
-    # Climatic data for energy balance module
-    macro_meteo = {'T_sky': t_sky_eff + 273.15, 'T_soil': t_soil + 273.15,
-                   'T_air': meteo.Tac[0] + 273.15, 'Pa': meteo.Pa[0],
-                   'u': meteo.u[0]}
-
     # Temperature loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     t_error_trace = []
     it_step = temp_step
 
-    # Initialize leaf [and other elements] temperature to air temperature
-    g.properties()['Tlc'] = {vid: meteo.Tac[0] for vid in g.VtxList() if
-                             vid > 0 and g.node(vid).label.startswith('L')}
+    # Initialize leaf  temperature to air temperature
+    g.properties()['Tlc'] = energy.leaf_temperature_as_air_temperature(g, meteo, leaf_lbl_prefix)
 
     for it in range(max_iter):
         t_prev = deepcopy(g.property('Tlc'))
@@ -166,12 +161,19 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
         # End Hydraulic loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         # Compute leaf temperature
-        if not energy_budget:
-            break
-        else:
-            t_iter = energy.leaf_temperature(g, macro_meteo, solo, True,
-                                             leaf_lbl_prefix, max_iter,
-                                             temp_error_threshold, temp_step)
+        if energy_budget:
+            leaves_length = energy.get_leaves_length(g, leaf_lbl_prefix=leaf_lbl_prefix, unit_scene_length=unit_scene_length)
+            leaf_wind_speed = energy.leaf_wind_as_air_wind(g, meteo, leaf_lbl_prefix)
+            gbH = energy.heat_boundary_layer_conductance(leaves_length, leaf_wind_speed)
+            t_init = g.property('Tlc')
+            ev = g.property('E')
+            ei = g.property('Ei')
+            g.properties()['Tlc'], t_iter = energy.leaf_temperature(g, meteo, t_soil, t_sky_eff, t_init=t_init,
+                                                                    form_factors=form_factors, gbh=gbH, ev=ev, ei=ei,
+                                                                    solo=solo, ff_type=simplified_form_factors,
+                                                                    leaf_lbl_prefix=leaf_lbl_prefix, max_iter=max_iter,
+                                                                    t_error_crit=temp_error_threshold, t_step=temp_step)
+
 
             # t_iter_list.append(t_iter)
             t_new = deepcopy(g.property('Tlc'))
