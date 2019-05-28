@@ -17,11 +17,9 @@ Installation
     conda install hydroshoot -c default -c openalea -c conda-forge
 
 
-**Tempo**
-HydroShoot is a functional-structural plant modelling package. It is built using the MTG (Multiscale Tree Graph) central data structure (Pradal et al., 2008).
+HydroShoot is a functional-structural plant modelling package. 
 
-Hydroshoot is composed of 4 generic modules used to simulate:
-	- irradiance interception (*irradiance*)
+Hydroshoot is composed of 3 generic modules used to simulate:
 	- xylem water transport (*hydraulic*)
 	- leaves energy budget (*energy*)
 	- leaves gas exchange fluxes (*exchange*).
