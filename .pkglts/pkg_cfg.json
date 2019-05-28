@@ -43,7 +43,7 @@
     "name": "cecill-c",
     "organization": "INRA, CIRAD",
     "project": "{{ base.pkgname }}",
-    "year": 2015
+    "year": 2019
   },
   "pysetup": {
     "intended_versions": [
