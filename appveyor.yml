@@ -4,7 +4,7 @@ platform:
 
 environment:
   matrix:
-    - CONDA_RECIPE: conda
+    - CONDA_RECIPE: conda_hydroshhot
       CONDA_VERSION: 2
 
 install:

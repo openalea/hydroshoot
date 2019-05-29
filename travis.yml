@@ -10,7 +10,7 @@ services:
   - docker
 
 env:
- - CONDA_RECIPE=conda
+ - CONDA_RECIPE=conda_hydroshhot
    CONDA_VERSION=2
  #- CONDA_RECIPE=conda
  #  CONDA_VERSION=3
