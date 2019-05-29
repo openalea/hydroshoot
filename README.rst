@@ -5,9 +5,9 @@ hydroshoot
 .. {# pkglts, doc
 
 
-.. image:: https://travis-ci.org/Rami Albasha/hydroshoot.svg?branch=master
+.. image:: https://travis-ci.org/openalea/hydroshoot.svg?branch=master
     :alt: Travis build status
-    :target: https://travis-ci.org/Rami Albasha/hydroshoot
+    :target: https://travis-ci.org/openalea/hydroshoot
 
 .. #}
 
