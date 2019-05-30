@@ -9,7 +9,7 @@ Development Lead
 * Rami Albasha, <rami.albasha@itk.fr>
 * Christian Fournier, <christian.fournier@inra.fr>
 * Christophe Pradal, <christophe.pradal@inria.fr>
-* Eric Lebon, <&dagger>
+* Eric Lebon
 
 .. #}
 
