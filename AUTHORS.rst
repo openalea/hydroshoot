@@ -6,10 +6,10 @@ Development Lead
 
 .. {# pkglts, doc
 
-* Rami Albasha, <rami albasha at inra dot fr>
-* Christian Fournier, <@fournier-ch>
-* Christophe Pradal, <@pradal>
-* Eric Lebon, <eric dot lebon at inra dot fr>
+* Rami Albasha, <rami.albasha@itk.fr>
+* Christian Fournier, <christian.fournier@inra.fr>
+* Christophe Pradal, <christophe.pradal@inria.fr>
+* Eric Lebon, <&dagger>
 
 .. #}
 
