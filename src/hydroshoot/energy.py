@@ -50,36 +50,6 @@ def get_leaves_length(g, leaf_lbl_prefix='L', length_lbl='Length', unit_scene_le
     return {k: v * conv for k, v in length.iteritems() if k in leaves}
 
 
-#def energy_params(a_PAR=0.87, a_NIR=0.35, a_glob=0.6, e_sky=1.0, e_leaf=0.96,
-#                    sigma=5.670373e-8, e_soil = 0.95, lambda_=44.00e3, Cp = 29.07):
-#    """
-#    Returns a dictionary of spectrometric and energy balance-related properties.
-#
-#    Parameters:
-#    - **a_PAR**: Leaf absorptance to the PAR [-]
-#    - **a_NIR** : Leaf absorptance to the NIR radiation [-]
-#    - **a_glob**: Leaf absorptance to the global radiation [-]
-#    - **e_sky**: sky emissivity [-]
-#    - **e_leaf**: leaf emissivity [-]
-#    - **e_soil**: soil emissivity [-]
-#    - **sigma**: Stefan-Boltzmann constant [W m-2 K-4]
-#    - **lambda_**: Latent heat for evaporization [J mol-1], [W s mol-1]
-#    - **Cp**: Isobaric heat capacity of the air [J mol-1 K-1]
-#    """
-#
-#    energy_prop_dict = {
-#    'a_PAR' : a_PAR,
-#    'a_NIR' : a_NIR,
-#    'a_glob' : a_glob,
-#    'e_sky' : e_sky,
-#    'e_leaf' : e_leaf,
-#    'e_soil' : e_soil,
-#    'sigma' : sigma,
-#    'lambda_' : lambda_,
-#    'Cp' : Cp
-#    }
-#
-#    return energy_prop_dict
 
 a_PAR = 0.87
 a_NIR = 0.35
@@ -91,92 +61,55 @@ sigma = 5.670373e-8
 lambda_ = 44.0e3
 Cp = 29.07
 
-#def form_factors_matrix(g, pattern, LengthConv, limit=-0.01):
-#    """
-#    Associates form factor values to leaves and soil elements.
-#
-#    :Parameters:
-#    - **g**: an MTG object
-#    - **limit**: float (negative), a threhold for below which form factor values are ignored
-#    """
-##    max_height = max([coord[2] for coord in g.property('TopPosition').values()])
-#    d_sphere = spatial.distance.cdist(pattern,pattern, 'euclidean').max()
-#    cscene = CaribuScene(g,pattern=pattern)
-#    form_factor_array=cscene.form_factors(aggregate=True, d_sphere=d_sphere)
-#
-#    col = form_factor_array.columns
-#    for vid in g.VtxList():
-#        try:
-#            if g.node(vid).label.startswith(('L','soil','other')):
-#
-##                k_tot = min(2.,sum([-ff for ivid, ff in enumerate(form_factor_array[vid]) \
-##                        if ff < 0]))
-##                k_leaves = min(2.,sum([-ff for ivid, ff in enumerate(form_factor_array[vid]) \
-##                        if ff < 0 and not g.node(col[ivid]).label.startswith('soil')]))
-##                k_soil = min(1.,max(0., k_tot - k_leaves))
-##                k_sky = min(1.,2.-k_tot)
-## +++
-##                k_sky = max(0.,min(1.,2.+ sum(form_factor_array[vid][form_factor_array[vid] < 0])))
-##
-##                k_leaves = min(2.,sum([-ff for ivid, ff in enumerate(form_factor_array[vid]) \
-##                        if ff < 0 and not g.node(col[ivid]).label.startswith(('soil','other'))]))
-##
-##                # hacks while awaiting for a complete debug of teh form factors
-##                k_soil = 1. #min(1,max(2. - k_sky - k_leaves, 0.))
-#                k_soil = form_factor_array[str(vid)][[vids for vids in col if g.node(int(vids)).label.startswith(('other','soil'))][0]]
-#
-##                g.node(vid).k_sky = k_sky
-##                g.node(vid).k_leaves = k_leaves
-#                g.node(vid).k_soil = k_soil
-##                g.node(vid).vis_a_vis = g.node(vid).vis_a_vis = {col[ivid]:ff \
-##                    for ivid, ff in enumerate(form_factor_array[vid]) if ff < limit}
-#        except:
-#            pass
-#
-#    return
-
 
 def form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L', turtle_sectors='46',
                             icosphere_level=3, unit_scene_length='cm'):
-    """
-    Returns sky and soil contribution factors (resp. k_sky and k_soil) to the energy budget equation.
+    """Computes sky and soil contribution factors (resp. k_sky and k_soil) to the energy budget equation.
     Both factors are calculated and attributed to each element of the scene.
 
-    :Note 1:
-    This function is a simplified approximation of the form factors matrix which is calculated by the function :func:**form_factors_matrix**.
-    The canopy is turned upside-down and light is projected in each case to estimate the respective contribution of the sky ({z}>=0) and soil ({z}<=0) to energy budget calculations.
+    Args:
+        g: a multiscale tree graph object
+        pattern (tuple): 2D Coordinates of the domain bounding the scene for its replication.
+            (xmin, ymin, xmax, ymax) scene is not bounded along z axis.
+            Alternatively a *.8 file.
+            if `None` (default), scene is not repeated
+        infinite (bool): Whether the scene should be considered as infinite
+            (see :func:`runCaribu` from `CaribuScene` package)
+        leaf_lbl_prefix (str): the prefix of the leaf label
+        turtle_sectors (str): number of turtle sectors
+            (see :func:`turtle` from `sky_tools` package)
+        icosphere_level (int): the level of refinement of the dual icosphere
+            (see :func:`alinea.astk.icosphere.turtle_dome` for details)
+        unit_scene_length (str): the unit of length used for scene coordinate and for pattern
+            (should be one of `CaribuScene.units` default)
 
-    :Note 2:
-    When **icosphere_level** is defined, **turtle_sectors** is ignored.
+    Returns:
 
-    :Parameters:
-    - **g**: an MTG object
-    - **pattern**: tuple, 2D Coordinates of the domain bounding the scene for its replication.
-                     (xmin, ymin, xmax, ymax) scene is not bounded along z axis.
-                     Alternatively a *.8 file.
-                     if `None` (default), scene is not repeated
-    - **leaf_lbl_prefix**, **stem_lbl_prefix**: string, the prefices of the leaf label and stem label, resp.
-    - **turtle_sectors**: string, see :func:`turtle` from `sky_tools` package
-    - **icosphere_level**: integer, the level of refinement of the dual icosphere. By default 46 ^polygons are returned (level=3). See :func:`alinea.astk.icosphere.turtle_dome` for details
-    - **unit_scene_length**: the unit of length used for both scene coordinates and pattern (should be one of `CaribuScene.units` default)
+
+    Notes:
+        This function is a simplified approximation of the form factors matrix which is calculated by the
+            function :func:`form_factors_matrix`. The canopy is turned upside-down and light is projected in each
+            case to estimate the respective contribution of the sky ({z}>=0) and soil ({z}<=0) to energy budget
+            calculations. This is printed as pirouette-cacahuete in the console!
+        When **icosphere_level** is defined, **turtle_sectors** is ignored.
+
     """
-
     geom = g.property('geometry')
     label = g.property('label')
     opts = {'SW': {vid: ((0.001, 0) if label[vid].startswith(leaf_lbl_prefix) else (0.001,)) for vid in geom}}
     if not icosphere_level:
-        energy, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors,format='uoc',energy=1.)
+        energy, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors, format='uoc', energy=1.)
     else:
-        vert,fac = ico.turtle_dome(icosphere_level)
+        vert, fac = ico.turtle_dome(icosphere_level)
         direction = ico.sample_faces(vert, fac, iter=None, spheric=False).values()
         direction = [i[0] for i in direction]
-        direction = map(lambda x: tuple(list(x[:2])+[-x[2]]),direction)
+        direction = map(lambda x: tuple(list(x[:2]) + [-x[2]]), direction)
 
-    caribu_source = zip(len(direction)*[1./len(direction)],direction)
+    caribu_source = zip(len(direction) * [1. / len(direction)], direction)
     k_soil, k_sky, k_leaves = {}, {}, {}
 
     for s in ('pirouette', 'cacahuete'):
-        print '... %s'%s
+        print '... %s' % s
         if s == 'pirouette':
             scene = pgl_scene(g, flip=True)
         else:
@@ -189,25 +122,20 @@ def form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L'
         # Run caribu
         raw, aggregated = caribu_scene.run(direct=True, infinite=infinite, split_face=False, simplify=True)
 
-
         if s == 'pirouette':
             k_soil_dict = aggregated['Ei']
             max_k_soil = float(max(k_soil_dict.values()))
-            k_soil = {vid:k_soil_dict[vid]/max_k_soil for vid in k_soil_dict}
+            k_soil = {vid: k_soil_dict[vid] / max_k_soil for vid in k_soil_dict}
         elif s == 'cacahuete':
             k_sky_dict = aggregated['Ei']
             max_k_sky = float(max(k_sky_dict.values()))
-            k_sky = {vid:k_sky_dict[vid]/max_k_sky for vid in k_sky_dict}
+            k_sky = {vid: k_sky_dict[vid] / max_k_sky for vid in k_sky_dict}
 
     for vid in aggregated['Ei']:
         k_leaves[vid] = max(0., 2. - (k_soil[vid] + k_sky[vid]))
 
     return k_soil, k_sky, k_leaves
 
-
-#Energy_Prop = energy_params()
-#nrj_Prop_tuple = ('a_PAR','a_NIR','a_glob','e_sky','e_leaf','e_soil','sigma','lambda_','Cp')
-#a_PAR,a_NIR,a_glob,e_sky,e_leaf,e_soil,sigma,lambda_,Cp = [Energy_Prop[ikey] for ikey in nrj_Prop_tuple]
 
 
 def leaf_temperature_as_air_temperature(g, meteo, leaf_lbl_prefix='L'):
