@@ -141,13 +141,18 @@ def form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L'
 def leaf_temperature_as_air_temperature(g, meteo, leaf_lbl_prefix='L'):
     """Basic model for leaf temperature, considered equal to air temperature for all leaves
 
-    :Parameters:
-    - **g**: an MTG object
-    - **meteo**: (DataFrame): forcing meteorological variables.
+    Args:
+        g: a multiscale tree graph object
+        meteo (DataFrame): forcing meteorological variables
+        leaf_lbl_prefix (str): the prefix of the leaf label
+
+    Returns:
+        (dict): keys are leaves vertices ids and their values are all equal to air temperature [°C]
+
     """
     leaves = get_leaves(g, leaf_lbl_prefix)
-    tair = meteo.Tac[0]
-    return {vid: tair for vid in leaves}
+    t_air = meteo.Tac[0]
+    return {vid: t_air for vid in leaves}
 
 
 def leaf_wind_as_air_wind(g, meteo, leaf_lbl_prefix='L'):
