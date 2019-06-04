@@ -52,5 +52,3 @@ Tyree M, Sperry J. 1989.
     Annual review of plant physiology and plant molecular biology 40: 19–38.
 Tyree M, Zimmermann M. 2002.
     Xylem structure and the ascent of sap, Springer Series in Wood Science.
-
-
