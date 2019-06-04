@@ -137,7 +137,6 @@ def form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L'
     return k_soil, k_sky, k_leaves
 
 
-
 def leaf_temperature_as_air_temperature(g, meteo, leaf_lbl_prefix='L'):
     """Basic model for leaf temperature, considered equal to air temperature for all leaves
 
@@ -158,21 +157,40 @@ def leaf_temperature_as_air_temperature(g, meteo, leaf_lbl_prefix='L'):
 def leaf_wind_as_air_wind(g, meteo, leaf_lbl_prefix='L'):
     """Basic model for wind speed at leaf level, considered equal to air wind speed for all leaves
 
-    :Parameters:
-    - **g**: an MTG object
-    - **meteo**: (DataFrame): forcing meteorological variables.
+    Args:
+        g: a multiscale tree graph object
+        meteo (DataFrame): forcing meteorological variables
+        leaf_lbl_prefix (str): the prefix of the leaf label
+
+    Returns:
+        (dict): keys are leaves vertices ids and their values are all equal to air wind speed
+
     """
     leaves = get_leaves(g, leaf_lbl_prefix)
     u = meteo.u[0]
     return {vid: u for vid in leaves}
 
 
-def _gbH(length, u):
-    #                gbH = node.gb*1.37*0.9184 * Cp # Boundary layer conductance for heat [mol m2 s-1. The 0.9184 see Campbell and Norman (1998) in Gutschick (2016)
-    #                gbH = 3.9 * (macro_meteo['u']/l_w)**0.5
-    l_w = length * 0.72  # leaf length in the downwind direction [m]
-    d_bl = 4. * (l_w / max(1.e-3, u)) ** 0.5 / 1000.  # Boundary layer thickness in [m] (Nobel, 2009 pp.337)
-    # TODO: Replace the constant thermal conductivity coefficient of the air (0.026 W m-1 C-1) by a model accounting for air temperature, humidity and pressure (cf. Nobel, 2009 Appendix I)
+def _gbH(leaf_length, wind_speed):
+    """Computes boundary layer conductance to heat
+
+    Args:
+        leaf_length (float): [m] leaf length
+        wind_speed (float): [m s-1] local wind speed
+
+    Returns:
+        (float): [W m-2 K-1] boundary layer conductance to heat
+
+    References:
+        Nobel P. 2005.
+            Temperature and energy budgets.
+            In Nobel S, eds. Physicochemical and Environmental Plant Physiology.
+            Elsevier Academic Press, 307–350.
+
+
+    """
+    l_w = leaf_length * 0.72  # leaf length in the downwind direction [m]
+    d_bl = 4. * (l_w / max(1.e-3, wind_speed)) ** 0.5 / 1000.  # Boundary layer thickness in [m] (Nobel, 2009 pp.337)
     return 2. * 0.026 / d_bl  # Boundary layer conductance to heat [W m-2 K-1]
 
 
