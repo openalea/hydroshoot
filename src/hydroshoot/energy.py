@@ -187,7 +187,6 @@ def _gbH(leaf_length, wind_speed):
             In Nobel S, eds. Physicochemical and Environmental Plant Physiology.
             Elsevier Academic Press, 307–350.
 
-
     """
     l_w = leaf_length * 0.72  # leaf length in the downwind direction [m]
     d_bl = 4. * (l_w / max(1.e-3, wind_speed)) ** 0.5 / 1000.  # Boundary layer thickness in [m] (Nobel, 2009 pp.337)
@@ -195,7 +194,17 @@ def _gbH(leaf_length, wind_speed):
 
 
 def heat_boundary_layer_conductance(leaves_length, wind_speed=0):
-    u = {}
+    """Computes boundary layer conductance to heat of all mtg leaves
+
+    Args:
+        leaves_length (dict): [m] length of individual leaves given as the dictionary keys
+        wind_speed (dict): [m s-1] local wind speed of individual leaves given as the dictionary keys
+
+    Returns:
+        (float): [W m-2 K-1] boundary layer conductance to heat of individual leaves given as the dictionary keys
+
+    """
+
     if isinstance(wind_speed, dict):
         u = wind_speed
     else:
@@ -205,32 +214,38 @@ def heat_boundary_layer_conductance(leaves_length, wind_speed=0):
 
 def leaf_temperature(g, meteo, t_soil, t_sky_eff, t_init=None, form_factors=None, gbh=None, ev=None, ei=None, solo=True,
                      ff_type=True, leaf_lbl_prefix='L', max_iter=100, t_error_crit=0.01, t_step=0.5):
-    """
-    Returns the "thermal structure", temperatures [degreeC] of each individual leaf and soil elements.
+    """Computes the temperature of each individual leaf and soil elements.
 
-    :Parameters:
-    - **g**: an MTG object
-    - **meteo**: (DataFrame): forcing meteorological variables.
-    - **t_soil**: (float) [degreeC] soil surface temperature
-    - **t_sky_eff**: (float) [degreeC] effective sky temperature
-    - **t_init**: (float or dict) [degreeC] temperature used for initialisation, given as a single scalar or a property dict.
-        if None (default) meteo tair is used for all leaves
-    - **form_factors**: (3-tuple of float or of dict) from factors for soil, sky and leaves (scalars or property dicts).
-        if None (default) (0.5, 0.5, 0.5) is used for all leaves
-    - **gbh**: (float or dict) [W m-2 K-1] boundary layer conductance for heat, given as a single scalar or a property dict.
-        if None (default) a default model is called with length=10cm and wind_speed as found in meteo
-    - **ev**: (float or dict) [mol m-2 s-1] evaporation flux, given as a single scalar or a property dict.
-        if None (default) evaporation is set to zero for all leaves
-    - **ei**: (float or dict) [mol m-2 s-1] PAR irradiance on leaves, given as a single scalar or a property dict.
-        if None (default) PAR irradiance is set to zero for all leaves
-    - **solo**: logical,
-        - True (default), calculates energy budget for each element, assuming the temperatures of surrounding leaves constant (from previous calculation step)
-        - False, computes simultaneously all temperatures using `sympy.solvers.nsolve` (**very costly!!!**)
-    - **ff_type**: (bool) form factor type flag. If true fform factor for a given leaf is expected to be a single value, or a dict of ff otherwxie
-    - **leaf_lbl_prefix**: string, the prefix of the label of the leaves
-    - **max_iter**: integer, the allowable number of itrations (for solo=True)
-    - **t_error_crit**: float, the allowable error in leaf temperature (for solo=True)
+    Args:
+        g: a multiscale tree graph object
+        meteo (DataFrame): forcing meteorological variables
+        t_soil (float): [°C] soil surface temperature
+        t_sky_eff (float): [°C] effective sky temperature
+        t_init(float or dict): [°C] temperature used for initialisation
+        form_factors(3-tuple of float or dict): form factors for soil, sky and leaves.
+            if None (default) (0.5, 0.5, 0.5) is used for all leaves
+        gbh (float or dict): [W m-2 K-1] boundary layer conductance for heat
+            if None (default) a default model is called with length=10cm and wind_speed as found in meteo
+        ev (float or dict): [mol m-2 s-1] evaporation flux
+            if None (default) evaporation is set to zero for all leaves
+        ei (float or dict): [umol m-2 s-1] photosynthetically active radition (PAR) incident on leaves
+            if None (default) PAR is set to zero for all leaves
+        solo (bool):
+            if True (default), calculates energy budget for each element assuming the temperatures of surrounding
+                leaves as constant (from previous calculation step)
+            if False, computes simultaneously all temperatures using `sympy.solvers.nsolve` (**very costly!!!**)
+        ff_type (bool): form factor type flag. If true fform factor for a given leaf is expected to be a single value, or a dict of ff otherwxie
+        leaf_lbl_prefix (str): the prefix of the leaf label
+        max_iter (int): maximum allowed iteration (used only when :arg:`solo` is True)
+        t_error_crit (float): [°C] maximum allowed error in leaf temperature (used only when :arg:`solo` is True)
+        t_step (float): [°C] maximum temperature step between two consecutive iterations
+
+    Returns:
+        (dict): [°C] the tempearture of individual leaves given as the dictionary keys
+        (int): [-] the number of iterations (not None only when :arg:`solo` is True)
+
     """
+
     leaves = get_leaves(g, leaf_lbl_prefix)
     it = 0
 
