@@ -1,19 +1,21 @@
+# -*- coding: utf-8 -*-
 """
 @author: Rami ALBASHA
 
-This is a library for calculating meteorological variables
+Some useful common functions.
 """
 
 from math import exp
 
-R = 8.314510  # L kPa mol-1 K-1
+ideal_gas_cst = 8.314510  # L kPa mol-1 K-1
+absolute_zero = -273.15  # absolute zero temperature
 
 
 def saturated_air_vapor_pressure(temp):
     """Compute saturated air vapor pressure.
 
     Args:
-        temp (float): [degreeC] air temperature
+        temp (float): [°C] air temperature
 
     Returns:
         (float): [kPa] saturated air vapor pressure
@@ -26,22 +28,36 @@ def celsius_to_kelvin(temp):
     """Converts temperature from Celsius to Kelvin.
 
     Args:
-        temp (float): [degreeC] temperature
+        temp (float): [°C] temperature
 
     Returns:
         (float): [K] temperature
 
     """
 
-    return temp + 273.
+    return temp - absolute_zero
+
+
+def kelvin_to_celsius(temp):
+    """Converts temperature from Kelvin to Celsius.
+
+    Args:
+        temp (float): [K] temperature
+
+    Returns:
+        (float): [°C] temperature
+
+    """
+
+    return temp + absolute_zero
 
 
 def vapor_pressure_deficit(temp_air, temp_leaf, rh):
     """Computes leaf-to-air vapour pressure deficit.
 
     Args:
-        temp_air (float): [degreeC] air temperature
-        temp_leaf (float): [degreeC] leaf temperature
+        temp_air (float): [°C] air temperature
+        temp_leaf (float): [°C] leaf temperature
         rh (float): [-] air relative humidity (%, between 0 and 1)
 
     Returns:
@@ -60,7 +76,7 @@ def cmol2cpa(temp, concentration=400.):
     """Convert CO2 concentration into CO2 partial pressure
 
     Args:
-        temp (float): [degreeC] leaf temperature
+        temp (float): [°C] leaf temperature
         partial_pressure (float): [ppm] CO2 concentration in the air
 
     Returns:
@@ -68,8 +84,8 @@ def cmol2cpa(temp, concentration=400.):
 
     """
 
-    volume = 1.e6 * R * (temp + 273) / 101.3  # Volume of 1000000 mols of air [L]
-    partial_pressure = concentration * R * (temp + 273) / volume  # CO2 partial pressure [kPa]
+    volume = 1.e6 * ideal_gas_cst * celsius_to_kelvin(temp) / 101.3  # Volume of 1000000 mols of air [L]
+    partial_pressure = concentration * ideal_gas_cst * celsius_to_kelvin(temp) / volume  # CO2 partial pressure [kPa]
 
     return partial_pressure * 1.e4
 
@@ -78,7 +94,7 @@ def cpa2cmol(temp, partial_pressure):
     """Convert CO2 partial pressure into CO2 concentration
 
     Args:
-        temp (float): [degreeC] leaf temperature
+        temp (float): [°C] leaf temperature
         partial_pressure (float): [ubar] CO2 partial pressure
 
     Returns:
@@ -86,7 +102,7 @@ def cpa2cmol(temp, partial_pressure):
 
     """
 
-    volume = 1.e6 * R * (temp + 273) / 101.3  # Volume of 1000000 mols of air [L]
-    conc = partial_pressure * volume / (R * (temp + 273))  # CO2 partial pressure [kPa]
+    volume = 1.e6 * ideal_gas_cst * celsius_to_kelvin(temp) / 101.3  # Volume of 1000000 mols of air [L]
+    conc = partial_pressure * volume / (ideal_gas_cst * celsius_to_kelvin(temp))  # CO2 partial pressure [kPa]
 
     return conc * 1.e-4
