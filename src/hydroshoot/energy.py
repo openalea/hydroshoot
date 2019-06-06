@@ -8,7 +8,7 @@ This module computes leaf (and eventually other elements) tempertaure of a
 given plant shoot.
 """
 
-from scipy import optimize, mean#, spatial
+from scipy import optimize, mean
 from sympy.solvers import nsolve
 from sympy import Symbol
 import time
@@ -212,6 +212,7 @@ def heat_boundary_layer_conductance(leaves_length, wind_speed=0):
     return {vid: _gbH(leaves_length[vid], u[vid]) for vid in leaves_length}
 
 
+# TODO: split leaf_temperature() into two functions following whether solo is used or not
 def leaf_temperature(g, meteo, t_soil, t_sky_eff, t_init=None, form_factors=None, gbh=None, ev=None, ei=None, solo=True,
                      ff_type=True, leaf_lbl_prefix='L', max_iter=100, t_error_crit=0.01, t_step=0.5):
     """Computes the temperature of each individual leaf and soil elements.
@@ -269,54 +270,59 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, t_init=None, form_factors=None
         else:
             properties[what] = {vid: val for vid in leaves}
 
-    # Macro-scale climatic data
-    T_sky, T_air, T_soil, Pa = t_sky_eff + 273.15, meteo.Tac[0] + 273.15, t_soil + 273.15, meteo.Pa[0]
+    # macro-scale climatic data
+    temp_sky = utils.celsius_to_kelvin(t_sky_eff)
+    temp_air = utils.celsius_to_kelvin(meteo.Tac[0])
+    temp_soil = utils.celsius_to_kelvin(t_soil)
+
     # initialisation
     t_prev = properties['t_init']
 
-#   Iterative calculation of leaves temperature
+    # iterative calculation of leaves temperature
     if solo:
         t_error_trace = []
         it_step = t_step
         for it in range(max_iter):
-#            T_leaves = mean(t_prev.values()) + 273.15
             t_dict = {}
-#           +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
             for vid in leaves:
-                E_glob = properties['ei'][vid]/(0.48*4.6) # Ei not Eabs
+                shortwave_inc = properties['ei'][vid] / (0.48 * 4.6)  # Ei not Eabs
+
                 ff_sky = properties['k_sky'][vid]
                 ff_leaves = properties['k_leaves'][vid]
                 ff_soil = properties['k_soil'][vid]
-                gbH = properties['gbh'][vid]
-                E = properties['ev'][vid]
+
+                gb_h = properties['gbh'][vid]
+                evap = properties['ev'][vid]
                 t_leaf = t_prev[vid]
 
                 if not ff_type:
-                    E_leaves = -sigma*sum([ff_leaves[ivid]*(t_prev[ivid]+273.15)**4 \
-                            for ivid in ff_leaves])
+                    longwave_grain_from_leaves = -sigma * sum(
+                        [ff_leaves[ivid] * (utils.celsius_to_kelvin(t_prev[ivid])) ** 4 for ivid in ff_leaves])
                 else:
-#                   E_leaves = ff_leaves*sigma*(T_leaves)**4
-                    E_leaves = ff_leaves*sigma*(t_leaf + 273.15)**4
+                    longwave_grain_from_leaves = ff_leaves * sigma * (utils.celsius_to_kelvin(t_leaf)) ** 4
 
-                def _VineEnergyX(T_leaf):
-                    E_SW = a_glob*E_glob
-                    delta_E_LW = e_leaf*(ff_sky*e_sky*sigma*(T_sky)**4+\
-                                         e_leaf*E_leaves+\
-                                         ff_soil*e_soil*sigma*(T_soil)**4)\
-                                 - 2*e_leaf*sigma*(T_leaf)**4
-                    E_Y = -lambda_*E
-                    E_H = -gbH*(T_leaf-T_air)
-                    E_error = E_SW + delta_E_LW + E_Y + E_H
-                    return E_error
+                def _VineEnergyX(t_leaf):
+                    shortwave_abs = a_glob * shortwave_inc
+                    longwave_net = e_leaf * (ff_sky * e_sky * sigma * temp_sky ** 4 +
+                                             e_leaf * longwave_grain_from_leaves +
+                                             ff_soil * e_soil * sigma * temp_soil ** 4) \
+                                   - 2 * e_leaf * sigma * t_leaf ** 4
+                    latent_heat_loss = -lambda_ * evap
+                    sensible_heat_net = -gb_h * (t_leaf - temp_air)
+                    energy_balance = shortwave_abs + longwave_net + latent_heat_loss + sensible_heat_net
+                    return energy_balance
 
-                t_leaf0 = optimize.newton_krylov(_VineEnergyX, t_leaf+273.15) - 273.15
+                t_leaf0 = utils.kelvin_to_celsius(
+                    optimize.newton_krylov(_VineEnergyX, utils.celsius_to_kelvin(t_leaf)))
+
                 t_dict[vid] = t_leaf0
 
             t_new = t_dict
 
-#           Evaluation of leaf temperature conversion criterion
-            error_dict={vtx:abs(t_prev[vtx]-t_new[vtx]) for vtx in leaves}
-            
+            # evaluation of leaf temperature conversion criterion
+            error_dict = {vtx: abs(t_prev[vtx] - t_new[vtx]) for vtx in leaves}
+
             t_error = max(error_dict.values())
             t_error_trace.append(t_error)
 
@@ -325,112 +331,120 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, t_init=None, form_factors=None
             else:
                 try:
                     if abs(t_error_trace[-1] - t_error_trace[-2]) < t_error_crit:
-                        it_step = max(0.01, it_step/2.)
-                except:
+                        it_step = max(0.01, it_step / 2.)
+                except IndexError:
                     pass
 
                 t_next = {}
                 for vtx_id in t_new.keys():
-                    tx = t_prev[vtx_id] + it_step*(t_new[vtx_id]-t_prev[vtx_id])
+                    tx = t_prev[vtx_id] + it_step * (t_new[vtx_id] - t_prev[vtx_id])
                     t_next[vtx_id] = tx
 
-#               t_new_dict = {vtx_id:0.5*(t_prev[vtx_id]+t_new[vtx_id]) for vtx_id in t_new.keys()}
                 t_prev = t_next
 
-                
-#                g.properties()['Tlc'] = {vtx_id:0.5*(t_prev[vtx_id]+t_new[vtx_id]) for vtx_id in t_new.keys()}
-
-
-#   Matrix iterative calculation of leaves temperature ('not solo' case)
+    # matrix iterative calculation of leaves temperature ('not solo' case)
     else:
         it = 1
         t_lst = []
-        t_dict={vid:Symbol('t%d'%vid) for vid in leaves}
-    #    for vid in g.property('geometry').keys():
-    ##        if g.node(vid).label.startswith(leaf_lbl_prefix):
-    #        exec('t%d = %s' % (vid, None))
-    #        locals()['t'+str(vid)] = Symbol('t'+str(vid))
-    #        t_lst.append(locals()['t'+str(vid)])
-    #        t_dict[vid] = locals()['t'+str(vid)]
+        t_dict = {vid: Symbol('t%d' % vid) for vid in leaves}
 
         eq_lst = []
         t_leaf_lst = []
         for vid in leaves:
-            E_glob = properties['ei'][vid] / (0.48 * 4.6)  # Ei not Eabs
+            shortwave_inc = properties['ei'][vid] / (0.48 * 4.6)  # Ei not Eabs
             ff_sky = properties['k_sky'][vid]
             ff_leaves = properties['k_leaves'][vid]
             ff_soil = properties['k_soil'][vid]
-            gbH = properties['gbh'][vid]
-            E = properties['ev'][vid]
+            gb_h = properties['gbh'][vid]
+            evap = properties['ev'][vid]
             t_leaf = t_prev[vid]
 
             t_leaf_lst.append(t_leaf)
             t_lst.append(t_dict[vid])
 
-    #        exec('eq%d = %s' % (vid, None))
-
             eq_aux = 0.
             for ivid in ff_leaves:
                 if not g.node(ivid).label.startswith('soil'):
-                    eq_aux += -ff_leaves[ivid] * ((t_dict[ivid])**4)
+                    eq_aux += -ff_leaves[ivid] * ((t_dict[ivid]) ** 4)
 
-            eq = (a_glob * E_glob +
-                e_leaf * sigma * (ff_sky * e_sky * (T_sky**4) +
-                e_leaf * eq_aux + ff_soil * e_soil * (T_sky**4) -
-                2 * (t_dict[vid])**4) -
-                lambda_ * E - gbH * Cp * (t_dict[vid] - T_air))
+            eq = (a_glob * shortwave_inc +
+                  e_leaf * sigma * (ff_sky * e_sky * (temp_sky ** 4) +
+                                    e_leaf * eq_aux + ff_soil * e_soil * (temp_sky ** 4) -
+                                    2 * (t_dict[vid]) ** 4) -
+                  lambda_ * evap - gb_h * Cp * (t_dict[vid] - temp_air))
 
             eq_lst.append(eq)
 
         tt = time.time()
         t_leaf0_lst = nsolve(eq_lst, t_lst, t_leaf_lst, verify=False) - 273.15
-        print ("---%s seconds ---" % (time.time()-tt))
+        print ("---%s seconds ---" % (time.time() - tt))
 
         t_new = {}
         for ivid, vid in enumerate(leaves):
             t_new[vid] = float(t_leaf0_lst[ivid])
             ivid += 1
 
-
-
     return t_new, it
 
 
-def soil_temperature(g, meteo, T_sky, soil_lbl_prefix='other'):
+def soil_temperature(g, meteo, temp_sky_eff, soil_label_prefix='other'):
+    """Computes soil temperature
+
+    Args:
+        g: a multiscale tree graph object
+        meteo (DataFrame): forcing meteorological variables
+        t_sky_eff (float): [°C] effective sky temperature
+        soil_label_prefix(str): prefix of soil nodes
+
+    Returns:
+        (double): [°C] soil temperature
+
+    Notes:
+        Heat loss into deeper soil layers is not considered.
+
     """
-    Returns soil temperature based on a simplified energy budget formula.
 
-    Parameters:
-    - **t_air**: air temperature in degrees.
-    """
-    hs, Pa, t_air = [float(meteo[x]) for x in ('hs', 'Pa', 'Tac')]
-    T_air = t_air + 273.15
+    relative_humidity, atm_pressure, temp_air = [float(meteo[x]) for x in ('hs', 'Pa', 'Tac')]
 
-    node=[g.node(vid) for vid in g.property('geometry') if g.node(vid).label.startswith('other')][0]
-    T_leaf = mean(g.property('Tlc').values()) + 273.15
+    temp_sky_eff = utils.celsius_to_kelvin(temp_sky_eff)
 
-    E_glob = node.Ei/(0.48*4.6) # Ei not Eabs
-    t_soil = node.Tsoil if 'Tsoil' in node.properties() else t_air
+    soil_nodes = [g.node(vid) for vid in g.property('geometry') if g.node(vid).label.startswith(soil_label_prefix)][0]
+    temp_leaves = utils.celsius_to_kelvin(mean(g.property('Tlc').values()))
 
-    def _SoilEnergyX(T_soil):
-        E_SW = (1-0.25)*E_glob # 0.25 is rough estimation of albedo of a bare soil
-        delta_E_LW = e_soil*sigma*(1.*e_sky*(T_sky)**4 + 1.*e_leaf*T_leaf**4- ((T_soil)**4)) # hack: 0% loss to deeper soil layers
-#                             k_leaves*e_leaf*sigma*(T_leaf)**4)
-        E_Y = -lambda_ * 0.06 * utils.vapor_pressure_deficit(t_air, T_soil - 273.15, hs) / Pa # 0.06 is gM from Bailey 2016 AFM 218-219:146-160
-        E_H = -0.5 * Cp * (T_soil-T_air) # 0.5 is gH from Bailey 2016 AFM 218-219:146-160
-        E_error = E_SW + delta_E_LW + E_Y + E_H
-        return E_error
+    shortwave_inc = soil_nodes.Ei / (0.48 * 4.6)  # Ei not Eabs
+    temp_soil = soil_nodes.Tsoil if 'Tsoil' in soil_nodes.properties() else temp_air
 
-    t_soil0 = optimize.newton_krylov(_SoilEnergyX, t_soil+273.15) - 273.15
-#                print t_leaf,t_leaf0
-    node.Tsoil = t_soil0
+    def _SoilEnergyX(temp_soil):
+        shortwave_abs = (1 - 0.25) * shortwave_inc  # 0.25 is rough estimation of albedo of a bare soil
+        longwave_net = e_soil * sigma * (1. * e_sky * temp_sky_eff ** 4 +
+                                         1. * e_leaf * temp_leaves ** 4 -
+                                         temp_soil ** 4)
+        latent_heat = -lambda_ * 0.06 * utils.vapor_pressure_deficit(temp_air, temp_soil,
+                                                                     relative_humidity) / atm_pressure  # 0.06 is gM from Bailey 2016 AFM 218-219:146-160
+        sensible_heat = -0.5 * Cp * utils.celsius_to_kelvin(
+            temp_soil - temp_air)  # 0.5 is gH from Bailey 2016 AFM 218-219:146-160
+        energy_balance = shortwave_abs + longwave_net + latent_heat + sensible_heat
+        return energy_balance
 
+    t_soil0 = utils.kelvin_to_celsius(
+        optimize.newton_krylov(_SoilEnergyX, utils.celsius_to_kelvin(temp_soil)))
+
+    soil_nodes.Tsoil = t_soil0
 
     return t_soil0
 
 
-def forced_soil_temperature(imeteo):
-    """ A very simple model of soil temperature"""
+def forced_soil_temperature(meteo):
+    """A very simple model of soil temperature
+
+    Args:
+        meteo (DataFrame): forcing meteorological variables
+
+    Returns:
+        (double): [°C] soil temperature
+
+    """
+
     dt_soil = [3, 3, 3, 3, 3, 3, 3, 3, 10, 15, 20, 20, 20, 20, 20, 15, 6, 5, 4, 3, 3, 3, 3, 3]
-    t_soil = imeteo.Tac[0] + dt_soil[imeteo.index.hour[0]]
+    t_soil = meteo.Tac[0] + dt_soil[meteo.index.hour[0]]
     return t_soil
