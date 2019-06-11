@@ -13,10 +13,10 @@ assimilation :math:`A_n`, the stomatal conductance to CO2 :math:`g_{s, \ CO_2}`,
 supporting information):
 
 .. math::
-    A_n = frac{(C_c - \Gamma) \dot x_1}{C_c + x_2} - R_d
-    C_c = C_i - frac{A_n}{g_m}
-    g_{s, \ CO_2} = g_{s0, \ CO_2} + m_0 \dot frac{A_n + R_d}{C_i - \Gamma} \dot f_w
-    g_{s, \ CO_2} = frac{A_n}{C_a - C_i - A_n \dot r_{tb}}
+    A_n = \frac{(C_c - \Gamma) \dot x_1}{C_c + x_2} - R_d
+    C_c = C_i - \frac{A_n}{g_m}
+    g_{s, \ CO_2} = g_{s0, \ CO_2} + m_0 \dot \frac{A_n + R_d}{C_i - \Gamma} \dot f_w
+    g_{s, \ CO_2} = \frac{A_n}{C_a - C_i - A_n \dot r_{tb}}
 
 where
 :math:`A_n \ [\mu mol \ m^{-2} \ s^{-1}]` is net carbon assimilation rate,
@@ -34,10 +34,81 @@ where
 :math:`C_c \ [\mu bar]` is chloroplast CO_2 partial pressure.
 
 
+Net carbon assimilation rate per unit leaf area
+===============================================
 
-However, as Farquhar’s model has been thoroughly detailed in literature, its description is given in Appendix I. The focus of this section is given instead to the stomatal conductance formulae which are a key element in this work.
+Variable intra-canopy photosynthetic capacities
+-----------------------------------------------
 
-g_(s,CO_2 ) is calculated according to Yin et al. (2009) as:
+Transpiration rate per unit leaf area
+=====================================
+
+The transpiration rate :math:`E \ [mol \ m^{-2} s^(-1)]` is calculated as:
+
+.. math::
+    E = \frac{1}{\frac{1}{g_{b, \ H_2O} + \frac{1}{1.6 \dot g_{s, \ CO_2}}} left( \frac{VPD}{P_a} right)
+
+
+where
+:math:`P_a \ [kPa]` is the atmospheric pressure and
+:math:`g_{b, \ H_2O} \ [mol \ m^{-2} s^(-1)]` is the boundary layer conductance to water vapor derived from
+**Nobel (2005)** as:
+
+.. math::
+    g_{b, \ H_2O} = \frac{D_{H_2O} \dot P_v}{R \dot T_{leaf} \dot \Delta x}
+
+with
+
+.. math::
+    D_{H_2O} = D_(H_2O, 0) \frac{P_a}{P_v} left( \frac{T_{leaf}}{273} right)^1.8
+
+where
+:math:`D_{H_2O}` is the diffusion coefficient of H2O in the air at 0 :math:`^\circ C` (:math:`2.13e-5 \ m^2 s^{-1}`),
+:math:`P_a \ [MPa]` is the ambient air pressure at 0 :math:`^\circ C`,
+:math:`P_v \ [MPa]` is water vapor partial pressure, and
+:math:`\Delta x \ [m]` is the thickness of the boundary layer defined as **(Nobel 2005)**:
+
+.. math::
+    \Delta x = 0.004 \sqrt{\frac{l}{v}}
+
+where
+:math:`l \ [m]` is the mean length of the leaf in the downwind direction (set to 70% of blade length), and
+:math:`v \ [m \ s^{-1}]` is wind speed in the vicinity of the leaf.
+
+
+The impact of water stress on stomatal conductance (i.e. via the :math:`f_w` function) is calculated using one of the
+following options:
+
+.. math::
+    f_w =   \left \{
+                \begin{array}{11}
+                    \frac{1}{1+(VPD/D_0)}                                    &   (a) \\
+                    \frac{1}{1+(\frac{\Psi_{leaf}}{\Psi_{crit, \ leaf}})^n}   &   (b) \\
+                    \frac{1}{1+(\frac{\Psi_{soil}}{\Psi_{crit, \ leaf}})^n}   &   (c) \\
+                \end{array}
+            \right.
+
+where
+:math:`VPD \ [kPa]` is vapor pressure deficit (between the leaf and the air),
+:math:`D_0 \ [kPa]` shape parameter,
+:math:`Psi_{leaf} \ [MPa]` leaf bulk xylem potential,
+:math:`Psi_{soil} \ [MPa]` soil bulk water potential (assumed equal to xylem potential at the base of the shoot), and
+:math:`Psi_{crit, leaf} \ [MPa]` leaf water potential at which stomatal conductance reduces to half its maximum value.
+
+
+In case the option :math:`a` is used, stomatal conductance reduction is considered independent from the soil water
+status (i.e. following **Leuning, 1995**). In contrast, Both options :math:`b` and `c` allows simulating stomatal
+conductance as a function of the leaf xylem potential (i.e. regarding shoot hydraulic structure) or the soil
+water potential (i.e. disregarding the hydraulic structure of the shoot), respectively.
+
+
+As Farquhar’s model has been thoroughly detailed in literature, its description is given in Appendix I.
+
+
+
+
+
+g_(s,CO_2 ) is calculated according to **Yin et al. (2009)** as:
 
 g_(s,CO_2 )=g_(s0,CO_2 )+
 
@@ -57,23 +128,6 @@ where Ψ_(crit,leaf) is a critical leaf water potential threshold [MPa] at which
 
 f_w=1/((1+(Ψ_soil/Ψ_(crit,leaf) )^n ) )	(Eq. 5c)
 
-The transpiration rate E [〖mol〗_(H_2 O) m^(-2) s^(-1) ] is calculated as:
-
-E=1/(1/g_(b,H_2 O) +1/(1.6 g_(s,CO_2 ) )) (VPD/P_a )	(Eq. 6)
-
-where P_a is the atmospheric pressure [MPa] and g_(b,H_2 O) is the boundary layer conductance to water vapor [〖mol〗_(H_2 O)  m^(-2)  s^(-1) ], derived from Nobel (2005) as:
-
-g_(b,H_2 O)=(D_(H_2 O) (t)  P_v)/(R T ∆x)	(Eq. 7)
-with
-
-D_(H_2 O) (t)=D_(H_2 O) 〖P_a/P_v  (T/273)〗^1.8	(Eq. 8)
-
-where D_(H_2 O) is the diffusion coefficient of H2O in the air at 0 °C (2.13*10-5 m^2 s^(-1)), P_a is the ambient air pressure at 0 °C temperature [MPa], P_v is water vapor partial pressure [MPa], and Δx is the thickness of the boundary layer [m] which is defined as (Nobel 2005):
-
-Δx=0.004√(l/v)
-	(Eq. 9)
-where l is the mean length of the leaf in the downwind direction [m], set to 70% of blade length, and v is the ambient wind speed [m s^(-1) ].
-Finally, mesophyll conductance to CO2 is assumed to simply depend on bulk leaf temperature (Evers et al., 2010) following an Arrhenius equation trend (as for photosynthetic parameters, cf. Eq. A8) with a basal value at 25 °C set to 0.1025 [〖mol〗_(〖CO〗_2 )  m^(-2)  s^(-1) ].
 
 Intra-canopy variability in photosynthetic capacity
 
@@ -94,3 +148,5 @@ Finally, this module was provided with a photoinhibition model as this phenomeno
 yin et al
 farquhar
 Evers et al. (2010)
+leuning 1995
+nobel 2005
