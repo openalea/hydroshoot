@@ -16,6 +16,8 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Energy budget" href="energy.html" />
+    <link rel="prev" title="Hydraulic structure" href="hydraulic.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -34,6 +36,218 @@
             
   <div class="section" id="gas-exchange">
 <h1>Gas exchange<a class="headerlink" href="#gas-exchange" title="Permalink to this headline">¶</a></h1>
+<p>The exchange module computes the rates of net carbon assimilation and transpiration per unit leaf surface area
+(respectively <span class="math notranslate nohighlight">\(A_n\)</span> and <span class="math notranslate nohighlight">\(E\)</span>) as a function of micrometeorological conditions and leaf water status.</p>
+<p>The calculations use the analytical solution proposed by <strong>Yin et al. (2009)</strong> for coupling the C_3 photosynthesis
+model of <strong>Farquhar et al. (1980)</strong> to the stomatal conductance model of <strong>Ball et al. (1987)</strong>. This coupling
+allows stomatal conductance (to both CO2 and water vapor) to respond to environmental stimuli
+(temperature and irradiance) via photosynthesis. It is based on Fick’s first law of diffusion, whereby the net
+assimilation <span class="math notranslate nohighlight">\(A_n\)</span>, the stomatal conductance to CO2 <span class="math notranslate nohighlight">\(g_{s, \ CO_2}\)</span>, and the mesophyll conductance
+<span class="math notranslate nohighlight">\(g_m\)</span> are implied. The solution is based on the three following equations (following <strong>Evers et al. 2010</strong>
+supporting information):</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}\begin{array}\\\begin{split}A_n = \frac{(C_c - \Gamma) \cdot x_1}{C_c + x_2} - R_d  \\\end{split}\\\begin{split}C_c = C_i - \frac{A_n}{g_m}  \\\end{split}\\\begin{split}g_{s, \ CO_2} = g_{s0, \ CO_2} + m_0 \cdot \frac{A_n + R_d}{C_i - \Gamma} \cdot f_w  \\\end{split}\\g_{s, \ CO_2} = \frac{A_n}{C_a - C_i - A_n \cdot r_{tb}}\\\end{array}\end{aligned}\end{align} \]</div>
+<p>where
+<span class="math notranslate nohighlight">\(A_n \ [\mu mol \ m^{-2} \ s^{-1}]\)</span> is net carbon assimilation rate,
+<span class="math notranslate nohighlight">\(R_d \ [\mu mol \ m^{-2} \ s^{-1}]\)</span> is mitochondrial respiration in the light,
+<span class="math notranslate nohighlight">\(\Gamma \ [\mu bar]\)</span> is CO_2 compensation point in the absence of mitochondrial respiration,
+<span class="math notranslate nohighlight">\(x_1 \ [\mu mol \ m^{-2} \ s^{-1}]\)</span> and <span class="math notranslate nohighlight">\(x_2 \ [\mu bar]\)</span> are intermediate parameters,
+<span class="math notranslate nohighlight">\(g_m \ [\mu mol \ m^{-2} \ s^{-1} \ {\mu bar}^{-1}]\)</span> is mesophyll conductance for CO_2 diffusion,
+<span class="math notranslate nohighlight">\(g_{s, \ CO_2} \ [mol \ m^{-2} \ s^{-1} \ {\mu bar}^{-1}]\)</span> is stomatal conductance to CO_2 diffusion,
+<span class="math notranslate nohighlight">\(g_{s0, \ CO_2} \ [mol \ m^{-2} \ s^{-1} \ {\mu bar}^{-1}]\)</span> is the residual stomatal conductance to CO_2 diffusion,
+<span class="math notranslate nohighlight">\(m_0 \ [-]\)</span> is a shape parameter regulating the slope between <span class="math notranslate nohighlight">\(A_n\)</span> and <span class="math notranslate nohighlight">\(g_{s, \ CO_2}\)</span>,
+<span class="math notranslate nohighlight">\(f_w \ [-]\)</span> is a dimensionless function representing the response of stomatal conductance to soil or plant water status,
+<span class="math notranslate nohighlight">\(r_{tb} \ [m^2 \ s \ \mu bar \ {\mu mol}^{-1})]\)</span> is the combined turbulence and boundary layer resistance for CO2,
+<span class="math notranslate nohighlight">\(C_a \ [\mu bar]\)</span> is air CO_2 partial pressure,
+<span class="math notranslate nohighlight">\(C_i \ [\mu bar]\)</span> is intercellular CO_2 partial pressure, and
+<span class="math notranslate nohighlight">\(C_c \ [\mu bar]\)</span> is chloroplast CO_2 partial pressure.</p>
+<div class="section" id="net-carbon-assimilation-rate-per-unit-leaf-area">
+<h2>Net carbon assimilation rate per unit leaf area<a class="headerlink" href="#net-carbon-assimilation-rate-per-unit-leaf-area" title="Permalink to this headline">¶</a></h2>
+<p>The net carbon assimilation <span class="math notranslate nohighlight">\(A_n\)</span> is calculated following <strong>Farquhar et al. (1980)</strong>:</p>
+<div class="math notranslate nohighlight">
+\[A_n = V_c \cdot \left(1 - \frac{\Gamma}{C_c} \right) - R_d\]</div>
+<p>where
+<span class="math notranslate nohighlight">\(V_c \ [\mu mol \ m^{-2} \ s^{-1}]\)</span> is carboxylation rate,
+<span class="math notranslate nohighlight">\(\Gamma \&nbsp;[\mu {mol}_{CO_2} \ {mol}_{CO_2}^{―1}]\)</span> <span class="math notranslate nohighlight">\(CO_2\)</span> compensation point in the absence of mitochondrial
+respiration,
+<span class="math notranslate nohighlight">\(C_c \&nbsp;[\mu {mol}_{CO_2} \ {mol}^{―1}]\)</span> chloroplast <span class="math notranslate nohighlight">\(CO_2\)</span> concentration, and
+<span class="math notranslate nohighlight">\(R_d \ [\mu mol \ m^{-2} \ s^{-1}]\)</span> is mitochondrial respiration rate in the light.</p>
+<p><span class="math notranslate nohighlight">\(V_c\)</span> is given as:</p>
+<div class="math notranslate nohighlight">
+\[V_c = \min \left(W_c, W_j, W_p \right)\]</div>
+<p>where
+<span class="math notranslate nohighlight">\(W_c\)</span>, <span class="math notranslate nohighlight">\(W_j\)</span>, and <span class="math notranslate nohighlight">\(W_p \ [\mu mol \ m^{-2} \ s^{-1}]\)</span> are respectively Rubisco-limited carboxylation
+rate, RuBP-limited carboxylation rate, and Triose phosphates-limited carboxylation rate, given as:</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}\begin{array}\\\begin{split}W_c = \frac{C_c \cdot V_{c, \ max}}{C_c + K_c \cdot \left(1 + \frac{O}{K_o} \right)}    \\\end{split}\\\begin{split}W_j = \frac{J}{4 + 8 \cdot \frac{\Gamma}{C_c}}    \\\end{split}\\W_p = \frac{3 \cdot TPU}{\left(1 - \frac{\Gamma}{C_c} \right)}\\\end{array}\end{aligned}\end{align} \]</div>
+<p>where
+<span class="math notranslate nohighlight">\(V_{c, \ max} \ [\mu mol \ m^{-2} \ s^{-1}]\)</span> is the maximum carboxylation rate,
+<span class="math notranslate nohighlight">\(J \ [\mu mol \ m^{-2} \ s^{-1}]\)</span> electron transport rate,
+<span class="math notranslate nohighlight">\(TPU \ [\mu mol \ m^{-2} \ s^{-1}]\)</span> Triose phosphates transport rate,
+<span class="math notranslate nohighlight">\(K_c \&nbsp;[\mu mol \ {mol}^{-1}]\)</span> Michaelis-Menten constant for the carboxylase,
+<span class="math notranslate nohighlight">\(K_o \&nbsp;[mmol \ {mol}^{-1}]\)</span> Michaelis-Menten constant for the oxygenase, and
+<span class="math notranslate nohighlight">\(O \&nbsp;[mmol \ {mol}^{-1}]\)</span> oxygen concentration.</p>
+<p>Finally, <span class="math notranslate nohighlight">\(J\)</span> is given as:</p>
+<div class="math notranslate nohighlight">
+\[J = \frac{\alpha \cdot {PPFD}}{\sqrt{1 + \frac{\alpha^2 \cdot {PPFD}^2}{J_{max}^2}}}\]</div>
+<p>where
+<span class="math notranslate nohighlight">\(J_{max} \ [\mu mol \ m^{-2} \ s^{-1}]\)</span> is maximum electron transport rate, and
+<span class="math notranslate nohighlight">\(PPFD \&nbsp;[\mu mol \ m^{-2} \ s{-1}]\)</span> is photosynthetic photon flux density.</p>
+<p>The impact of leaf temperature on the photosynthesis parameters is accounted for using Arrhenius functions.
+For <span class="math notranslate nohighlight">\(V_{c, \ max}\)</span>, <span class="math notranslate nohighlight">\(J_{max}\)</span>, <span class="math notranslate nohighlight">\(TPU\)</span>, and <span class="math notranslate nohighlight">\(R_d\)</span> we have:</p>
+<div class="math notranslate nohighlight">
+\[P = P^{25} \cdot \
+    \frac   {\exp \left(c - \frac{\Delta H_a}{R \cdot T_{leaf}} \right)}
+            {1 + \exp \left(\frac   {\Delta S \cdot T_{leaf} - \Delta H_d}
+                                    {R \cdot T_{leaf}} \right)}\]</div>
+<p>where
+<span class="math notranslate nohighlight">\(P\)</span> denotes any of <span class="math notranslate nohighlight">\(V_{c, \ max}\)</span>, <span class="math notranslate nohighlight">\(J_{max}\)</span>, <span class="math notranslate nohighlight">\(TPU\)</span>, and <span class="math notranslate nohighlight">\(R_d\)</span> parameters,
+<span class="math notranslate nohighlight">\(P^{25}\)</span> is the value of <span class="math notranslate nohighlight">\(P\)</span> at 25 <span class="math notranslate nohighlight">\(^\circ C\)</span>,
+<span class="math notranslate nohighlight">\(c \ [-] is a shape parameter,
+:math:\)</span>Delta H_a [kJ {mol}_{CO_2}^{―1}]` activation energy of the Arrhenius functions,
+<span class="math notranslate nohighlight">\(\Delta H_d \ [kJ \ {mol}_{CO_2}^{―1}]\)</span> deactivation energy of the Arrhenius functions,
+<span class="math notranslate nohighlight">\(\Delta S \ [kJ \ K^{-1} \ {mol}_{CO_2}^{―1}]\)</span> is entropy term,
+<span class="math notranslate nohighlight">\(R \ [kJ \ K^{-1} \ {mol}^{-1}]\)</span> ideal gas constant, and
+<span class="math notranslate nohighlight">\(T_{leaf} \ [^\circ C]\)</span> leaf temperature.</p>
+<p>Finally, for <span class="math notranslate nohighlight">\(\Gamma\)</span>, <span class="math notranslate nohighlight">\(K_c\)</span>, and <span class="math notranslate nohighlight">\(K_o\)</span> we have:</p>
+<div class="math notranslate nohighlight">
+\[P = \exp    \left(
+        c - \frac{\Delta H_a}{R \cdot T_{leaf}}
+            \right)\]</div>
+<div class="section" id="variable-intra-canopy-photosynthetic-capacities">
+<h3>Variable intra-canopy photosynthetic capacities<a class="headerlink" href="#variable-intra-canopy-photosynthetic-capacities" title="Permalink to this headline">¶</a></h3>
+<p>Leaf photosynthetic traits (
+<span class="math notranslate nohighlight">\(V_{cmax}\)</span>, <span class="math notranslate nohighlight">\(J_{max}\)</span>, <span class="math notranslate nohighlight">\(TPU\)</span> and <span class="math notranslate nohighlight">\(R_d\)</span>; cf. Appendix I) are set to vary as a function leaf
+nitrogen content per unit leaf surface area (<span class="math notranslate nohighlight">\(N_a \ [g_N \ m^{-2}]\)</span>) following <strong>(Prieto et al., 2012)</strong>:</p>
+<div class="math notranslate nohighlight">
+\[P^{25} = S_{N_a} \ N_a - b_{N_a}\]</div>
+<p>where
+<span class="math notranslate nohighlight">\(P^{25} \&nbsp;[\mu mol \ m^{-2} \ s^{-1}]\)</span> is the value at 25 <span class="math notranslate nohighlight">\(^\circ C\)</span> for any of the rates
+of <span class="math notranslate nohighlight">\(V_{cmax}\)</span>, <span class="math notranslate nohighlight">\(J_{max}\)</span>, <span class="math notranslate nohighlight">\(TPU\)</span> or <span class="math notranslate nohighlight">\(R_d\)</span>,
+<span class="math notranslate nohighlight">\(S_{N_a} \ [\mu mol \ g_N^{-1} \ s^{-1}]\)</span> and
+<span class="math notranslate nohighlight">\(b_{N_a} \ [\mu mol \ m^{-2} \ s^{-1}]\)</span> are the slope and the intercept of the linear relationship with
+<span class="math notranslate nohighlight">\(N_a\)</span> specific to each rate.</p>
+<p><span class="math notranslate nohighlight">\(N_a\)</span> is calculated as the product of nitrogen content per unit leaf dry mass
+<span class="math notranslate nohighlight">\(N_m \ [g_N \ g_{drymatter}^{-1}]\)</span> and leaf dry mass per area <span class="math notranslate nohighlight">\(LMA \ [g_{drymatter} \ m^{-2}]\)</span>.
+<span class="math notranslate nohighlight">\(N_m\)</span> linearly varies with plant age, expressed as the thermal time cumulated from budburst, and <span class="math notranslate nohighlight">\(LMA\)</span>
+is determined by leaf exposure to light during the last past days <strong>(Prieto et al., 2012)</strong>.</p>
+<p>This is expressed respectively in the two following equations:</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}\begin{array}\\\begin{split}N_m = a_N \cdot \sum_{i=budburst}^d {\left( \max{\left( 0, T_{air, \ i} - T_b \right)} \right)} + b_N   \\\end{split}\\LMA = a_M \cdot \ \ln{(PPFD_{10})} + b_M\\\end{array}\end{aligned}\end{align} \]</div>
+<p>where
+<span class="math notranslate nohighlight">\(T_{air, \ i} \ [^\circ C]\)</span> is the mean temperature of the day <span class="math notranslate nohighlight">\(i\)</span>,
+<span class="math notranslate nohighlight">\(T_b \ [^\circ C]\)</span> is the base temperature (minimum required for growth), set to 10 <span class="math notranslate nohighlight">\(\ ^\circ C\)</span> for
+grapevine and used for the calculation of thermal time since budburst,
+<span class="math notranslate nohighlight">\(a_N \ [g_N \ g_{drymatter}^{-1} \&nbsp;^\circ C \ d^{-1}]\)</span> and
+<span class="math notranslate nohighlight">\(b_N \&nbsp;[g_N \ g_{drymatter}^{-1}] are the slope and intercept of the linear relationship between :math:`N_m\)</span>
+and accumulated thermal time since budburst,
+<span class="math notranslate nohighlight">\(PPFD_{10} \ [mol_{photon} \ m^{-2} \ d^{-1}]\)</span> is the cumulative photosynthetic photon flux density irradiance
+intercepted by the leaf (output of the energy module) averaged over the past 10 days,
+<span class="math notranslate nohighlight">\(a_M \ [g_{drymatter} \ mol_{photon}^{-1} \ d^{-1}]\)</span> and
+<span class="math notranslate nohighlight">\(b_M \ [g_{drymatter} \ m^{-2}]\)</span> are the slope and intercept of the linear relationship between <span class="math notranslate nohighlight">\(LMA\)</span> and
+the logarithm of <span class="math notranslate nohighlight">\(PPFD_{10}\)</span>.</p>
+</div>
+<div class="section" id="photoinhibition">
+<h3>Photoinhibition<a class="headerlink" href="#photoinhibition" title="Permalink to this headline">¶</a></h3>
+<p>HydroShoot is provided with a simple, empirical, photoinhibition model which assumes that combined heat and water
+stresses inhibit photosynthesis by reducing the electron transport rate (<span class="math notranslate nohighlight">\(J\)</span>):</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}\begin{array}\\\begin{split}\Delta H_d = \Delta H_{d, \ max} -
+    \max    \left(
+                0, \
+                \left( \Delta H_{d, \ max - \Delta H_{d, \ T}} \right) \cdot
+                \min    \left(
+                            1, \ \frac{\Psi_{leaf} - \Psi_{leaf, \ max}}{\Psi_{leaf, \ min} - \Psi_{leaf, \ max}}
+                        \right)
+            \right) \\\end{split}\\\Delta H_{d, \ t} = \Delta H_{d, \ t1} -
+    \left( \Delta H_{d, \ t1} - \Delta H_{d, \ t2} \right) \cdot
+    \min    \left(
+        1, \ \max   \left(
+                        0, \ \frac{T_{leaf} - T_{leaf1}}{T_{leaf2} - T_{leaf1}}
+                    \right)
+            \right)\\\end{array}\end{aligned}\end{align} \]</div>
+<p>where
+<span class="math notranslate nohighlight">\(\Delta H_d \ [kJ \ mol^{-1}]\)</span> is calculated after accounting for the joint effects of leaf water potential
+<span class="math notranslate nohighlight">\(\Psi_{leaf} \ MPa\)</span> and temperature <span class="math notranslate nohighlight">\(T_{leaf} \ [K]\)</span>,
+<span class="math notranslate nohighlight">\(\Delta H_{d, \ max} \ [kJ \ mol^{-1}]\)</span> is the value of <span class="math notranslate nohighlight">\(\Delta H_d\)</span> without accounting for photoinhibition,
+<span class="math notranslate nohighlight">\(\Delta H_{d, \ T} \ [kJ mol^{-1}]\)</span> is the value of <span class="math notranslate nohighlight">\(\Delta H_d\)</span> after accounting for the effect of
+<span class="math notranslate nohighlight">\(T_{leaf}\)</span>,
+<span class="math notranslate nohighlight">\(\Psi_{leaf, \ max}\)</span> and <span class="math notranslate nohighlight">\(\Psi_{leaf, \&nbsp;min} \ [MPa]\)</span> are leaf water potential values at which
+photoinhibition starts and reaches its maximum effect, respectively, finally,
+<span class="math notranslate nohighlight">\(\Delta H_{d, \ T1}\)</span> and <span class="math notranslate nohighlight">\(\Delta H_{d, \ T2} \&nbsp;[kJ mol^{-1}]\)</span> are empirical thresholds corresponding to
+leaf temperatures <span class="math notranslate nohighlight">\(T_{leaf1}\)</span> and <span class="math notranslate nohighlight">\(T_{leaf2}\)</span> which are temperatures at which photoinhibition starts and
+reaches its maximum effect, respectively.</p>
+</div>
+</div>
+<div class="section" id="transpiration-rate-per-unit-leaf-area">
+<h2>Transpiration rate per unit leaf area<a class="headerlink" href="#transpiration-rate-per-unit-leaf-area" title="Permalink to this headline">¶</a></h2>
+<p>The transpiration rate <span class="math notranslate nohighlight">\(E \ [mol \ m^{-2} s^{-1}]\)</span> is calculated as:</p>
+<div class="math notranslate nohighlight">
+\[E = \frac{1}{\frac{1}{g_{b, \ H_2O}} + \frac{1}{1.6 \cdot g_{s, \ CO_2}}} \left( \frac{VPD}{P_a} \right)\]</div>
+<p>where
+<span class="math notranslate nohighlight">\(P_a \ [kPa]\)</span> is the atmospheric pressure and
+<span class="math notranslate nohighlight">\(g_{b, \ H_2O} \ [mol \ m^{-2} s^{-1}]\)</span> is the boundary layer conductance to water vapor derived from
+<strong>Nobel (2005)</strong> as:</p>
+<div class="math notranslate nohighlight">
+\[g_{b, \ H_2O} = \frac{D_{H_2O} \cdot P_v}{R \cdot T_{leaf} \cdot \Delta x}\]</div>
+<p>with</p>
+<div class="math notranslate nohighlight">
+\[D_{H_2O} = D_{H_2O, 0} \frac{P_a}{P_v} \left( \frac{T_{leaf}}{273} \right)^{1.8}\]</div>
+<p>where
+<span class="math notranslate nohighlight">\(D_{H_2O}\)</span> is the diffusion coefficient of H2O in the air at 0 <span class="math notranslate nohighlight">\(^\circ C\)</span> (<span class="math notranslate nohighlight">\(2.13 \cdot {10}^{-5} \ m^2 s^{-1}\)</span>),
+<span class="math notranslate nohighlight">\(P_a \ [MPa]\)</span> is the ambient air pressure at 0 <span class="math notranslate nohighlight">\(^\circ C\)</span>,
+<span class="math notranslate nohighlight">\(P_v \ [MPa]\)</span> is water vapor partial pressure, and
+<span class="math notranslate nohighlight">\(\Delta x \ [m]\)</span> is the thickness of the boundary layer defined as <strong>(Nobel 2005)</strong>:</p>
+<div class="math notranslate nohighlight">
+\[\Delta x = 0.004 \sqrt{\frac{l}{v}}\]</div>
+<p>where
+<span class="math notranslate nohighlight">\(l \ [m]\)</span> is the mean length of the leaf in the downwind direction (set to 70% of blade length), and
+<span class="math notranslate nohighlight">\(v \ [m \ s^{-1}]\)</span> is wind speed in the vicinity of the leaf.</p>
+<p>The impact of water stress on stomatal conductance (i.e. via the <span class="math notranslate nohighlight">\(f_w\)</span> function) is calculated using one of the
+following options:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}f_w =   \left \{
+            \begin{array}{11}
+                \frac{1}{1+\left( \frac{VPD}{D_0} \right)}                             &amp;   (a) \\
+                \frac{1}{1+\left( \frac{\Psi_{leaf}}{\Psi_{crit, \ leaf}} \right)^n}   &amp;   (b) \\
+                \frac{1}{1+\left( \frac{\Psi_{soil}}{\Psi_{crit, \ leaf}} \right)^n}   &amp;   (c) \\
+            \end{array}
+        \right.\end{split}\]</div>
+<p>where
+<span class="math notranslate nohighlight">\(VPD \ [kPa]\)</span> is vapor pressure deficit (between the leaf and the air),
+<span class="math notranslate nohighlight">\(D_0 \ [kPa]\)</span> shape parameter,
+<span class="math notranslate nohighlight">\(\Psi_{leaf} \ [MPa]\)</span> leaf bulk xylem potential,
+<span class="math notranslate nohighlight">\(\Psi_{soil} \ [MPa]\)</span> soil bulk water potential (assumed equal to xylem potential at the base of the shoot), and
+<span class="math notranslate nohighlight">\(\Psi_{crit, leaf} \ [MPa]\)</span> leaf water potential at which stomatal conductance reduces to half its maximum value.</p>
+<p>In case the option <span class="math notranslate nohighlight">\(a\)</span> is used, stomatal conductance reduction is considered independent from the soil water
+status (i.e. following <strong>Leuning, 1995</strong>). In contrast, Both options <span class="math notranslate nohighlight">\(b\)</span> and <cite>c</cite> allows simulating stomatal
+conductance as a function of the leaf xylem potential (i.e. regarding shoot hydraulic structure) or the soil
+water potential (i.e. disregarding the hydraulic structure of the shoot), respectively.</p>
+<div class="section" id="references">
+<h3>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h3>
+<dl class="docutils">
+<dt>Evers J, Vos J, Yin X, Romero P, van der Putten P, Struik P. 2010.</dt>
+<dd>Simulation of wheat growth and development based on organ-level photosynthesis and assimilate allocation.
+Journal of Experimental Botany 61: 2203–2216</dd>
+<dt>Farquhar G, von Caemmerer S, Berry J. 1980.</dt>
+<dd>A biochemical model of photosynthetic CO2 assimilation in leaves of C3 species.
+Planta 149: 78–90.</dd>
+<dt>Leuning R. 1995.</dt>
+<dd>A critical appraisal of a combined stomatal-photosynthesis model for C3 plants.
+Plant, Cell and Environment 18: 339–355.</dd>
+<dt>Nobel P. 2005.</dt>
+<dd>Temperature and energy budgets. In Nobel S, eds. Physicochemical and Environmental Plant Physiology.
+Elsevier Academic Press, 307–350.</dd>
+<dt>Prieto J, Louarn G, Perez Peña J, Ojeda H, Simonneau T, Lebon E. 2012.</dt>
+<dd>A leaf gas exchange model that accounts for intra-canopy variability by considering leaf nitrogen content and
+local acclimation to radiation in grapevine (Vitis vinifera L.)
+Plant, Cell and Environment 35: 1313–1328.</dd>
+<dt>Yin X, Struik P. 2009.</dt>
+<dd>C3 and C4 photosynthesis models: An overview from the perspective of crop modelling.
+NJAS - Wageningen Journal of Life Sciences 57: 27–38.</dd>
+</dl>
+</div>
+</div>
 </div>
 
 
@@ -54,16 +268,25 @@
 
 <h3>Navigation</h3>
 <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="model_description.html">Model description</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="model_description.html">Model description</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="hydraulic.html">Hydraulic structure</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Gas exchange</a></li>
+<li class="toctree-l2"><a class="reference internal" href="energy.html">Energy budget</a></li>
+</ul>
+</li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index_new.html">Documentation overview</a><ul>
+  <li><a href="model_description.html">Model description</a><ul>
+      <li>Previous: <a href="hydraulic.html" title="previous chapter">Hydraulic structure</a></li>
+      <li>Next: <a href="energy.html" title="next chapter">Energy budget</a></li>
+  </ul></li>
   </ul></li>
 </ul>
 </div>

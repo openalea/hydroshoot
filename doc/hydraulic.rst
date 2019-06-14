@@ -7,7 +7,7 @@ The *hydraulic* module computes the distribution of xylem potential across plant
 
 .. _fig_1_hydraulic:
 
-.. figure:: fig/fig_1_hydraulic.png
+.. figure:: figs/fig_1_hydraulic.png
 
     Illustration of the variables required to calculate the hydraulic structure: xylem flux, (:math:`F`),
     conductivity to xylem flux (:math:`K`), xylem pressure at upper (downstream) and lower (upstream) extremities
@@ -18,13 +18,13 @@ is driven by the difference of xylem pressures across this segment (:math:`H_u-H
 and regulated by segment's conductivity to xylem flow (:math:`K \ [kgs^{-1} \ m \ MPa^{-1}]`):
 
 .. math::
-    F = - K \dot \frac{H_u - H_l}{L}
+    F = - K \cdot \frac{H_u - H_l}{L}
 
 Xylem conductivity varies with water potential as a result of xylem cavitation under water deficit
 **(Tyree and Sperry, 1989)**. This relationship is described in HydroShoot as:
 
 .. math::
-    K = K_{max} \ \frac{1} {\left( 1 + \left( \frac{\Psi}{\Psi_{crit, \ stem}} \right) ^{c_{x1}} \right)}
+    K = K_{max} \cdot \frac{1} {\left( 1 + \left( \frac{\Psi}{\Psi_{crit, \ stem}} \right) ^{c_{x1}} \right)}
 
 where
 :math:`K_{max} \ [kg \ s^{-1} \ m \ MPa^{-1}]` is the maximum conductivity of the segment,
@@ -34,8 +34,8 @@ where
 
 Finally, :math:`K_{max}` is estimated empirically as proposed by **Tyree and Zimmermann (2002)** as:
 
-..math::
-    K_{max} = c_{x2} \dot D^{c_{x3}}
+.. math::
+    K_{max} = c_{x2} \cdot D^{c_{x3}}
 
 where
 :math:`D \ [m]` is the average diameter of the segment, and
