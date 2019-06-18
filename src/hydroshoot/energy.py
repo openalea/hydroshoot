@@ -8,47 +8,18 @@ This module computes leaf (and eventually other elements) tempertaure of a
 given plant shoot.
 """
 
+import time
+from math import pi
 from scipy import optimize, mean
 from sympy.solvers import nsolve
 from sympy import Symbol
-import time
-
 
 from alinea.caribu.CaribuScene import CaribuScene
 from alinea.caribu.sky_tools import turtle
 import alinea.astk.icosphere as ico
 import openalea.plantgl.all as pgl
-from math import pi
 
 from hydroshoot import utilities as utils
-
-
-def pgl_scene(g, flip=False):
-    geometry = g.property('geometry')
-    scene = pgl.Scene()
-    for id in geometry:
-        if not flip:
-            sh = pgl.Shape(geometry[id])
-        else:
-            sh = pgl.Shape(pgl.AxisRotated(pgl.Vector3(1,0,0),pi,geometry[id]))
-        sh.id = id
-        scene.add(sh)
-    return scene
-
-
-def get_leaves(g, leaf_lbl_prefix='L'):
-    label = g.property('label')
-    return [vid for vid in g.VtxList() if
-                             vid > 0 and label[vid].startswith(leaf_lbl_prefix)]
-
-
-def get_leaves_length(g, leaf_lbl_prefix='L', length_lbl='Length', unit_scene_length='cm'):
-    """get length of leaves of g [m]"""
-    conv = {'mm': 1.e-3, 'cm': 1.e-2, 'm': 1.}[unit_scene_length]
-    leaves = get_leaves(g, leaf_lbl_prefix)
-    length = g.property(length_lbl)
-    return {k: v * conv for k, v in length.iteritems() if k in leaves}
-
 
 
 a_PAR = 0.87
@@ -60,6 +31,33 @@ e_soil = 0.95
 sigma = 5.670373e-8
 lambda_ = 44.0e3
 Cp = 29.07
+
+
+def pgl_scene(g, flip=False):
+    geometry = g.property('geometry')
+    scene = pgl.Scene()
+    for id in geometry:
+        if not flip:
+            sh = pgl.Shape(geometry[id])
+        else:
+            sh = pgl.Shape(pgl.AxisRotated(pgl.Vector3(1, 0, 0), pi, geometry[id]))
+        sh.id = id
+        scene.add(sh)
+    return scene
+
+
+def get_leaves(g, leaf_lbl_prefix='L'):
+    label = g.property('label')
+    return [vid for vid in g.VtxList() if
+            vid > 0 and label[vid].startswith(leaf_lbl_prefix)]
+
+
+def get_leaves_length(g, leaf_lbl_prefix='L', length_lbl='Length', unit_scene_length='cm'):
+    """get length of leaves of g [m]"""
+    conv = {'mm': 1.e-3, 'cm': 1.e-2, 'm': 1.}[unit_scene_length]
+    leaves = get_leaves(g, leaf_lbl_prefix)
+    length = g.property(length_lbl)
+    return {k: v * conv for k, v in length.iteritems() if k in leaves}
 
 
 def form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L', turtle_sectors='46',
@@ -354,6 +352,7 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, t_init=None, form_factors=None
             shortwave_inc = properties['ei'][vid] / (0.48 * 4.6)  # Ei not Eabs
             ff_sky = properties['k_sky'][vid]
             ff_leaves = properties['k_leaves'][vid]
+
             ff_soil = properties['k_soil'][vid]
             gb_h = properties['gbh'][vid]
             evap = properties['ev'][vid]
