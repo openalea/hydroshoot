@@ -91,8 +91,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
                                             meteo, irradiance_type2, leaf_lbl_prefix, rbt)
 
                 # Compute sap flow and hydraulic properties
-                hydraulic.hydraulic_prop(g, vtx_label=collar_label, MassConv=mass_conv,
-                                         LengthConv=length_conv,
+                hydraulic.hydraulic_prop(g, mass_conv=mass_conv, length_conv=length_conv,
                                          a=xylem_k_max['a'], b=xylem_k_max['b'], min_kmax=xylem_k_max['min_kmax'])
 
                 # Update soil water status
@@ -108,15 +107,13 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
                         g.node(vid).psi_head = psi_collar
 
                 # Compute xylem water potential
-                n_iter_psi = hydraulic.xylem_water_potential(g, psi_collar,
-                                                             psi_min=psi_min, model=modelx, max_iter=max_iter,
-                                                             psi_error_crit=psi_error_threshold, vtx_label=collar_label,
-                                                             LengthConv=length_conv, fifty_cent=psi_critx,
+                n_iter_psi = hydraulic.xylem_water_potential(g, psi_soil=psi_collar, model=modelx, psi_min=psi_min,
+                                                             psi_error_crit=psi_error_threshold, max_iter=max_iter,
+                                                             length_conv=length_conv, fifty_cent=psi_critx,
                                                              sig_slope=slopex, dist_roots=dist_roots,
                                                              rad_roots=rad_roots,
                                                              negligible_shoot_resistance=negligible_shoot_resistance,
-                                                             start_vid=vid_collar, stop_vid=None,
-                                                             psi_step=psi_step)
+                                                             start_vid=vid_collar, stop_vid=None, psi_step=psi_step)
 
                 psi_new = g.property('psi_head')
 
@@ -154,8 +151,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
                                         meteo, irradiance_type2, leaf_lbl_prefix, rbt)
 
             # Compute sap flow and hydraulic properties
-            hydraulic.hydraulic_prop(g, vtx_label=collar_label, MassConv=mass_conv,
-                                     LengthConv=length_conv,
+            hydraulic.hydraulic_prop(g, mass_conv=mass_conv, length_conv=length_conv,
                                      a=xylem_k_max['a'], b=xylem_k_max['b'], min_kmax=xylem_k_max['min_kmax'])
 
         # End Hydraulic loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
