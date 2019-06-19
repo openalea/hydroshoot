@@ -239,7 +239,7 @@ def hydraulic_prop(g, mass_conv=18.01528, length_conv=1.e-2, a=2.6, b=2.0, min_k
         if n.label.startswith('LI'):
             try:
                 leaf_area = n.leaf_area * 1.
-            except AttributeError:
+            except (AttributeError, TypeError):
                 leaf_area = surf(n.geometry) * length_conv ** 2  # [m2]
                 # Note: The surface of the leaf mesh is overestimated compared to allometry results
                 # leaf_area = (0.0175*(n.Length*10.)**1.9057)*LengthConv**2 #[m2]
