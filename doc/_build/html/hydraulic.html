@@ -16,6 +16,8 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Gas exchange" href="exchange.html" />
+    <link rel="prev" title="Model description" href="model_description.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -34,6 +36,47 @@
             
   <div class="section" id="hydraulic-structure">
 <h1>Hydraulic structure<a class="headerlink" href="#hydraulic-structure" title="Permalink to this headline">¶</a></h1>
+<p>The <em>hydraulic</em> module computes the distribution of xylem potential across plant segments by analogy to Ohm’s law
+(<code class="xref std std-numref docutils literal notranslate"><span class="pre">_fig_1_hydraulic</span></code>)</p>
+<div class="figure" id="id1">
+<span id="fig-1-hydraulic"></span><img alt="_images/fig_1_hydraulic.png" src="_images/fig_1_hydraulic.png" />
+<p class="caption"><span class="caption-text">Illustration of the variables required to calculate the hydraulic structure: xylem flux, (<span class="math notranslate nohighlight">\(F\)</span>),
+conductivity to xylem flux (<span class="math notranslate nohighlight">\(K\)</span>), xylem pressure at upper (downstream) and lower (upstream) extremities
+of the conducting element (respectively <span class="math notranslate nohighlight">\(H_u\)</span> and <span class="math notranslate nohighlight">\(H_l\)</span>), and the length of the segment (<span class="math notranslate nohighlight">\(L\)</span>).</span></p>
+</div>
+<p>Thereby, xylem flux (<span class="math notranslate nohighlight">\(F \ [kg \ s^{-1}]\)</span>) across the hydraulic segment of length (<span class="math notranslate nohighlight">\(L \ [m]\)</span>)
+is driven by the difference of xylem pressures across this segment (<span class="math notranslate nohighlight">\(H_u-H_l \ [MPa]\)</span>)
+and regulated by segment’s conductivity to xylem flow (<span class="math notranslate nohighlight">\(K \ [kgs^{-1} \ m \ MPa^{-1}]\)</span>):</p>
+<div class="math notranslate nohighlight">
+\[F = - K \cdot \frac{H_u - H_l}{L}\]</div>
+<p>Xylem conductivity varies with water potential as a result of xylem cavitation under water deficit
+<strong>(Tyree and Sperry, 1989)</strong>. This relationship is described in HydroShoot as:</p>
+<div class="math notranslate nohighlight">
+\[K = K_{max} \cdot \frac{1} {\left( 1 + \left( \frac{\Psi}{\Psi_{crit, \ stem}} \right) ^{c_{x1}} \right)}\]</div>
+<p>where
+<span class="math notranslate nohighlight">\(K_{max} \ [kg \ s^{-1} \ m \ MPa^{-1}]\)</span> is the maximum conductivity of the segment,
+<span class="math notranslate nohighlight">\(\Psi \ [MPa]\)</span> is the arithmetic mean of xylem potential of the segment,
+<span class="math notranslate nohighlight">\(\Psi_{crit, \ stem} \ [MPa]\)</span> is a shape parameter defining <strong>XXXXXX</strong>, and
+<span class="math notranslate nohighlight">\(c_{x1} \ [-]\)</span> is shape parameter defining the steepness of the response of <span class="math notranslate nohighlight">\(K\)</span> to <span class="math notranslate nohighlight">\(\Psi\)</span>.</p>
+<p>Finally, <span class="math notranslate nohighlight">\(K_{max}\)</span> is estimated empirically as proposed by <strong>Tyree and Zimmermann (2002)</strong> as:</p>
+<div class="math notranslate nohighlight">
+\[K_{max} = c_{x2} \cdot D^{c_{x3}}\]</div>
+<p>where
+<span class="math notranslate nohighlight">\(D \ [m]\)</span> is the average diameter of the segment, and
+<span class="math notranslate nohighlight">\(c_{x2}\)</span> and
+<span class="math notranslate nohighlight">\(c_{x3}\)</span> are shape parameters, mostly given within the ranges of [2.5, 2.8] and [2.0, 5.0], respectively.</p>
+<p>The last two equations apply to all conducting segments (not leaves blades). Xylem potential of the upper extremity
+of the petiole is assumed equal to that of the lumped leaf water potential <span class="math notranslate nohighlight">\(\Psi_{leaf} \ [MPa]\)</span>.</p>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>Tyree M, Sperry J. 1989.</dt>
+<dd>Vulnerability of xylem to cavitation and embolism.
+Annual review of plant physiology and plant molecular biology 40: 19–38.</dd>
+<dt>Tyree M, Zimmermann M. 2002.</dt>
+<dd>Xylem structure and the ascent of sap, Springer Series in Wood Science.</dd>
+</dl>
+</div>
 </div>
 
 
@@ -54,16 +97,25 @@
 
 <h3>Navigation</h3>
 <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="model_description.html">Model description</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="model_description.html">Model description</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Hydraulic structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exchange.html">Gas exchange</a></li>
+<li class="toctree-l2"><a class="reference internal" href="energy.html">Energy budget</a></li>
+</ul>
+</li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index_new.html">Documentation overview</a><ul>
+  <li><a href="model_description.html">Model description</a><ul>
+      <li>Previous: <a href="model_description.html" title="previous chapter">Model description</a></li>
+      <li>Next: <a href="exchange.html" title="next chapter">Gas exchange</a></li>
+  </ul></li>
   </ul></li>
 </ul>
 </div>
