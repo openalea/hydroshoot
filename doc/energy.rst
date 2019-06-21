@@ -30,15 +30,15 @@ The resulting leaf-scale energy balance equation writes:
                 + k_{i, \ soil} \cdot \epsilon_{soil} \cdot T_{soil}^4
                 + \left[1 - \left(k_{sky} + k_{soil} \right) \right]
             \right) \\
-        & - 2 \cdot \epsilon_{i, \ leaf} \cdot \sigma \cdot T_i^4
-        & - \lambda \cdot E_i
+        & - 2 \cdot \epsilon_{i, \ leaf} \cdot \sigma \cdot T_i^4 \\
+        & - \lambda \cdot E_i \\
         & - 2 \cdot K_{air} \cdot \frac{T_i - T_{air}}{\Delta x_i}
 
 
 where
 :math:`i` refers to leaf identifier,
 :math:`j` refers to neighbouring leaves identifier,
-:math:`\Omega` denotes the upper hemisphere surrounding the leaf :ùath:`i`,
+:math:`\Omega` denotes the upper hemisphere surrounding the leaf :math:`i`,
 :math:`\alpha_{R_g} \ [-]` is lumped leaf absorptance in the shortwave band,
 :math:`\Phi_{R_g} \ [W \ m_{leaf}^{-2}]` flux density of shortwave global irradiance,
 :math:`\epsilon_{leaf} \ [-]` emissivity-absorptivity coefficients of the leaf,
