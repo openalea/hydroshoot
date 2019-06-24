@@ -3,7 +3,7 @@ Hydraulic structure
 ===================
 
 The *hydraulic* module computes the distribution of xylem potential across plant segments by analogy to Ohm’s law
-(:numref:`_fig_1_hydraulic`)
+(:numref:`fig_1_hydraulic`)
 
 .. _fig_1_hydraulic:
 
@@ -44,11 +44,3 @@ where
 
 The last two equations apply to all conducting segments (not leaves blades). Xylem potential of the upper extremity
 of the petiole is assumed equal to that of the lumped leaf water potential :math:`\Psi_{leaf} \ [MPa]`.
-
-References
-----------
-Tyree M, Sperry J. 1989.
-    Vulnerability of xylem to cavitation and embolism.
-    Annual review of plant physiology and plant molecular biology 40: 19–38.
-Tyree M, Zimmermann M. 2002.
-    Xylem structure and the ascent of sap, Springer Series in Wood Science.

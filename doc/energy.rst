@@ -62,8 +62,8 @@ where
     free convection once wind speed exceeds roughly 0.1 :math:`m \ s^{-1}` **(Nobel 2005)**. This wind speed threshold
     is generally exceeded during diurnal hours. However, under low wind conditions heat transfer may be underestimated.
 
-Sky and soil form factors: the Pirouette Cacahuete issue!
-----------------------------------------------------------
+Sky and soil form factors: the *Pirouette Cacahuete* issue!
+-----------------------------------------------------------
 In order to reduce calculation costs, sky and soil lumped form factors (respectively :math:`k_{sky}` and
 :math:`k_{soil}`) are obtained by flip flopping the canopy. (figXXXXXXXXXXXXXXXXXXXXXx)
 
@@ -76,11 +76,3 @@ In this case, irradiance that is intercepted by a leaf :math:`i` is assumed equi
 leaf and the "sky".
 
 This method is clearly not 100% precise. It may need further improvements in the future.
-
-
-References
-----------
-Nobel P. 2005.
-    Temperature and energy budgets.
-    In Nobel S, eds. Physicochemical and Environmental Plant Physiology.
-    Elsevier Academic Press.

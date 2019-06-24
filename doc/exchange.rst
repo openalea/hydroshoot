@@ -2,11 +2,13 @@
 Gas exchange
 ============
 
+.. figure:: figs/fig_1_exchange.png
+    :align: center
+
 The exchange module computes the rates of net carbon assimilation and transpiration per unit leaf surface area
 (respectively :math:`A_n` and :math:`E`) as a function of micrometeorological conditions and leaf water status.
 
-.. figure::
-    figs/fig_1_exchange.png
+
 
 The calculations use the analytical solution proposed by **Yin et al. (2009)** for coupling the C_3 photosynthesis
 model of **Farquhar et al. (1980)** to the stomatal conductance model of **Ball et al. (1987)**. This coupling
@@ -142,8 +144,8 @@ where
 :math:`P^{25} \ [\mu mol \ m^{-2} \ s^{-1}]` is the value at 25 :math:`^\circ C` for any of the rates
 of :math:`V_{cmax}`, :math:`J_{max}`, :math:`TPU` or :math:`R_d`,
 :math:`S_{N_a} \ [\mu mol \ g_N^{-1} \ s^{-1}]` and
-:math:`b_{N_a} \ [\mu mol \ m^{-2} \ s^{-1}]` are the slope and the intercept of the linear relationship with
-:math:`N_a` specific to each rate.
+:math:`b_{N_a} \ [\mu mol \ m^{-2} \ s^{-1}]`
+are the slope and the intercept of the linear relationship with :math:`N_a` specific to each rate.
 
 :math:`N_a` is calculated as the product of nitrogen content per unit leaf dry mass
 :math:`N_m \ [g_N \ g_{drymatter}^{-1}]` and leaf dry mass per area :math:`LMA \ [g_{drymatter} \ m^{-2}]`.
@@ -166,7 +168,7 @@ where
 :math:`T_b \ [^\circ C]` is the base temperature (minimum required for growth), set to 10 :math:`\ ^\circ C` for
 grapevine and used for the calculation of thermal time since budburst,
 :math:`a_N \ [g_N \ g_{drymatter}^{-1} \ ^\circ C \ d^{-1}]` and
-:math:`b_N \ [g_N \ g_{drymatter}^{-1}] are the slope and intercept of the linear relationship between :math:`N_m`
+:math:`b_N \ [g_N \ g_{drymatter}^{-1}]` are the slope and intercept of the linear relationship between :math:`N_m`
 and accumulated thermal time since budburst,
 :math:`PPFD_{10} \ [mol_{photon} \ m^{-2} \ d^{-1}]` is the cumulative photosynthetic photon flux density irradiance
 intercepted by the leaf (output of the energy module) averaged over the past 10 days,
@@ -275,26 +277,3 @@ In case the option :math:`a` is used, stomatal conductance reduction is consider
 status (i.e. following **Leuning, 1995**). In contrast, Both options :math:`b` and `c` allows simulating stomatal
 conductance as a function of the leaf xylem potential (i.e. regarding shoot hydraulic structure) or the soil
 water potential (i.e. disregarding the hydraulic structure of the shoot), respectively.
-
-
-References
-----------
-Evers J, Vos J, Yin X, Romero P, van der Putten P, Struik P. 2010.
-    Simulation of wheat growth and development based on organ-level photosynthesis and assimilate allocation.
-    Journal of Experimental Botany 61: 2203–2216
-Farquhar G, von Caemmerer S, Berry J. 1980.
-    A biochemical model of photosynthetic CO2 assimilation in leaves of C3 species.
-    Planta 149: 78–90.
-Leuning R. 1995.
-    A critical appraisal of a combined stomatal-photosynthesis model for C3 plants.
-    Plant, Cell and Environment 18: 339–355.
-Nobel P. 2005.
-    Temperature and energy budgets. In Nobel S, eds. Physicochemical and Environmental Plant Physiology.
-    Elsevier Academic Press, 307–350.
-Prieto J, Louarn G, Perez Peña J, Ojeda H, Simonneau T, Lebon E. 2012.
-    A leaf gas exchange model that accounts for intra-canopy variability by considering leaf nitrogen content and
-    local acclimation to radiation in grapevine (Vitis vinifera L.)
-    Plant, Cell and Environment 35: 1313–1328.
-Yin X, Struik P. 2009.
-    C3 and C4 photosynthesis models: An overview from the perspective of crop modelling.
-    NJAS - Wageningen Journal of Life Sciences 57: 27–38.

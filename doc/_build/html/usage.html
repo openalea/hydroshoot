@@ -16,6 +16,7 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="References" href="refs.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -34,6 +35,46 @@
             
   <div class="section" id="usage">
 <h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="set-the-required-files-up">
+<h2>Set the required files up<a class="headerlink" href="#set-the-required-files-up" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>Model parameters (fixed values)</li>
+</ol>
+<p>Almost all model parameters are setup in the <strong>params.json</strong> file.
+<em>params.json</em> is a <em>JavaScript Object Notation (JSON)</em> file that contains the following categories:</p>
+<ul class="simple">
+<li>“simulation”</li>
+<li>“phenology”</li>
+<li>“mtg_api”</li>
+<li>“numerical_resolution”</li>
+<li>“irradiance”</li>
+<li>“energy”</li>
+<li>“hydraulic”</li>
+<li>“exchange”</li>
+<li>“soil”</li>
+</ul>
+<p>Each of the above catgories referes to its hyponyme related processes. An exaustive and thoroughly detailed desctiption
+of all the parameters inside each categries, their units and their expected values are given in the <cite>params_schema.json</cite>
+file (src/hydroshoot/). The reader is encouraged to refer to this file to know how exactly to fill up the “params.json”
+file.</p>
+<ol class="arabic simple" start="2">
+<li>Meteorological data</li>
+</ol>
+<p>Meteorological data must be provided using a <em>comma-separated values</em> (csv) file whose name must be given in the
+<cite>params.json</cite> file (“meteo” parameters)
+This file must contains the following columns:</p>
+<blockquote>
+<div><ul class="simple">
+<li><cite>time</cite>: a <cite>datetime</cite> string having the format YYYY-mm-DD HH:MM:SS</li>
+<li><cite>Tac</cite>: actual air temperature as measured by the meteorological station <span class="math notranslate nohighlight">\([^\circ C]\)</span></li>
+<li><cite>hs</cite>: relative humidity (%)</li>
+<li><cite>u</cite>: wind speed <span class="math notranslate nohighlight">\([m \ s^{-1}]\)</span></li>
+<li><cite>Rg</cite>: solar radiation (shortwave irradiance) given even in <span class="math notranslate nohighlight">\([W_{global} \ m_{ground}^{-2}]\)</span>,
+<span class="math notranslate nohighlight">\([W_{PAR} \ m_{ground}^{-2}]\)</span> or <span class="math notranslate nohighlight">\([\mu mol \ m_{ground}^{-2} \ s^{-1}]\)</span>. The user must provide the
+unit of <cite>Rg</cite> in the <cite>params.json</cite> file (“E_type” parameter).</li>
+</ul>
+</div></blockquote>
+</div>
 </div>
 
 
@@ -53,11 +94,22 @@
 
 
 <h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model_description.html">Model description</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#set-the-required-files-up">Set the required files up</a></li>
+</ul>
+</li>
+</ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index_new.html">Documentation overview</a><ul>
+      <li>Previous: <a href="refs.html" title="previous chapter">References</a></li>
   </ul></li>
 </ul>
 </div>

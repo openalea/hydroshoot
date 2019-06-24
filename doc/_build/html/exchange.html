@@ -36,6 +36,9 @@
             
   <div class="section" id="gas-exchange">
 <h1>Gas exchange<a class="headerlink" href="#gas-exchange" title="Permalink to this headline">¶</a></h1>
+<div class="figure align-center">
+<img alt="_images/fig_1_exchange.png" src="_images/fig_1_exchange.png" />
+</div>
 <p>The exchange module computes the rates of net carbon assimilation and transpiration per unit leaf surface area
 (respectively <span class="math notranslate nohighlight">\(A_n\)</span> and <span class="math notranslate nohighlight">\(E\)</span>) as a function of micrometeorological conditions and leaf water status.</p>
 <p>The calculations use the analytical solution proposed by <strong>Yin et al. (2009)</strong> for coupling the C_3 photosynthesis
@@ -125,8 +128,8 @@ nitrogen content per unit leaf surface area (<span class="math notranslate nohig
 <span class="math notranslate nohighlight">\(P^{25} \&nbsp;[\mu mol \ m^{-2} \ s^{-1}]\)</span> is the value at 25 <span class="math notranslate nohighlight">\(^\circ C\)</span> for any of the rates
 of <span class="math notranslate nohighlight">\(V_{cmax}\)</span>, <span class="math notranslate nohighlight">\(J_{max}\)</span>, <span class="math notranslate nohighlight">\(TPU\)</span> or <span class="math notranslate nohighlight">\(R_d\)</span>,
 <span class="math notranslate nohighlight">\(S_{N_a} \ [\mu mol \ g_N^{-1} \ s^{-1}]\)</span> and
-<span class="math notranslate nohighlight">\(b_{N_a} \ [\mu mol \ m^{-2} \ s^{-1}]\)</span> are the slope and the intercept of the linear relationship with
-<span class="math notranslate nohighlight">\(N_a\)</span> specific to each rate.</p>
+<span class="math notranslate nohighlight">\(b_{N_a} \ [\mu mol \ m^{-2} \ s^{-1}]\)</span>
+are the slope and the intercept of the linear relationship with <span class="math notranslate nohighlight">\(N_a\)</span> specific to each rate.</p>
 <p><span class="math notranslate nohighlight">\(N_a\)</span> is calculated as the product of nitrogen content per unit leaf dry mass
 <span class="math notranslate nohighlight">\(N_m \ [g_N \ g_{drymatter}^{-1}]\)</span> and leaf dry mass per area <span class="math notranslate nohighlight">\(LMA \ [g_{drymatter} \ m^{-2}]\)</span>.
 <span class="math notranslate nohighlight">\(N_m\)</span> linearly varies with plant age, expressed as the thermal time cumulated from budburst, and <span class="math notranslate nohighlight">\(LMA\)</span>
@@ -139,7 +142,7 @@ is determined by leaf exposure to light during the last past days <strong>(Priet
 <span class="math notranslate nohighlight">\(T_b \ [^\circ C]\)</span> is the base temperature (minimum required for growth), set to 10 <span class="math notranslate nohighlight">\(\ ^\circ C\)</span> for
 grapevine and used for the calculation of thermal time since budburst,
 <span class="math notranslate nohighlight">\(a_N \ [g_N \ g_{drymatter}^{-1} \&nbsp;^\circ C \ d^{-1}]\)</span> and
-<span class="math notranslate nohighlight">\(b_N \&nbsp;[g_N \ g_{drymatter}^{-1}] are the slope and intercept of the linear relationship between :math:`N_m\)</span>
+<span class="math notranslate nohighlight">\(b_N \&nbsp;[g_N \ g_{drymatter}^{-1}]\)</span> are the slope and intercept of the linear relationship between <span class="math notranslate nohighlight">\(N_m\)</span>
 and accumulated thermal time since budburst,
 <span class="math notranslate nohighlight">\(PPFD_{10} \ [mol_{photon} \ m^{-2} \ d^{-1}]\)</span> is the cumulative photosynthetic photon flux density irradiance
 intercepted by the leaf (output of the energy module) averaged over the past 10 days,
@@ -223,30 +226,6 @@ following options:</p>
 status (i.e. following <strong>Leuning, 1995</strong>). In contrast, Both options <span class="math notranslate nohighlight">\(b\)</span> and <cite>c</cite> allows simulating stomatal
 conductance as a function of the leaf xylem potential (i.e. regarding shoot hydraulic structure) or the soil
 water potential (i.e. disregarding the hydraulic structure of the shoot), respectively.</p>
-<div class="section" id="references">
-<h3>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h3>
-<dl class="docutils">
-<dt>Evers J, Vos J, Yin X, Romero P, van der Putten P, Struik P. 2010.</dt>
-<dd>Simulation of wheat growth and development based on organ-level photosynthesis and assimilate allocation.
-Journal of Experimental Botany 61: 2203–2216</dd>
-<dt>Farquhar G, von Caemmerer S, Berry J. 1980.</dt>
-<dd>A biochemical model of photosynthetic CO2 assimilation in leaves of C3 species.
-Planta 149: 78–90.</dd>
-<dt>Leuning R. 1995.</dt>
-<dd>A critical appraisal of a combined stomatal-photosynthesis model for C3 plants.
-Plant, Cell and Environment 18: 339–355.</dd>
-<dt>Nobel P. 2005.</dt>
-<dd>Temperature and energy budgets. In Nobel S, eds. Physicochemical and Environmental Plant Physiology.
-Elsevier Academic Press, 307–350.</dd>
-<dt>Prieto J, Louarn G, Perez Peña J, Ojeda H, Simonneau T, Lebon E. 2012.</dt>
-<dd>A leaf gas exchange model that accounts for intra-canopy variability by considering leaf nitrogen content and
-local acclimation to radiation in grapevine (Vitis vinifera L.)
-Plant, Cell and Environment 35: 1313–1328.</dd>
-<dt>Yin X, Struik P. 2009.</dt>
-<dd>C3 and C4 photosynthesis models: An overview from the perspective of crop modelling.
-NJAS - Wageningen Journal of Life Sciences 57: 27–38.</dd>
-</dl>
-</div>
 </div>
 </div>
 
@@ -272,9 +251,8 @@ NJAS - Wageningen Journal of Life Sciences 57: 27–38.</dd>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="model_description.html">Model description</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="hydraulic.html">Hydraulic structure</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Gas exchange</a></li>
-<li class="toctree-l2"><a class="reference internal" href="energy.html">Energy budget</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="ecophysio.html">Ecophysiological processes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="refs.html">References</a></li>
 </ul>
 </li>
 </ul>
@@ -284,8 +262,10 @@ NJAS - Wageningen Journal of Life Sciences 57: 27–38.</dd>
 <ul>
   <li><a href="index_new.html">Documentation overview</a><ul>
   <li><a href="model_description.html">Model description</a><ul>
+  <li><a href="ecophysio.html">Ecophysiological processes</a><ul>
       <li>Previous: <a href="hydraulic.html" title="previous chapter">Hydraulic structure</a></li>
       <li>Next: <a href="energy.html" title="next chapter">Energy budget</a></li>
+  </ul></li>
   </ul></li>
   </ul></li>
 </ul>
