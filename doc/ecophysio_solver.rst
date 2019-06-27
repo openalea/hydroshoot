@@ -4,7 +4,7 @@ Processes interactions
 
 Interactions among the physiological processes occur.
 
-.. figure:: figs/fig_1_ecophysio_solver.jpeg
+.. figure:: figs/ecophysio_solver.svg
     :align: center
 
     Solving the interactions between leaf's water potential, transpiration rate and temperature !
@@ -23,15 +23,16 @@ control on the hydraulic structure.
 Putting it all together:
 
 For a given initial temperature (:math:`T_0`) and soil water potential (:math:`\Psi_0`), a leaf can fix :math:`CO_2`
-with a rate :math:`A_{n, \ 0}` having a stomatal conductance rate of :math:`g_{s, \ H_2O, \ 0}`.
+with a rate :math:`A_{n, \ 0}` while having a stomatal conductance rate of :math:`g_{s, \ H_2O, \ 0}`.
 The corresponding water flux transpired by this leaf will be :math:`E_0`. Summed up across all leaves, plant
-transpiration will withdraw water from the soil, giving a new value to :math:`\Psi` (:math:`\Psi_1`).
+transpiration will withdraw water from the soil, reducing thus soil water potential and resulting in a new :math:`\Psi`
+value (:math:`\Psi_1`).
 :math:`\Psi_1`, will hence impose a new stomatal conductance :math:`g_{s, \ H_2O, \ 1}` and consequently a new
 transpiration flux :math:`E_1`. Yet, this new :math:`E_1` means that leaf temperature is :math:`T_1`... **REWIND**!
 
-
-:numref:`fig_2` shows how interactions between the hydraulic, energy and gas-exchange processes is handled in
-HydroShoot.
+HydroShoot resolve this interactions iteratively until reaching steady rate values of :math:`A_n,` and :math:`E` (
+implying steady state distribution of water potential cross the shoot). :numref:`fig_2` shows how interactions between
+the hydraulic, energy and gas-exchange processes is handled in HydroShoot.
 
 .. _fig_2:
 
