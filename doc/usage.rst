@@ -41,13 +41,13 @@ Set the required files up
     Meteorological data must be provided using a .csv file whose name must be given in the
     `params.json` file ("meteo" parameters).
     This file must contain the following columns:
-        * `time`: a `datetime` string having the format YYYY-MM-DD HH:MM:SS
-        * `Tac`: air temperature :math:`[^\circ C]`
-        * `hs`: relative humidity (%)
-        * `u`: wind speed :math:`[m \ s^{-1}]`
-        * `Rg`: solar radiation (shortwave irradiance) given even in :math:`[W_{global} \ m_{ground}^{-2}]`,
-          :math:`[W_{PAR} \ m_{ground}^{-2}]` or :math:`[{\mu mol}_{PPFD} \ m_{ground}^{-2} \ s^{-1}]`.
-          The user must provide the unit of `Rg` in the `params.json` file ("E_type" parameter).
+    * `time`: a `datetime` string having the format YYYY-MM-DD HH:MM:SS
+    * `Tac`: air temperature :math:`[^\circ C]`
+    * `hs`: relative humidity (%)
+    * `u`: wind speed :math:`[m \ s^{-1}]`
+    * `Rg`: solar radiation (shortwave irradiance) given even in :math:`[W_{global} \ m_{ground}^{-2}]`,
+        :math:`[W_{PAR} \ m_{ground}^{-2}]` or :math:`[{\mu mol}_{PPFD} \ m_{ground}^{-2} \ s^{-1}]`.
+        The user must provide the unit of `Rg` in the `params.json` file ("E_type" parameter).
 
 
 3.  Soil predawn water potential data (time series)
@@ -125,10 +125,11 @@ Let's build the mock-up using the digitalization data provided in "grapevine_pot
 
 Display now the scene using **display** module, you should be having something like :numref:`fig_mockup`:
 
-.. code-block::
+.. code-block:: python
 
     scene = display.visu(g, def_elmnt_color_dict=True, scene=Scene(),
                          view_result=True)
+
 
 
 .. _fig_mockup:
