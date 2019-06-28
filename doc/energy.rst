@@ -2,23 +2,27 @@
 Energy budget
 =============
 
-This module computes the temperature of individual leaves based on a detailed energy balance model [see Supporting
-Information S3 with the paper].
+.. figure:: figs/energy_1.png
+    :align: center
 
-Each leaf is represented as a group of solid flat triangles.
+The *energy* module computes the temperature of individual leaves based on a detailed energy balance model (see
+Supporting Information S3 in **Albasha et al., 2019**).
+
 Energy gain of each leaf comes from:
-1. the absorbed shortwave ;
-2. thermal longwave radiation from the sky;
-3. thermal longwave radiation from the sky;
-4. thermal longwave radiation from the soil;
-5. thermal longwave radiation from the neighbouring leaves.
+
+1.  the absorbed shortwave;
+2.  thermal longwave radiation from the sky;
+3.  thermal longwave radiation from the sky;
+4.  thermal longwave radiation from the soil;
+5.  thermal longwave radiation from the neighbouring leaves.
 
 Energy loss of each leaf is due to
+
 1. thermal longwave radiation emitted by the leaf
 2. latent heat due to transpiration (evaporative cooling)
 
-Energy gain or loss may result from:
-* heat exchange between the each leaf and the surrounding air by thermal conduction-convection.
+Energy gain or loss may result from heat exchange between the each leaf and the surrounding air by thermal
+conduction-convection.
 
 The resulting leaf-scale energy balance equation writes:
 
@@ -64,10 +68,20 @@ where
 
 Sky and soil form factors: the *Pirouette Cacahuete* issue!
 -----------------------------------------------------------
-In order to reduce calculation costs, sky and soil lumped form factors (respectively :math:`k_{sky}` and
-:math:`k_{soil}`) are obtained by flip flopping the canopy. (figXXXXXXXXXXXXXXXXXXXXXx)
 
-.. figure:: figs/fig_1_energy.png
+You may notice once you do your first run something like this:
+
+.. figure:: figs/energy_2.png
+    :align: center
+
+
+This refers to the method used to calculate the lumped sky and soil form factors (respectively :math:`k_{sky}` and
+:math:`k_{soil}`).
+
+In order to reduce calculation costs, :math:`k_{sky}` and :math:`k_{soil}`) are obtained by flip flopping the canopy:
+
+.. figure:: figs/energy_pirouete_cacahute.png
+    :align: center
 
 At first, the canopy is turned downwards. A unit irradiance is emitted from each sky sector and irradiance that is
 intercepted by a leaf :math:`i` is assumed equivalent to the form factor between that leaf and the "soil".

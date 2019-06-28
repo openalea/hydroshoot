@@ -2,7 +2,8 @@
 Model description
 =================
 
-All information in this section are detailed in HydroShoot's paper **(Albasha et al., 2019)**.
+All information in this section are taken from HydroShoot's paper **(Albasha et al., 2019)**. Please refer to the this
+paper for a thorough description of model's formulae and evaluation.
 
 
 .. toctree::

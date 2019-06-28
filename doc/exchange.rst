@@ -2,21 +2,17 @@
 Gas exchange
 ============
 
-.. figure:: figs/fig_1_exchange.png
+.. figure:: figs/exchange.png
     :align: center
 
-The exchange module computes the rates of net carbon assimilation and transpiration per unit leaf surface area
-(respectively :math:`A_n` and :math:`E`) as a function of micrometeorological conditions and leaf water status.
+The *exchange* module computes the rates of net carbon assimilation of C3 plants (:math:`A_n`), stomatal conductance
+to CO2 (:math:`g_{s, \ CO_2}`) and water vapor (:math:`g_{s, \ H_2O}`), and transpiration (:math:`E`) per unit leaf
+surface area as a function of micrometeorological conditions and leaf water status.
 
 
-
-The calculations use the analytical solution proposed by **Yin et al. (2009)** for coupling the C_3 photosynthesis
-model of **Farquhar et al. (1980)** to the stomatal conductance model of **Ball et al. (1987)**. This coupling
-allows stomatal conductance (to both CO2 and water vapor) to respond to environmental stimuli
-(temperature and irradiance) via photosynthesis. It is based on Fick’s first law of diffusion, whereby the net
-assimilation :math:`A_n`, the stomatal conductance to CO2 :math:`g_{s, \ CO_2}`, and the mesophyll conductance
-:math:`g_m` are implied. The solution is based on the three following equations (following **Evers et al. 2010**
-supporting information):
+:math:`A_n` and :math:`g_{s, \ CO_2}` are coupled based on the analytical solution proposed by **Yin et al. (2009)**
+which also considers mesophyll conductance to CO2 diffusion :math:`g_m`. The solution is based on the following
+equations (following **Evers et al. 2010** supporting information):
 
 .. math::
     \begin{array}
@@ -35,31 +31,31 @@ supporting information):
 where
 :math:`A_n \ [\mu mol \ m^{-2} \ s^{-1}]` is net carbon assimilation rate,
 :math:`R_d \ [\mu mol \ m^{-2} \ s^{-1}]` is mitochondrial respiration in the light,
-:math:`\Gamma \ [\mu bar]` is CO_2 compensation point in the absence of mitochondrial respiration,
+:math:`\Gamma \ [\mu bar]` is :math:`CO_2` compensation point in the absence of mitochondrial respiration,
 :math:`x_1 \ [\mu mol \ m^{-2} \ s^{-1}]` and :math:`x_2 \ [\mu bar]` are intermediate parameters,
-:math:`g_m \ [\mu mol \ m^{-2} \ s^{-1} \ {\mu bar}^{-1}]` is mesophyll conductance for CO_2 diffusion,
-:math:`g_{s, \ CO_2} \ [mol \ m^{-2} \ s^{-1} \ {\mu bar}^{-1}]` is stomatal conductance to CO_2 diffusion,
-:math:`g_{s0, \ CO_2} \ [mol \ m^{-2} \ s^{-1} \ {\mu bar}^{-1}]` is the residual stomatal conductance to CO_2 diffusion,
+:math:`g_m \ [\mu mol \ m^{-2} \ s^{-1} \ {\mu bar}^{-1}]` is mesophyll conductance for :math:`CO_2` diffusion,
+:math:`g_{s, \ CO_2} \ [mol \ m^{-2} \ s^{-1} \ {\mu bar}^{-1}]` is stomatal conductance to :math:`CO_2`,
+:math:`g_{s0, \ CO_2} \ [mol \ m^{-2} \ s^{-1} \ {\mu bar}^{-1}]` is the residual stomatal conductance to :math:`CO_2`,
 :math:`m_0 \ [-]` is a shape parameter regulating the slope between :math:`A_n` and :math:`g_{s, \ CO_2}`,
 :math:`f_w \ [-]` is a dimensionless function representing the response of stomatal conductance to soil or plant water status,
-:math:`r_{tb} \ [m^2 \ s \ \mu bar \ {\mu mol}^{-1})]` is the combined turbulence and boundary layer resistance for CO2,
-:math:`C_a \ [\mu bar]` is air CO_2 partial pressure,
-:math:`C_i \ [\mu bar]` is intercellular CO_2 partial pressure, and
-:math:`C_c \ [\mu bar]` is chloroplast CO_2 partial pressure.
+:math:`r_{tb} \ [m^2 \ s \ \mu bar \ {\mu mol}^{-1}]` is the combined turbulence and boundary layer resistance for :math:`CO_2`,
+:math:`C_a \ [\mu bar]` is air :math:`CO_2` partial pressure,
+:math:`C_i \ [\mu bar]` is intercellular :math:`CO_2` partial pressure, and
+:math:`C_c \ [\mu bar]` is chloroplast :math:`CO_2` partial pressure.
 
 
 Net carbon assimilation rate per unit leaf area
-===============================================
-The net carbon assimilation :math:`A_n` is calculated following **Farquhar et al. (1980)**:
+-----------------------------------------------
+:math:`A_n` is given as:
 
 .. math::
     A_n = V_c \cdot \left(1 - \frac{\Gamma}{C_c} \right) - R_d
 
 where
 :math:`V_c \ [\mu mol \ m^{-2} \ s^{-1}]` is carboxylation rate,
-:math:`\Gamma \ [\mu {mol}_{CO_2} \ {mol}_{CO_2}^{―1}]` :math:`CO_2` compensation point in the absence of mitochondrial
+:math:`\Gamma \ [\mu {mol}_{CO_2} \ {mol}_{CO_2}^{-1}]` :math:`CO_2` compensation point in the absence of mitochondrial
 respiration,
-:math:`C_c \ [\mu {mol}_{CO_2} \ {mol}^{―1}]` chloroplast :math:`CO_2` concentration, and
+:math:`C_c \ [\mu {mol}_{CO_2} \ {mol}^{-1}]` chloroplast :math:`CO_2` concentration, and
 :math:`R_d \ [\mu mol \ m^{-2} \ s^{-1}]` is mitochondrial respiration rate in the light.
 
 :math:`V_c` is given as:
@@ -102,7 +98,7 @@ where
 
 
 The impact of leaf temperature on the photosynthesis parameters is accounted for using Arrhenius functions.
-For :math:`V_{c, \ max}`, :math:`J_{max}`, :math:`TPU`, and :math:`R_d` we have:
+For :math:`V_{c, \ max}`, :math:`J_{max}`, :math:`TPU`, and :math:`R_d` temperature dependency writes:
 
 
 .. math::
@@ -114,15 +110,15 @@ For :math:`V_{c, \ max}`, :math:`J_{max}`, :math:`TPU`, and :math:`R_d` we have:
 where
 :math:`P` denotes any of :math:`V_{c, \ max}`, :math:`J_{max}`, :math:`TPU`, and :math:`R_d` parameters,
 :math:`P^{25}` is the value of :math:`P` at 25 \ :math:`^\circ C`,
-:math:`c \ [-] is a shape parameter,
-:math:`\Delta H_a \ [kJ \ {mol}_{CO_2}^{―1}]` activation energy of the Arrhenius functions,
-:math:`\Delta H_d \ [kJ \ {mol}_{CO_2}^{―1}]` deactivation energy of the Arrhenius functions,
-:math:`\Delta S \ [kJ \ K^{-1} \ {mol}_{CO_2}^{―1}]` is entropy term,
-:math:`R \ [kJ \ K^{-1} \ {mol}^{-1}]` ideal gas constant, and
-:math:`T_{leaf} \ [^\circ C]` leaf temperature.
+:math:`c \ [-]` is a shape parameter,
+:math:`\Delta H_a \ [kJ \ {mol}_{CO_2}^{-1}]` is activation energy of the Arrhenius functions,
+:math:`\Delta H_d \ [kJ \ {mol}_{CO_2}^{-1}]` is deactivation energy of the Arrhenius functions,
+:math:`\Delta S \ [kJ \ K^{-1} \ {mol}_{CO_2}^{-1}]` is entropy term,
+:math:`R \ [kJ \ K^{-1} \ {mol}^{-1}]` is the ideal gas constant, and
+:math:`T_{leaf} \ [^\circ C]` is leaf temperature.
 
 
-Finally, for :math:`\Gamma`, :math:`K_c`, and :math:`K_o` we have:
+Finally, for :math:`\Gamma`, :math:`K_c`, and :math:`K_o` temperature dependency writes:
 
 .. math::
     P = \exp    \left(
@@ -133,8 +129,9 @@ Finally, for :math:`\Gamma`, :math:`K_c`, and :math:`K_o` we have:
 Variable intra-canopy photosynthetic capacities
 -----------------------------------------------
 Leaf photosynthetic traits (
-:math:`V_{cmax}`, :math:`J_{max}`, :math:`TPU` and :math:`R_d`; cf. Appendix I) are set to vary as a function leaf
-nitrogen content per unit leaf surface area (:math:`N_a \ [g_N \ m^{-2}]`) following **(Prieto et al., 2012)**:
+:math:`V_{cmax}`, :math:`J_{max}`, :math:`TPU` and :math:`R_d`; cf. Appendix I in **Albasha et al., 2019**) are set
+to vary as a function leaf nitrogen content per unit leaf surface area (:math:`N_a, \ g_N \ m^{-2}`) following
+**Prieto et al. (2012)**:
 
 .. math::
     P^{25} = S_{N_a} \ N_a - b_{N_a}
@@ -147,12 +144,11 @@ of :math:`V_{cmax}`, :math:`J_{max}`, :math:`TPU` or :math:`R_d`,
 :math:`b_{N_a} \ [\mu mol \ m^{-2} \ s^{-1}]`
 are the slope and the intercept of the linear relationship with :math:`N_a` specific to each rate.
 
-:math:`N_a` is calculated as the product of nitrogen content per unit leaf dry mass
-:math:`N_m \ [g_N \ g_{drymatter}^{-1}]` and leaf dry mass per area :math:`LMA \ [g_{drymatter} \ m^{-2}]`.
-:math:`N_m` linearly varies with plant age, expressed as the thermal time cumulated from budburst, and :math:`LMA`
-is determined by leaf exposure to light during the last past days **(Prieto et al., 2012)**.
-
-This is expressed respectively in the two following equations:
+:math:`N_a` is calculated as the product of nitrogen content per unit leaf dry mass (
+:math:`N_m, \ g_N \ g_{drymatter}^{-1}`) and leaf dry mass per area (:math:`LMA, \ g_{drymatter} \ m^{-2}`).
+:math:`N_m` linearly varies with plant age, expressed as the thermal time cumulated since budburst, and :math:`LMA`
+is determined by leaf exposure to light during the last past days **(Prieto et al., 2012)**, as expressed
+respectively in the two following equations:
 
 .. math::
     \begin{array}
@@ -179,7 +175,7 @@ the logarithm of :math:`PPFD_{10}`.
 
 Photoinhibition
 ---------------
-HydroShoot is provided with a simple, empirical, photoinhibition model which assumes that combined heat and water
+HydroShoot is provided with an empirical photoinhibition model which assumes that combined heat and water
 stresses inhibit photosynthesis by reducing the electron transport rate (:math:`J`):
 
 .. math::
@@ -218,9 +214,9 @@ reaches its maximum effect, respectively.
 
 
 Transpiration rate per unit leaf area
-=====================================
+-------------------------------------
 
-The transpiration rate :math:`E \ [mol \ m^{-2} s^{-1}]` is calculated as:
+The transpiration rate (:math:`E, \ mol \ m^{-2} s^{-1}`) is calculated as:
 
 .. math::
     E = \frac{1}{\frac{1}{g_{b, \ H_2O}} + \frac{1}{1.6 \cdot g_{s, \ CO_2}}} \left( \frac{VPD}{P_a} \right)
@@ -237,13 +233,13 @@ where
 with
 
 .. math::
-    D_{H_2O} = D_{H_2O, 0} \frac{P_a}{P_v} \left( \frac{T_{leaf}}{273} \right)^{1.8}
+    D_{H_2O} = D_{H_2O, 0} \cdot \frac{P_a}{P_v} \cdot \left( \frac{T_{leaf}}{273} \right)^{1.8}
 
 where
 :math:`D_{H_2O}` is the diffusion coefficient of H2O in the air at 0 :math:`^\circ C` (:math:`2.13 \cdot {10}^{-5} \ m^2 s^{-1}`),
 :math:`P_a \ [MPa]` is the ambient air pressure at 0 :math:`^\circ C`,
 :math:`P_v \ [MPa]` is water vapor partial pressure, and
-:math:`\Delta x \ [m]` is the thickness of the boundary layer defined as **(Nobel 2005)**:
+:math:`\Delta x \ [m]` is the thickness of the boundary layer defined following **Nobel (2005)** as:
 
 .. math::
     \Delta x = 0.004 \sqrt{\frac{l}{v}}
@@ -253,8 +249,8 @@ where
 :math:`v \ [m \ s^{-1}]` is wind speed in the vicinity of the leaf.
 
 
-The impact of water stress on stomatal conductance (i.e. via the :math:`f_w` function) is calculated using one of the
-following options:
+Finally, the impact of water stress on stomatal conductance (i.e. via the :math:`f_w` function) is calculated using
+one of the following options:
 
 .. math::
     f_w =   \left \{
@@ -274,6 +270,6 @@ where
 
 
 In case the option :math:`a` is used, stomatal conductance reduction is considered independent from the soil water
-status (i.e. following **Leuning, 1995**). In contrast, Both options :math:`b` and `c` allows simulating stomatal
-conductance as a function of the leaf xylem potential (i.e. regarding shoot hydraulic structure) or the soil
-water potential (i.e. disregarding the hydraulic structure of the shoot), respectively.
+status (i.e. following **Leuning, 1995**). In contrast, Both options :math:`b` and `c` allow simulating stomatal
+conductance as a function either of leaf water potential (i.e. regarding shoot hydraulic structure) or soil
+water potential (i.e. disregarding the hydraulic structure of the shoot).
