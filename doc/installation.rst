@@ -2,8 +2,9 @@
 Installation
 ============
 
-Download source then, at the command line::
+Download sources and use setup::
 
-    $ python setup.py
-
+    $ python setup.py install
+    or
+    $ python setup.py develop
 
