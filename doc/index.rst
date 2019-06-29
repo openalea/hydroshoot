@@ -1,18 +1,21 @@
+.. HydroShoot documentation master file, created by
+   sphinx-quickstart on Thu May 30 13:38:38 2019.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
 
-Welcome to hydroshoot's documentation!
-====================================================
-
-Contents:
+Welcome to HydroShoot's documentation!
+======================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
+   :caption: Contents:
 
-   readme
    installation
+   overview
+   model_description
    usage
-   contributing
-   authors
-   history
+
+
 
 Indices and tables
 ==================
