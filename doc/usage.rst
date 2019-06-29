@@ -46,8 +46,8 @@ Set the required files up
     * `hs`: relative humidity (%)
     * `u`: wind speed :math:`[m \ s^{-1}]`
     * `Rg`: solar radiation (shortwave irradiance) given even in :math:`[W_{global} \ m_{ground}^{-2}]`,
-        :math:`[W_{PAR} \ m_{ground}^{-2}]` or :math:`[{\mu mol}_{PPFD} \ m_{ground}^{-2} \ s^{-1}]`.
-        The user must provide the unit of `Rg` in the `params.json` file ("E_type" parameter).
+    :math:`[W_{PAR} \ m_{ground}^{-2}]` or :math:`[{\mu mol}_{PPFD} \ m_{ground}^{-2} \ s^{-1}]`.
+    The user must provide the unit of `Rg` in the `params.json` file ("E_type" parameter).
 
 
 3.  Soil predawn water potential data (time series)
