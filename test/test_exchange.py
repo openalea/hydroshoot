@@ -192,6 +192,59 @@ def test_compute_an_2par_affects_all_photosynthetic_parameters_by_temperature(ph
 
 def test_fvpd_3_raises_error_for_unrecognized_model():
     try:
-        exchange.fvpd_3('any_model', vpd=-3., psi=-0., psi_crit=-0.37, m0=5.278, steepness_tuzet=1.85, d0_leuning=30.)
+        exchange.fvpd_3('any_model', vpd=3., psi=-0., psi_crit=-0.37, m0=5.278, steepness_tuzet=1.85, d0_leuning=30.)
     except ValueError as err:
-        err.args[0] == "The 'model' argument must be one of the following ('misson','tuzet', 'linear' or 'vpd')"
+        assert err.args[0] == "The 'model' argument must be one of the following ('misson','tuzet', 'linear' or 'vpd')."
+
+
+def test_fvpd_3_increases_stress_factor_as_leaf_water_potential_decreases():
+    for model in ('misson', 'tuzet', 'linear', 'vpd'):
+        reduction_factor = []
+        for psi in arange(0, -3, -0.1):
+            reduction_factor.append(
+                exchange.fvpd_3(model, vpd=3., psi=psi, psi_crit=-0.37, m0=5.278, steepness_tuzet=1.85, d0_leuning=30.))
+        assert all(x >= y for x, y in zip(reduction_factor, reduction_factor[1:]))
+
+
+def test_mesophyll_conductance_changes_with_temperature():
+    gm = [exchange.mesophyll_conductance(t, gm25=0.1025, activation_energy=49600., deactivation_energy=437400.,
+                                         entropy=1400.) for t in arange(-10, 46)]
+    assert all(x != y for x, y in zip(gm, gm[1:]))
+
+
+def test_mesophyll_conductance_is_positive():
+    gm = [exchange.mesophyll_conductance(t, gm25=0.1025, activation_energy=49600., deactivation_energy=437400.,
+                                         entropy=1400.) for t in arange(-10, 46)]
+    assert all(x >= 0 for x in gm)
+
+
+def test_mesophyll_conductance_is_maximum_at_36_degrees_celsius():
+    gm_max = exchange.mesophyll_conductance(36, gm25=0.1025, activation_energy=49600., deactivation_energy=437400.,
+                                            entropy=1400.)
+    gm = [exchange.mesophyll_conductance(t, gm25=0.1025, activation_energy=49600., deactivation_energy=437400.,
+                                         entropy=1400.) for t in arange(-10, 46)]
+    assert all(x <= gm_max for x in gm)
+
+
+def test_boundary_layer_conductance_decreases_as_leaf_length_increases():
+    gb = [exchange.boundary_layer_conductance(l, wind_speed=2.0, atm_pressure=101.3, air_temp=25.,
+                                              ideal_gas_cst=exchange.R) for l in arange(0.001, 0.25, 0.02)]
+    assert all(x >= y for x, y in zip(gb, gb[1:]))
+
+
+def test_boundary_layer_conductance_increases_as_wind_speed_increases():
+    gb = [exchange.boundary_layer_conductance(leaf_length=0.1, wind_speed=w, atm_pressure=101.3, air_temp=25.,
+                                              ideal_gas_cst=exchange.R) for w in arange(0.0, 5.0, 0.5)]
+    assert all(x <= y for x, y in zip(gb, gb[1:]))
+
+
+def test_boundary_layer_conductance_is_weakly_dependent_on_atmospheric_pressure():
+    gb = [exchange.boundary_layer_conductance(leaf_length=0.1, wind_speed=2., atm_pressure=p, air_temp=25.,
+                                              ideal_gas_cst=exchange.R) for p in arange(90.3, 102.3)]
+    assert all(x == approx(y, abs=1.e-3) for x, y in zip(gb, gb[1:]))
+
+
+def test_boundary_layer_conductance_increases_as_air_temperature_increases():
+    gb = [exchange.boundary_layer_conductance(leaf_length=0.1, wind_speed=2.0, atm_pressure=101.3, air_temp=t,
+                                              ideal_gas_cst=exchange.R) for t in range(-10, 46)]
+    assert all(x <= y for x, y in zip(gb, gb[1:]))
