@@ -527,7 +527,7 @@ def an_gs_ci(photo_params, meteo_leaf, psi, leaf_temperature, model='misson', g0
 
     Args:
         photo_params (dict): default values at 25 °C of Farquhar's model (cf. :func:`par_photo_default`)
-        meteo_leaf (pandas.DataFrame): local (leaf-scale) meteorological data (must have the following columns: 'Tac',
+        meteo_leaf (pandas.Series): local (leaf-scale) meteorological data (must have the following columns: 'Tac',
             'PPFD', and 'hs')
         psi (float): [MPa] bulk water potential of the leaf
         leaf_temperature (float): [°C] leaf temperature
@@ -540,7 +540,7 @@ def an_gs_ci(photo_params, meteo_leaf, psi, leaf_temperature, model='misson', g0
         d0_leuning (float): [kPa-1] shape parameter, see :func:`fvpd_3`
         steepness_tuzet (float): [MPa-1] shape parameter, see :func:`fvpd_3`
 
-    Returns:
+    Returns: (tuple)
         (float): [umolCO2 m-2 s-1] net CO2 assimilation rate
         (float): [ubar] CO2 chloroplast partial pressure
         (float): [ubar] intercullar CO2 partial pressure
