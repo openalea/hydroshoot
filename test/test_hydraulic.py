@@ -1,6 +1,18 @@
 from numpy import arange
+from pytest import fixture
 
-from hydroshoot import hydraulic
+from openalea.mtg import traversal
+
+from hydroshoot import hydraulic, architecture
+from non_regression_data import potted_syrah
+
+
+@fixture()
+def simple_shoot():
+    g = potted_syrah()
+    vid_base = architecture.mtg_base(g, vtx_label='inT')
+    g.node(g.root).vid_base = vid_base
+    return g
 
 
 def test_conductivity_max_increases_as_segment_diameter_increases():
@@ -28,7 +40,7 @@ def test_cavitation_factor_raises_error_if_undefined_model():
 
 
 def test_cavitation_factor_increases_as_segment_water_potential_decreases():
-    for model in ('misson','tuzet', 'linear'):
+    for model in ('misson', 'tuzet', 'linear'):
         cavitation = [hydraulic.cavitation_factor(psi, model, -0.51, 3) for psi in arange(0, -3, -0.1)]
         assert all(x >= y for x, y in zip(cavitation, cavitation[1:]))
 
@@ -48,7 +60,7 @@ def test_def_param_soil_returns_the_right_soil_property_values():
                   'Clay': (0.068, 0.380, 0.008, 1.09, 4.80)}
     module_values = hydraulic.def_param_soil()
     for soil_class, soil_properties in ref_values.items():
-        assert all(x==y for x, y in zip(soil_properties, module_values[soil_class]))
+        assert all(x == y for x, y in zip(soil_properties, module_values[soil_class]))
 
 
 def test_def_param_soil_returns_costum_soil_properties_when_provided():
@@ -90,7 +102,42 @@ def test_soil_water_potential_decreases_as_water_withdrawal_increases():
 def test_soil_water_potential_drops_faster_for_small_soil_reservoirs_than_bigger_ones():
     for soil_class in hydraulic.def_param_soil().keys():
         psi_soil_small = hydraulic.soil_water_potential(psi_soil_init=0., water_withdrawal=1., soil_class=soil_class,
-                                                   soil_total_volume=1., psi_min=-3.)
+                                                        soil_total_volume=1., psi_min=-3.)
         psi_soil_big = hydraulic.soil_water_potential(psi_soil_init=0., water_withdrawal=1., soil_class=soil_class,
-                                                        soil_total_volume=2., psi_min=-3.)
+                                                      soil_total_volume=2., psi_min=-3.)
         assert psi_soil_small < psi_soil_big
+
+
+def test_hydraulic_prop_attributes_the_right_properties_to_the_different_organs(simple_shoot):
+    vid_base = simple_shoot.node(simple_shoot.root).vid_base
+    for vtx_id in traversal.post_order2(simple_shoot, vid_base):
+        n = simple_shoot.node(vtx_id)
+        if n.label.startswith('LI'):
+            n.E = 0.
+            n.An = 0.
+
+    hydraulic.hydraulic_prop(simple_shoot, mass_conv=18.01528, length_conv=1.e-2, a=2.6, b=2.0, min_kmax=0.)
+
+    for vtx_id in traversal.post_order2(simple_shoot, vid_base):
+        n = simple_shoot.node(vtx_id)
+        assert hasattr(n, 'Flux')
+        assert hasattr(n, 'FluxC')
+        if n.label.startswith(('in', 'cx', 'Pet')):
+            assert hasattr(n, 'Kmax')
+
+# def test_xylem_water_potential(simple_shoot):
+#     vid_base = simple_shoot.node(simple_shoot.root).vid_base
+#     for vtx_id in traversal.post_order2(simple_shoot, vid_base):
+#         n = simple_shoot.node(vtx_id)
+#         n.psi_head = 0.
+#         if n.label.startswith('LI'):
+#             n.E = 0.01
+#             n.An = 0.
+#
+#     simple_shoot.node(vid_base).psi_head = 0.
+#     hydraulic.hydraulic_prop(simple_shoot, mass_conv=18.01528, length_conv=1.e-2, a=2.6, b=2.0, min_kmax=0.)
+#
+#
+#     hydraulic.xylem_water_potential(simple_shoot, psi_soil=-0.8, model='tuzet', psi_min=-3.0, psi_error_crit=0.001, max_iter=100,
+#                           length_conv=1.E-2, fifty_cent=-0.51, sig_slope=0.1, dist_roots=0.013, rad_roots=.0001,
+#                           negligible_shoot_resistance=False, start_vid=None, stop_vid=None, psi_step=0.5)
