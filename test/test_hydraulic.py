@@ -1,18 +1,9 @@
 from numpy import arange
-from pytest import fixture
 
 from openalea.mtg import traversal
 
 from hydroshoot import hydraulic, architecture
 from non_regression_data import potted_syrah
-
-
-@fixture()
-def simple_shoot():
-    g = potted_syrah()
-    vid_base = architecture.mtg_base(g, vtx_label='inT')
-    g.node(g.root).vid_base = vid_base
-    return g
 
 
 def test_conductivity_max_increases_as_segment_diameter_increases():
@@ -108,7 +99,10 @@ def test_soil_water_potential_drops_faster_for_small_soil_reservoirs_than_bigger
         assert psi_soil_small < psi_soil_big
 
 
-def test_hydraulic_prop_attributes_the_right_properties_to_the_different_organs(simple_shoot):
+def test_hydraulic_prop_attributes_the_right_properties_to_the_different_organs():
+    simple_shoot = potted_syrah()
+    simple_shoot.node(simple_shoot.root).vid_base = architecture.mtg_base(simple_shoot, vtx_label='inT')
+
     vid_base = simple_shoot.node(simple_shoot.root).vid_base
     for vtx_id in traversal.post_order2(simple_shoot, vid_base):
         n = simple_shoot.node(vtx_id)
@@ -124,20 +118,3 @@ def test_hydraulic_prop_attributes_the_right_properties_to_the_different_organs(
         assert hasattr(n, 'FluxC')
         if n.label.startswith(('in', 'cx', 'Pet')):
             assert hasattr(n, 'Kmax')
-
-# def test_xylem_water_potential(simple_shoot):
-#     vid_base = simple_shoot.node(simple_shoot.root).vid_base
-#     for vtx_id in traversal.post_order2(simple_shoot, vid_base):
-#         n = simple_shoot.node(vtx_id)
-#         n.psi_head = 0.
-#         if n.label.startswith('LI'):
-#             n.E = 0.01
-#             n.An = 0.
-#
-#     simple_shoot.node(vid_base).psi_head = 0.
-#     hydraulic.hydraulic_prop(simple_shoot, mass_conv=18.01528, length_conv=1.e-2, a=2.6, b=2.0, min_kmax=0.)
-#
-#
-#     hydraulic.xylem_water_potential(simple_shoot, psi_soil=-0.8, model='tuzet', psi_min=-3.0, psi_error_crit=0.001, max_iter=100,
-#                           length_conv=1.E-2, fifty_cent=-0.51, sig_slope=0.1, dist_roots=0.013, rad_roots=.0001,
-#                           negligible_shoot_resistance=False, start_vid=None, stop_vid=None, psi_step=0.5)
