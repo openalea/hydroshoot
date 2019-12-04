@@ -71,14 +71,14 @@ def cavitation_factor(psi, model='tuzet', fifty_cent=-0.51, sig_slope=3):
     return k_reduction
 
 
-def def_param_soil(costum=None):
+def def_param_soil(custom=None):
     """
     Returns a dictionary of classes of default soil hydrodynamic parameters for the model of van Genuchten-Muallem.
     For each soil class (`dict.key`), the data are organized as follows:
     name : (theta_r, theta_s, alpha[cm-1], n, k_sat[cm d-1])
 
     Args:
-        costum (tuple): set of soil parameters ordered as mentioned above.
+        custom (tuple): set of soil parameters ordered as mentioned above.
 
     References
         Carsel R., Parrish R., 1988.
@@ -99,8 +99,8 @@ def def_param_soil(costum=None):
                 'Silty_Clay': (0.070, 0.360, 0.005, 1.09, 0.48),
                 'Clay': (0.068, 0.380, 0.008, 1.09, 4.80)}
 
-    if costum:
-        def_dict['Costum'] = costum
+    if custom:
+        def_dict['Custom'] = custom
 
     return def_dict
 

@@ -54,9 +54,9 @@ def test_def_param_soil_returns_the_right_soil_property_values():
         assert all(x == y for x, y in zip(soil_properties, module_values[soil_class]))
 
 
-def test_def_param_soil_returns_costum_soil_properties_when_provided():
-    costum_soil = (0.02, 0.3, 0.03, 1.5, 25)
-    assert hydraulic.def_param_soil(costum_soil)['Costum'] == costum_soil
+def test_def_param_soil_returns_Custom_soil_properties_when_provided():
+    custom_soil = (0.02, 0.3, 0.03, 1.5, 25)
+    assert hydraulic.def_param_soil(custom_soil)['Custom'] == custom_soil
 
 
 def test_k_soil_soil_decreases_as_water_potential_decreases():
