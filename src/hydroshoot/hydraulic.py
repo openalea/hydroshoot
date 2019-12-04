@@ -71,14 +71,14 @@ def cavitation_factor(psi, model='tuzet', fifty_cent=-0.51, sig_slope=3):
     return k_reduction
 
 
-def def_param_soil(costum=None):
+def def_param_soil(custom=None):
     """
     Returns a dictionary of classes of default soil hydrodynamic parameters for the model of van Genuchten-Muallem.
     For each soil class (`dict.key`), the data are organized as follows:
     name : (theta_r, theta_s, alpha[cm-1], n, k_sat[cm d-1])
 
     Args:
-        costum (tuple): set of soil parameters ordered as mentioned above.
+        custom (tuple): set of soil parameters ordered as mentioned above.
 
     References
         Carsel R., Parrish R., 1988.
@@ -97,8 +97,10 @@ def def_param_soil(costum=None):
                 'Silty_Clay_Loam': (0.089, 0.430, 0.010, 1.23, 1.68),
                 'Sandy_Clay': (0.100, 0.380, 0.027, 1.23, 2.88),
                 'Silty_Clay': (0.070, 0.360, 0.005, 1.09, 0.48),
-                'Clay': (0.068, 0.380, 0.008, 1.09, 4.80),
-                'Costum': costum}
+                'Clay': (0.068, 0.380, 0.008, 1.09, 4.80)}
+
+    if custom:
+        def_dict['Custom'] = custom
 
     return def_dict
 
@@ -178,8 +180,9 @@ def soil_water_potential(psi_soil_init, water_withdrawal, soil_class, soil_total
             Soil Science Society of America Journal 44, 892897.
     """
 
-    param = def_param_soil()[soil_class]
-    theta_r, theta_s, alpha, n, k_sat = [param[i] for i in range(5)]
+    psi_soil_init = min(-1e-6, psi_soil_init)
+    theta_r, theta_s, alpha, n, k_sat = def_param_soil()[soil_class]
+
     m = 1. - 1. / n
 
     psi = psi_soil_init * 1.e6 / (rho * g_p) * 100.  # MPa -> cm_H20
@@ -193,15 +196,17 @@ def soil_water_potential(psi_soil_init, water_withdrawal, soil_class, soil_total
 
     theta = max(theta_r, theta_init - delta_theta)
 
-    if theta == theta_r:
+    if theta <= theta_r:
         psi_soil = psi_min
+    elif theta >= theta_s:
+        psi_soil = 0.0
     else:
         def _water_retention(x):
             return 1. / (1. + absolute(alpha * x) ** n) ** m - (theta - theta_r) / (theta_s - theta_r)
 
         psi_soil = optimize.fsolve(_water_retention, array([psi]))[0] / (1.e6 / (rho * g_p) * 100)
 
-    return float(psi_soil)
+    return max(psi_min, float(psi_soil))
 
 
 def hydraulic_prop(g, mass_conv=18.01528, length_conv=1.e-2, a=2.6, b=2.0, min_kmax=0.):
