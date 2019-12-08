@@ -663,7 +663,7 @@ def plot_figure_14():
         m_df = pd.merge(obs_grouped, sims)
 
         x = m_df['west'].values + m_df['east'].values
-        y = m_df['sapWest'].values + m_df['sapEast'].values
+        y = m_df['arm2'].values + m_df['arm1'].values
 
         x_index = np.isfinite(x)
         y_index = np.isfinite(y)
@@ -674,8 +674,8 @@ def plot_figure_14():
             ax.xaxis.grid(which='minor', zorder=0)
             ax.yaxis.grid(which='major', zorder=0)
 
-            ax.plot(sims.index, sims.sapEast, c='r', linewidth=1)
-            ax.plot(sims.index, sims.sapWest, c='b', linewidth=1)
+            ax.plot(sims.index, sims['arm1'], c='r', linewidth=1)
+            ax.plot(sims.index, sims['arm2'], c='b', linewidth=1)
 
             ax.plot(obs_df.index, obs_df['east'], label='East', color='red',
                     marker='o', markeredgecolor='none', alpha=0.1)

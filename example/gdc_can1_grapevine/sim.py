@@ -1,5 +1,4 @@
-"""This is an example on running HydroShoot on a potted grapevine with a
-simple shoot architecture.
+"""This is an example on running HydroShoot on a Geneva Double Curtain grapevine with.
 """
 
 from os import getcwd
@@ -37,4 +36,4 @@ scene = display.visu(g, def_elmnt_color_dict=True, scene=Scene(),
 # Run HydroShoot
 # =============================================================================
 
-model.run(g, str(getcwd()) + '/', scene)
+model.run(g, str(getcwd()) + '/', scene, sapflow_per_cordon=True)
