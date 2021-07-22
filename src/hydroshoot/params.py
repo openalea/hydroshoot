@@ -65,7 +65,7 @@ class Simulation:
         self.negligible_shoot_resistance = simulation_dict['negligible_shoot_resistance']
         self.energy_budget = simulation_dict['energy_budget']
         self.soil_water_deficit = simulation_dict['soil_water_deficit']
-	self.meteo = simulation_dict['meteo']
+        self.meteo = simulation_dict['meteo']
 
 
 class Phenology:
