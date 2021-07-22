@@ -1613,6 +1613,6 @@ def mtg_save_geometry(scene, file_path, index=''):
 
     fgeom = file_path + 'geometry%s.bgeom' % index
 
-    scene.save(fgeom, 'BGEOM')
+    scene.save(str(fgeom), 'BGEOM')
 
     return
