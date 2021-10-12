@@ -149,8 +149,8 @@ def plot_figure_9():
     """Generates figure 9 of the paper. This figure compares, simulated to observed xylem water potential.
     """
 
-    beg_date = datetime(2012, 8, 01, 00, 00, 0, )
-    end_date = datetime(2012, 8, 03, 00, 00, 0, )
+    beg_date = datetime(2012, 8, 1, 00, 00, 0, )
+    end_date = datetime(2012, 8, 3, 00, 00, 0, )
     datet = pd.date_range(beg_date, end_date, freq='D')
 
     fig, axs = pyplot.subplots(nrows=3, ncols=3, sharex='all', sharey='all', figsize=(6.69, 6))
@@ -205,8 +205,8 @@ def plot_figure_10():
     """Generates figure 10 of the paper. This figure compares, simulated to observed stomatal conductance rates.
     """
 
-    beg_date = datetime(2012, 8, 01, 00, 00, 0, )
-    end_date = datetime(2012, 8, 03, 00, 00, 0, )
+    beg_date = datetime(2012, 8, 1, 00, 00, 0, )
+    end_date = datetime(2012, 8, 3, 00, 00, 0, )
     datet = pd.date_range(beg_date, end_date, freq='D')
 
     fig, axs = pyplot.subplots(nrows=3, ncols=3, sharex='all', sharey='all', figsize=(6.69, 6))
@@ -702,7 +702,7 @@ def plot_figure_14():
 
     # some layout
     for day in range(4):
-        day_sdate = datetime(2012, 8, 01, 00, 00, 0, ) + timedelta(days=day)
+        day_sdate = datetime(2012, 8, 1, 00, 00, 0, ) + timedelta(days=day)
         day_edate = day_sdate + timedelta(hours=23)
         for can in range(3):
             axs[can, day].set_xlim(day_sdate, day_edate)

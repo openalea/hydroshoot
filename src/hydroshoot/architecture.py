@@ -19,6 +19,7 @@ from re import search, findall
 from itertools import product
 from pickle import dump, load
 from os import path, mkdir
+from functools import reduce
 
 
 from openalea.mtg import mtg, io
@@ -65,7 +66,7 @@ def pol_to_cart (coordpol) :
     return scipy.array([x, y, z])
 
 
-def transformation(obj, sx, sy, sz, rx, ry, rz, tx, ty, tz ): 
+def transformation(obj, sx, sy, sz, rx, ry, rz, tx, ty, tz ):
     """
     Returns a scaled, rotated and translated 3D object - Similar to 'transformation' in PovRay
     """
@@ -78,18 +79,18 @@ def transformation(obj, sx, sy, sz, rx, ry, rz, tx, ty, tz ):
 
 
 def leaf0(l=1.):
-    points= Point3Array([ pgl.Vector3(0,9.8,0),pgl.Vector3(3.7,6.3,0),pgl.Vector3(2.3,3.9,0), 
+    points= Point3Array([ pgl.Vector3(0,9.8,0),pgl.Vector3(3.7,6.3,0),pgl.Vector3(2.3,3.9,0),
                           pgl.Vector3(5.4,6.2,0), pgl.Vector3(5.9,3.2,0),pgl.Vector3(4.6,0.1,0),
-                          pgl.Vector3(6.4,-1.6,0), pgl.Vector3(1,-3.7,0), pgl.Vector3(0,0,0),                     
-                          pgl.Vector3(-1,-3.7,0),pgl.Vector3(-6.4,-1.6,0), 
-                          pgl.Vector3(-4.6,0.1,0), pgl.Vector3(-5.9,3.2,0),                        
-                          pgl.Vector3(-5.4,6.2,0), pgl.Vector3(-2.3,3.9,0),pgl.Vector3(-3.7,6.3,0)]) 
-    
-    indices= pgl.Index3Array([ pgl.Index3(0,1,8), pgl.Index3(15,0,8), pgl.Index3(8,11,14), 
-                           pgl.Index3(11,12,14), pgl.Index3(12,13,14),pgl.Index3(10,11,8),                      
-                           pgl.Index3(8,9,10), pgl.Index3(2,3,4),pgl.Index3(2,4,5), 
+                          pgl.Vector3(6.4,-1.6,0), pgl.Vector3(1,-3.7,0), pgl.Vector3(0,0,0),
+                          pgl.Vector3(-1,-3.7,0),pgl.Vector3(-6.4,-1.6,0),
+                          pgl.Vector3(-4.6,0.1,0), pgl.Vector3(-5.9,3.2,0),
+                          pgl.Vector3(-5.4,6.2,0), pgl.Vector3(-2.3,3.9,0),pgl.Vector3(-3.7,6.3,0)])
+
+    indices= pgl.Index3Array([ pgl.Index3(0,1,8), pgl.Index3(15,0,8), pgl.Index3(8,11,14),
+                           pgl.Index3(11,12,14), pgl.Index3(12,13,14),pgl.Index3(10,11,8),
+                           pgl.Index3(8,9,10), pgl.Index3(2,3,4),pgl.Index3(2,4,5),
                            pgl.Index3(2,5,8), pgl.Index3(8,5,6),pgl.Index3(8,6,7)])
-    
+
     f= pgl.TriangleSet(points, indices)
     return pgl.Scaled (pgl.Vector3(0.01*l,0.01*l,0.01*l), f)
 
@@ -627,7 +628,7 @@ def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
                       N_max_order, in_order_max, slope_nfii, phyto_type,
                       a_L, b_L, a_P, b_P, c_P, Fifty_cent, slope_curv,
                       curv_type)
-    
+
 
 def vine_axeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
                insert_angle_CI=4.6, pruning_type='avg_field_model',
@@ -820,7 +821,7 @@ def VinePetiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
 
     raise DeprecationWarning("This function must be replaced by \
                              vine_petiole()")
-    
+
     return vine_petiole(g, vid, pet_ins, pet_ins_cv, phyllo_angle,
                         phyllo_angle_cv, len_max_I, len_max_II, Fifty_cent,
                         sig_slope)
@@ -855,7 +856,7 @@ def vine_petiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
         if n.label.startswith('inI'):
             father = n
             grandpa = n.parent()
-            grandgrandpa = grandpa.parent() if grandpa.parent() != None else grandpa
+            grandgrandpa = grandpa.parent() if grandpa.parent() is not None else grandpa
             in_order = int(father.index()) if not father.label[-1].isalpha() else int(findall('\d+',str(father.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
 
             len_max = len_max_I if g.Class(vid).split('in')[1] == 'I' else len_max_II
@@ -909,7 +910,7 @@ def vine_petiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
 
 def VineLeafLen(in_order, lim_max=15., lim_min=5.1, order_lim_max=7,
                 max_order=40):
-    
+
     raise DeprecationWarning("This function must be replaced by \
                              vine_midrib_length()")
 
@@ -939,10 +940,10 @@ def vine_midrib_length(in_order, lim_max=15., lim_min=5.1, order_lim_max=7, max_
 def VineLeaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
              lim_max=15., lim_min=5.1, order_lim_max=7, max_order=40,
              cordon_vector=None):
-    
+
     raise DeprecationWarning("This function must be replaced by \
                              vine_leaf()")
-    
+
     return vine_leaf(g, vid, leaf_inc, leaf_inc_cv, rand_rot_angle, lim_max,
                      lim_min, order_lim_max, max_order, cordon_vector)
 
@@ -963,7 +964,7 @@ def vine_leaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
     - **order_lim_max** and **max_order**: shape parameters
     """
 
-    leaf_inc, rand_rot_angle = [scipy.radians(angle) for angle in leaf_inc, rand_rot_angle]
+    leaf_inc, rand_rot_angle = [scipy.radians(angle) for angle in (leaf_inc, rand_rot_angle)]
 
     if vid > 0:
         n = g.node(vid)
@@ -1133,8 +1134,7 @@ def add_soil(g, side_length=10.):
     **Needs improvement!** for soil descritization.
     """
 
-    xls, yls =[[g.node(vid).TopPosition[i] for vid in \
-    g.property('geometry').keys()] for i in (0,1)]
+    xls, yls = [[g.node(vid).TopPosition[i] for vid in g.property('geometry').keys()] for i in (0, 1)]
     x_min, x_max = min(xls), max(xls)
     y_min, y_max = min(yls), max(yls)
     nbX = int((x_max - x_min)/side_length) + 1
@@ -1144,16 +1144,15 @@ def add_soil(g, side_length=10.):
     xu, yu = scipy.meshgrid(x,y)
     xu, yu = [reduce(lambda ix, iy: list(ix) +list(iy), ls) for ls in (xu,yu)]
     pos = zip(xu, yu)
-    Soil = g.add_component(g.root, label='Soil0', edge_type='/')
     Soil = g.add_component(g.root, label='Soil', edge_type='/')
 
-    pos=zip(xu,yu)
     for i, ipos in enumerate(pos):
         isoil = g.add_component(Soil, label=('other'+str(i)), TopPosition=list(ipos) + [0])
         g.node(isoil).geometry = transformation(soil0(side_length),
                  1., 1., 1., 0., 0.,0.,-side_length/2.,-side_length/2.,0.)
 
     return
+
 
 def add_soil_components(g, cylinders_number, cylinders_radii, soil_dimensions,
                         soil_class, vtx_label):
@@ -1181,7 +1180,7 @@ def add_soil_components(g, cylinders_number, cylinders_radii, soil_dimensions,
         radius = cylinders_radii[ivid]
         Length = radius - radius_prev
         label = 'rhyzo%d'%ivid
-#        print radius, Length, label
+#        print(radius, Length, label)
         child = g.node(child._vid).insert_parent(label=label, depth=depth, Length=Length,
                        TopDiameter = radius*2., BotDiameter = radius*2.,
                        TopPosition = 3*[0], BotPosition = 3*[0],
@@ -1384,7 +1383,7 @@ def vine_mtg_properties(g, vid):
 
 
 def VineMTGGeom(g, vid):
-    
+
     raise DeprecationWarning("This function must be replaced by \
                              vine_mtg_geometry()")
 
@@ -1489,7 +1488,7 @@ def VineOrient(g, vid, theta, v_axis=[0.,0.,1.], local_rotation=False):
 
     raise DeprecationWarning("This function must be replaced by \
                              vine_orientation()")
-    
+
     return vine_orientation(g, vid, theta, v_axis, local_rotation)
 
 
@@ -1573,19 +1572,19 @@ def mtg_save(g, scene, file_path):
 
     fg = file_path + 'mtg' + g.date + '.pckl'
 
-    f = open(fg, 'w')
+    f = open(fg, 'wb')
     dump([g,scene], f)
     f.close()
     #restore geometry
     g.add_property('geometry')
     g.property('geometry').update(geom)
     return
-    
+
 def mtg_load(wd, index):
-    
+
     fgeom = wd + 'geometry%s.bgeom'%index
     fg = wd + '%s.pckl'%(index)
-    
+
     scene = pgl.Scene()
     scene.read(fgeom, 'BGEOM')
     geom = {sh.id:sh.geometry for sh in scene}
@@ -1593,10 +1592,10 @@ def mtg_load(wd, index):
     f = open(fg)
     g2, TT = load(f)
     f.close()
-    
+
     g2.add_property('geometry')
     g2.property('geometry').update(geom)
-    
+
     return g2, scene
 
 def mtg_save_geometry(scene, file_path, index=''):

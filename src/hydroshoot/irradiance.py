@@ -173,10 +173,10 @@ def irradiance_distribution(meteo, geo_location, irradiance_unit,
     for idate, date in enumerate(meteo.index):
 
         if irradiance_unit.split('_')[0] == 'PPFD':
-            energy = meteo.ix[date].PPFD
+            energy = meteo.loc[date, :].PPFD
         else:
             try:
-                energy = meteo.ix[date].Rg
+                energy = meteo.loc[date, :].Rg
             except:
                 raise TypeError(
                     "'irradiance_unit' must be one of the following 'Rg_Watt/m2', 'RgPAR_Watt/m2' or'PPFD_umol/m2/s'.")
@@ -213,7 +213,7 @@ def irradiance_distribution(meteo, geo_location, irradiance_unit,
             direction = [idirect[0] for idirect in direction]
             direction = map(lambda x: tuple(list(x[:2]) + [-x[2]]), direction)
 
-        sky = zip(len(direction) * [irradiance_diff / len(direction)], direction)
+        sky = list(zip(len(direction) * [irradiance_diff / len(direction)], direction))
 
         # direct irradiance
         sun = Gensun.Gensun()(Rsun=irradiance_dir, DOY=doy_utc, heureTU=hour_utc, lat=latitude)
@@ -311,10 +311,10 @@ def hsCaribu(mtg, unit_scene_length, geometry='geometry', opticals='opticals', c
     remove_geometry = 'geometry' not in mtg.property_names()
 
     if consider is not None:
-        geom0 = {k: v for k, v in mtg.property(geometry).iteritems()}
-        mtg.properties()[geometry] = {k: v for k, v in mtg.property(geometry).iteritems() if k in consider}
-    if geometry is not 'geometry' and 'geometry' in mtg.property_names():
-        geometry0 = {k: v for k, v in mtg.property('geometry').iteritems()}
+        geom0 = {k: v for k, v in mtg.property(geometry).items()}
+        mtg.properties()[geometry] = {k: v for k, v in mtg.property(geometry).items() if k in consider}
+    if geometry != 'geometry' and 'geometry' in mtg.property_names():
+        geometry0 = {k: v for k, v in mtg.property('geometry').items()}
 
     mtg.properties()['geometry'] = mtg.property(geometry)
     caribu_scene = None
