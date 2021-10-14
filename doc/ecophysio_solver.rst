@@ -4,7 +4,7 @@ Processes interactions
 
 Interactions among the physiological processes occur.
 
-.. figure:: figs/ecophysio_solver.svg
+.. figure:: figs/ecophysio_solver_1.svg
     :align: center
 
     Solving the interactions between leaf's water potential, transpiration rate and temperature !
@@ -36,7 +36,7 @@ the hydraulic, energy and gas-exchange processes is handled in HydroShoot.
 
 .. _fig_2:
 
-.. figure:: figs/fig_2_ecophysio_solver.png
+.. figure:: figs/ecophysio_solver_2.png
 
     Schematic representation of the numerical resolution of HydroShoot. Meteorological inputs that are common
     to all leaves are air temperature (:math:`T_{air}, \ K`), air relative humidity (:math:`RH, \ -`), air
