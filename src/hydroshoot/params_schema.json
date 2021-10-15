@@ -319,7 +319,7 @@
           ]
         },
         "icosphere_level": {
-          "type": "null",
+          "type": ["null", "integer"],
           "description": "The level of refinement of the dual icosphere."
         }
       },
