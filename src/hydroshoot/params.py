@@ -94,7 +94,7 @@ class NumericalResolution:
         self.psi_step = numerical_resolution_dict['psi_step']
         self.psi_error_threshold = numerical_resolution_dict['psi_error_threshold']
         self.t_step = numerical_resolution_dict['t_step']
-        self.t_error_crit = numerical_resolution_dict['t_error_crit']
+        self.t_error_threshold = numerical_resolution_dict['t_error_threshold']
 
 
 class Irradiance:

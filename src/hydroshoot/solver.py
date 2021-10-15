@@ -52,7 +52,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
     psi_step = params.numerical_resolution.psi_step
     max_iter = params.numerical_resolution.max_iter
     psi_error_threshold = params.numerical_resolution.psi_error_threshold
-    temp_error_threshold = params.numerical_resolution.t_error_crit
+    temp_error_threshold = params.numerical_resolution.t_error_threshold
 
     modelx, psi_critx, slopex = [xylem_k_cavitation[ikey] for ikey in ('model', 'fifty_cent', 'sig_slope')]
 
