@@ -587,13 +587,6 @@
               "type": "object",
               "description": "Parameters for temperature response curve of Michaelis-Menten constant for the carboxylase",
               "properties": {
-                "model": {
-                  "type": "string",
-                  "description": "Temperature response model",
-                  "enum": [
-                    "Arrhenius"
-                  ]
-                },
                 "c": {
                   "type": "number",
                   "description": "[-] Scaling constant"
@@ -605,7 +598,6 @@
                 }
               },
               "required": [
-                "model",
                 "c",
                 "deltaHa"
               ]
@@ -614,13 +606,6 @@
               "type": "object",
               "description": "Parameters for temperature response curve of Michaelis-Menten constant for the oxygenase",
               "properties": {
-                "model": {
-                  "type": "string",
-                  "description": "Temperature response model",
-                  "enum": [
-                    "Arrhenius"
-                  ]
-                },
                 "c": {
                   "type": "number",
                   "description": "[-] Scaling constant"
@@ -632,7 +617,6 @@
                 }
               },
               "required": [
-                "model",
                 "c",
                 "deltaHa"
               ]
@@ -641,13 +625,6 @@
               "type": "object",
               "description": "Parameters for temperature response curve of RuBP-saturated rate of carboxylation",
               "properties": {
-                "model": {
-                  "type": "string",
-                  "description": "Temperature response model",
-                  "enum": [
-                    "Arrhenius"
-                  ]
-                },
                 "c": {
                   "type": "number",
                   "description": "[-] Scaling constant"
@@ -659,7 +636,6 @@
                 }
               },
               "required": [
-                "model",
                 "c",
                 "deltaHa"
               ]
@@ -668,13 +644,6 @@
               "type": "object",
               "description": "Parameters for temperature response curve of electron transport rate",
               "properties": {
-                "model": {
-                  "type": "string",
-                  "description": "Temperature response model",
-                  "enum": [
-                    "Arrhenius"
-                  ]
-                },
                 "c": {
                   "type": "number",
                   "description": "[-] Scaling constant"
@@ -686,7 +655,6 @@
                 }
               },
               "required": [
-                "model",
                 "c",
                 "deltaHa"
               ]
@@ -695,13 +663,6 @@
               "type": "object",
               "description": "Parameters for temperature response curve of triose phosphate rate",
               "properties": {
-                "model": {
-                  "type": "string",
-                  "description": "Temperature response model",
-                  "enum": [
-                    "Arrhenius"
-                  ]
-                },
                 "c": {
                   "type": "number",
                   "description": "[-] Scaling constant"
@@ -713,7 +674,6 @@
                 }
               },
               "required": [
-                "model",
                 "c",
                 "deltaHa"
               ]
@@ -722,13 +682,6 @@
               "type": "object",
               "description": "Parameters for temperature response curve of mitochondrial respiration rate",
               "properties": {
-                "model": {
-                  "type": "string",
-                  "description": "Temperature response model",
-                  "enum": [
-                    "Arrhenius"
-                  ]
-                },
                 "c": {
                   "type": "number",
                   "description": "[-] Scaling constant"
@@ -740,7 +693,6 @@
                 }
               },
               "required": [
-                "model",
                 "c",
                 "deltaHa"
               ]
@@ -749,13 +701,6 @@
               "type": "object",
               "description": "Parameters for temperature response curve of CO2 compensation point in the absence of mitochondrial respiration",
               "properties": {
-                "model": {
-                  "type": "string",
-                  "description": "Temperature response model",
-                  "enum": [
-                    "Arrhenius"
-                  ]
-                },
                 "c": {
                   "type": "number",
                   "description": "[-] Scaling constant"
@@ -767,7 +712,6 @@
                 }
               },
               "required": [
-                "model",
                 "c",
                 "deltaHa"
               ]
