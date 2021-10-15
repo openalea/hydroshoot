@@ -33,7 +33,7 @@
     "psi_step": 0.5,
     "psi_error_threshold": 0.05,
     "t_step": 0.5,
-    "t_error_crit": 0.02
+    "t_error_threshold": 0.02
   },
   "irradiance": {
     "E_type": "Rg_Watt/m2",

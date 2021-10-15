@@ -167,7 +167,7 @@
           "exclusiveMinimum": true,
           "maximum": 1
         },
-        "t_error_crit": {
+        "t_error_threshold": {
           "type": "number",
           "description": "[°C] Maximum allowable cumulative squared difference in leaf temperature between two consecutive iterations",
           "minimum": 0
@@ -178,7 +178,7 @@
         "psi_step",
         "psi_error_threshold",
         "t_step",
-        "t_error_crit"
+        "t_error_threshold"
       ]
     },
     "irradiance": {
