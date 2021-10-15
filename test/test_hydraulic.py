@@ -72,12 +72,12 @@ def test_k_soil_soil_maximum_value_is_greater_for_sand_than_clay():
 
 def k_soil_root_increases_as_soil_conductivity_increases():
     soil_conductivity = [0.48, 1.68, 2.88, 4.8, 6.0, 6.24, 10.8, 24.96, 31.44, 106.1, 350.2, 712.8]
-    soil_root_cond = [hydraulic.k_soil_root(k_soil, dist_roots=0.013, rad_roots=.0001) for k_soil in soil_conductivity]
+    soil_root_cond = [hydraulic.k_soil_root(k_soil, root_spacing=0.013, root_radius=.0001) for k_soil in soil_conductivity]
     assert all(x <= y for x, y in zip(soil_root_cond, soil_root_cond[1:]))
 
 
 def k_soil_root_increases_as_the_ratio_of_average_root_distance_to_radius_decreases():
-    soil_root_cond = [hydraulic.k_soil_root(k_soil=6., dist_roots=0.013, rad_roots=0.013 / x)
+    soil_root_cond = [hydraulic.k_soil_root(k_soil=6., root_spacing=0.013, root_radius=0.013 / x)
                       for x in range(200, 100, -10)]
     assert all(x <= y for x, y in zip(soil_root_cond, soil_root_cond[1:]))
 

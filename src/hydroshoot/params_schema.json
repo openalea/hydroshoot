@@ -827,14 +827,15 @@
           "minimum": 0,
           "maxItems": 1
         },
-        "root": {
-          "type": "array",
-          "description": "[m] (average distance between roots, average radius of roots)",
-          "minItems": 2,
-          "maxItems": 2,
-          "items": {
-            "type": "number"
-          }
+        "avg_root_spacing": {
+          "type": "number",
+          "description": "[m] average spacing between roots",
+          "minimum": 0
+        },
+        "avg_root_radius": {
+          "type": "number",
+          "description": "[m] average radius of roots",
+          "minimum": 0
         }
       },
       "required": [
