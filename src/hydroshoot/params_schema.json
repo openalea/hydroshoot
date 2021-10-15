@@ -51,10 +51,6 @@
             "m"
           ]
         },
-        "simplified_form_factors": {
-          "type": "boolean",
-          "description": "`true` to use the simplified form factors method"
-        },
         "hydraulic_structure": {
           "type": "boolean",
           "description": "`true` to calculate shoot hydraulic structure: leaf water potential is calculated and used in stomatal conductance model; `false` to use leaf-to-air vapor pressure deficit"
@@ -82,7 +78,6 @@
         "tzone",
         "output_index",
         "unit_scene_length",
-        "simplified_form_factors",
         "hydraulic_structure",
         "negligible_shoot_resistance",
         "energy_budget",
@@ -341,12 +336,6 @@
           "type": "boolean",
           "description": " if `true` calculates energy budget for each element assuming the temperatures of surrounding leaves constant (from previous calculation step), if `false` computes simultaneously all temperatures using `sympy.solvers.nsolve` (**very costly!!!**)"
         },
-        "limit": {
-          "type": "number",
-          "description": "(negative), a threshold below which form factor values are ignored",
-          "maximum": 0.0,
-          "exclusiveMaximum": true
-        },
         "t_cloud": {
           "type": "number",
           "description": "[°C] Cloud temperature"
@@ -358,7 +347,6 @@
       },
       "required": [
         "solo",
-        "limit",
         "t_cloud",
         "t_sky"
       ]
