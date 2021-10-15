@@ -42,8 +42,12 @@ class Params:
             - (dict) dictionary of parameters identifiers and values.
         """
 
-        json_file = load(open(self._params_path, mode='r'), encoding="utf-8")
-        json_schm = load(open(self._params_schema, mode='r'), encoding="utf-8")
+        with open(self._params_path, mode='r') as f:
+            json_file = load(f, encoding="utf-8")
+
+        with open(self._params_schema, mode='r') as f:
+            json_schm = load(f, encoding="utf-8")
+
         validate(json_file, json_schm)
 
         return json_file
