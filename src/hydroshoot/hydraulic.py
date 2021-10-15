@@ -135,13 +135,13 @@ def k_soil_soil(psi, soil_class):
     return k_soil
 
 
-def k_soil_root(k_soil, dist_roots, rad_roots):
+def k_soil_root(k_soil, root_spacing, root_radius):
     """Computes the water conductivity at the soil-root interface according to Gardner (1960)
 
     Args:
         k_soil (float): [cm d-1] soil hydraulic conductivity
-        dist_roots (float): [m] mean distance between the neighbouring roots
-        rad_roots (float): [m] mean root radius
+        root_spacing (float): [m] mean spacing between the neighbouring roots
+        root_radius (float): [m] mean root radius
 
     Returns:
         (float): [cm d-1] water conductivity at the soil-root interface
@@ -152,7 +152,7 @@ def k_soil_root(k_soil, dist_roots, rad_roots):
             Soil science 89, 63 - 73.
 
     """
-    return 4. * pi * k_soil / log((dist_roots / rad_roots) ** 2)
+    return 4. * pi * k_soil / log((root_spacing / root_radius) ** 2)
 
 
 def soil_water_potential(psi_soil_init, water_withdrawal, soil_class, soil_total_volume, psi_min=-3.):
@@ -271,7 +271,7 @@ def hydraulic_prop(g, mass_conv=18.01528, length_conv=1.e-2, a=2.6, b=2.0, min_k
 
 
 def transient_xylem_water_potential(g, model='tuzet', length_conv=1.e-2, psi_soil=-0.6, psi_min=-3., fifty_cent=-0.51,
-                                    sig_slope=1., dist_roots=0.013, rad_roots=.0001, negligible_shoot_resistance=False,
+                                    sig_slope=1., root_spacing=0.013, root_radius=.0001, negligible_shoot_resistance=False,
                                     start_vid=None, stop_vid=None):
     """Computes a transient hydraulic structure of a plant shoot based on constant values of the hydraulic segments'
     conductivities. The hydraulic segments are assumed isotropic having only axial conductivities.
@@ -286,8 +286,8 @@ def transient_xylem_water_potential(g, model='tuzet', length_conv=1.e-2, psi_soi
             of its maximum value, see :func:`cavitation_factor` for details
         sig_slope (float): a shape parameter controlling the slope of the S-curve (used only for 'misson' [-] or
             'tuzet' [MPa-1] models), see :func:`cavitation_factor` for details
-        dist_roots (float): [m] mean distance between the neighbouring roots
-        rad_roots (float): [m] mean root radius
+        root_spacing (float): [m] mean spacing between the neighbouring roots
+        root_radius (float): [m] mean root radius
         negligible_shoot_resistance (bool): to consider (True) or not to consider (False) shoot resistance to xylem
             flow
         start_vid (int): vertex id from which the iteration starts (if `None` it is then taken to the basal element)
@@ -336,7 +336,7 @@ def transient_xylem_water_potential(g, model='tuzet', length_conv=1.e-2, psi_soi
 
                     if n.label.startswith('rhyzo0'):
                         k_soil = k_soil_soil(psi, n.soil_class)  # [cm d-1]
-                        g_act = k_soil_root(k_soil, dist_roots, rad_roots)  # [cm d-1 m-1]
+                        g_act = k_soil_root(k_soil, root_spacing, root_radius)  # [cm d-1 m-1]
                         psi_head = max(psi_min, psi_base - (flux / g_act) * rho * g_p * 1.e-6)
                         k_act = None
                     else:
@@ -361,7 +361,7 @@ def transient_xylem_water_potential(g, model='tuzet', length_conv=1.e-2, psi_soi
 
 
 def xylem_water_potential(g, psi_soil=-0.8, model='tuzet', psi_min=-3.0, psi_error_crit=0.001, max_iter=100,
-                          length_conv=1.E-2, fifty_cent=-0.51, sig_slope=0.1, dist_roots=0.013, rad_roots=.0001,
+                          length_conv=1.E-2, fifty_cent=-0.51, sig_slope=0.1, root_spacing=0.013, root_radius=.0001,
                           negligible_shoot_resistance=False, start_vid=None, stop_vid=None, psi_step=0.5):
     """Computes the hydraulic structure of plant's shoot.
 
@@ -377,8 +377,8 @@ def xylem_water_potential(g, psi_soil=-0.8, model='tuzet', psi_min=-3.0, psi_err
             of its maximum value, see :func:`cavitation_factor` for details
         sig_slope (float): a shape parameter controlling the slope of the S-curve (used only for 'misson' [-] or
             'tuzet' [MPa-1] models), see :func:`cavitation_factor` for details
-        dist_roots (float): [m] mean distance between the neighbouring roots
-        rad_roots (float): [m] mean root radius
+        root_spacing (float): [m] mean spacing between the neighbouring roots
+        root_radius (float): [m] mean root radius
         negligible_shoot_resistance (bool): to consider (True) or not to consider (False) shoot resistance to xylem
             flow
         start_vid (int or None): vertex id from which the iteration starts (if `None` it is then taken to the basal
@@ -405,7 +405,7 @@ def xylem_water_potential(g, psi_soil=-0.8, model='tuzet', psi_min=-3.0, psi_err
         psi_prev = deepcopy(g.property('psi_head'))
 
         transient_xylem_water_potential(g, model, length_conv, psi_soil, psi_min, fifty_cent, sig_slope,
-                                        dist_roots, rad_roots, negligible_shoot_resistance, start_vid, stop_vid)
+                                        root_spacing, root_radius, negligible_shoot_resistance, start_vid, stop_vid)
 
         psi_new = deepcopy(g.property('psi_head'))
 

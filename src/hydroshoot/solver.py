@@ -46,7 +46,6 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
     collar_label = params.mtg_api.collar_label
 
     soil_class = params.soil.soil_class
-    dist_roots, rad_roots = params.soil.roots
 
     temp_step = params.numerical_resolution.t_step
     psi_step = params.numerical_resolution.psi_step
@@ -110,8 +109,8 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
                 n_iter_psi = hydraulic.xylem_water_potential(g, psi_soil=psi_collar, model=modelx, psi_min=psi_min,
                                                              psi_error_crit=psi_error_threshold, max_iter=max_iter,
                                                              length_conv=length_conv, fifty_cent=psi_critx,
-                                                             sig_slope=slopex, dist_roots=dist_roots,
-                                                             rad_roots=rad_roots,
+                                                             sig_slope=slopex, root_spacing=params.soil.avg_root_spacing,
+                                                             root_radius=params.soil.avg_root_radius,
                                                              negligible_shoot_resistance=negligible_shoot_resistance,
                                                              start_vid=vid_collar, stop_vid=None, psi_step=psi_step)
 

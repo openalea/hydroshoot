@@ -176,7 +176,6 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
     print('rhyzo_solution: %s' % rhyzo_solution)
 
     if rhyzo_solution:
-        dist_roots, rad_roots = params.soil.roots
         if not any(item.startswith('rhyzo') for item in g.property('label').values()):
             vid_collar = architecture.mtg_base(g, vtx_label=vtx_label)
             vid_base = architecture.add_soil_components(g, rhyzo_number, rhyzo_radii,
@@ -197,7 +196,6 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
                 radius_prev = radius
 
     else:
-        dist_roots, rad_roots = None, None
         # Identifying and attaching the base node of a single MTG
         vid_collar = architecture.mtg_base(g, vtx_label=vtx_label)
         vid_base = vid_collar

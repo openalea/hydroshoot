@@ -144,7 +144,8 @@ class Soil:
         self.rhyzo_solution = soil_dict['rhyzo_solution']
         self.rhyzo_radii = soil_dict['rhyzo_radii']
         self.rhyzo_coeff = soil_dict['rhyzo_coeff']
-        self.roots = soil_dict['roots']
+        self.avg_root_spacing = soil_dict['avg_root_spacing']
+        self.avg_root_radius = soil_dict['avg_root_radius']
 
 
 def _list2tuple(dct):
