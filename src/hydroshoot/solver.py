@@ -33,7 +33,6 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
     par_gs = params.exchange.par_gs
     rbt = params.exchange.rbt
 
-    mass_conv = params.hydraulic.MassConv
     xylem_k_max = params.hydraulic.Kx_dict
     xylem_k_cavitation = params.hydraulic.par_K_vul
     psi_min = params.hydraulic.psi_min
@@ -90,7 +89,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
                                             meteo, irradiance_type2, leaf_lbl_prefix, rbt)
 
                 # Compute sap flow and hydraulic properties
-                hydraulic.hydraulic_prop(g, mass_conv=mass_conv, length_conv=length_conv,
+                hydraulic.hydraulic_prop(g, length_conv=length_conv,
                                          a=xylem_k_max['a'], b=xylem_k_max['b'], min_kmax=xylem_k_max['min_kmax'])
 
                 # Update soil water status
@@ -149,7 +148,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
                                         meteo, irradiance_type2, leaf_lbl_prefix, rbt)
 
             # Compute sap flow and hydraulic properties
-            hydraulic.hydraulic_prop(g, mass_conv=mass_conv, length_conv=length_conv,
+            hydraulic.hydraulic_prop(g, length_conv=length_conv,
                                      a=xylem_k_max['a'], b=xylem_k_max['b'], min_kmax=xylem_k_max['min_kmax'])
 
         # End Hydraulic loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

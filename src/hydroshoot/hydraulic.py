@@ -7,11 +7,13 @@ Hydraulic structure module of HydroShoot.
 This module computes xylem water potential value at each node of the shoot.
 """
 
-from scipy import exp, absolute, pi, log, array, optimize
 from copy import deepcopy
 
-from openalea.plantgl.all import surface as surf
 import openalea.mtg.traversal as traversal
+from openalea.plantgl.all import surface as surf
+from scipy import exp, absolute, pi, log, array, optimize
+
+import hydroshoot.constants as cst
 
 # constants
 rho = 997.0479  # density of liquid water at 25 °C temperature [kg m-3]
@@ -209,13 +211,12 @@ def soil_water_potential(psi_soil_init, water_withdrawal, soil_class, soil_total
     return max(psi_min, float(psi_soil))
 
 
-def hydraulic_prop(g, mass_conv=18.01528, length_conv=1.e-2, a=2.6, b=2.0, min_kmax=0.):
+def hydraulic_prop(g, length_conv=1.e-2, a=2.6, b=2.0, min_kmax=0.):
     """Computes water flux `Flux` and maximum hydraulic conductivity `Kmax` of each hydraulic segment. Both properties
         are then attached to the corresponding mtg nodes.
 
     Args:
         g (openalea.mtg.MTG): a multiscale tree graph object
-        mass_conv (float): [gr mol-1] molar mass of H2O
         length_conv (float): conversion coefficient from the length unit of the mtg to that of [1 m]
         a (float): [kg s-1 MPa-1] slope of the Kh(D) relationship, see :func:`conductivity_max` for details
         b (float): [-] exponent of the Kh(D) relationship, see :func:`conductivity_max` for details
@@ -231,7 +232,7 @@ def hydraulic_prop(g, mass_conv=18.01528, length_conv=1.e-2, a=2.6, b=2.0, min_k
             - else if `Flux` is given as water flux density [kg m-2 s-1], then `Kmax` is in [kg m-1 s-1 Pa-1]
             (or [kg m-1 s-1 MPa-1])
         Transpiration flux density per leaf surface area `E` (propery of the :arg:`mtg`) must be in [mol m-2 s-1],
-            otherwise, the :arg:`mass_conv` value must be re-adapted
+            otherwise, the `cst.water_molar_mass` value must be re-adapted
 
         The resulting water potential, calculated in :func:`transient_xylem_water_potential` is then given in [MPa]
 
@@ -250,7 +251,7 @@ def hydraulic_prop(g, mass_conv=18.01528, length_conv=1.e-2, a=2.6, b=2.0, min_k
                 # leaf_area = (0.0175*(n.Length*10.)**1.9057)*LengthConv**2 #[m2]
                 n.leaf_area = leaf_area
 
-            n.Flux = (n.E * mass_conv * 1.e-3) * leaf_area
+            n.Flux = (n.E * cst.water_molar_mass * 1.e-3) * leaf_area
             # n.FluxC = ((n.An)*44.0095*1.e-9)*leaf_area # [kgCO2 s-1]
             n.FluxC = n.An * leaf_area  # [umol s-1]
 
