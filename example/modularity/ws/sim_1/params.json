@@ -116,59 +116,33 @@
       "Kc25": 404.9,
       "Ko25": 278.4,
       "Tx25": 42.75,
-      "alpha": [
-        0.2,
-        0.2,
-        0.19,
-        0.19,
-        0.14,
-        0.12
-      ],
-      "alpha_T_limit": [
-        15,
-        20,
-        25,
-        30,
-        34,
-        50
-      ],
-      "a1": 0.98,
-      "a2": 0.98,
-      "a3": 0.98,
       "ds": 0.635,
       "dHd": 200.0,
       "RespT_Kc": {
-        "model": "Arrhenius",
         "c": 38.05,
         "deltaHa": 79.43
       },
       "RespT_Ko": {
-        "model": "Arrhenius",
         "c": 20.30,
         "deltaHa": 36.38
       },
       "RespT_Vcm": {
-        "model": "Arrhenius",
         "c": 26.35,
         "deltaHa": 65.33
       },
       "RespT_Jm": {
-        "model": "Arrhenius",
         "c": 17.57,
         "deltaHa": 43.54
       },
       "RespT_TPU": {
-        "model": "Arrhenius",
         "c": 21.46,
         "deltaHa": 53.1
       },
       "RespT_Rd": {
-        "model": "Arrhenius",
         "c": 18.72,
         "deltaHa": 46.39
       },
       "RespT_Tx": {
-        "model": "Arrhenius",
         "c": 19.02,
         "deltaHa": 37.83
       }
