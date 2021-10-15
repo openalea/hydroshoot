@@ -4,7 +4,7 @@ from hydroshoot import hydraulic, exchange, energy
 
 
 def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_base,
-                       length_conv, time_conv, rhyzo_total_volume, params, form_factors, simplified_form_factors):
+                       length_conv, time_conv, rhyzo_total_volume, params, form_factors):
     """Computes gas-exchange, energy and hydraulic structure of plant's shoot jointly.
 
     Args:
@@ -165,7 +165,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
             ei = g.property('Ei')
             g.properties()['Tlc'], t_iter = energy.leaf_temperature(g, meteo, t_soil, t_sky_eff, t_init=t_init,
                                                                     form_factors=form_factors, gbh=gbH, ev=ev, ei=ei,
-                                                                    solo=solo, ff_type=simplified_form_factors,
+                                                                    solo=solo,
                                                                     leaf_lbl_prefix=leaf_lbl_prefix, max_iter=max_iter,
                                                                     t_error_crit=temp_error_threshold, t_step=temp_step)
 

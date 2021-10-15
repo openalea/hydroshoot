@@ -64,7 +64,6 @@ class Simulation:
         self.tzone = simulation_dict['tzone']
         self.output_index = simulation_dict['output_index']
         self.unit_scene_length = simulation_dict['unit_scene_length']
-        self.simplified_form_factors = simulation_dict['simplified_form_factors']
         self.hydraulic_structure = simulation_dict['hydraulic_structure']
         self.negligible_shoot_resistance = simulation_dict['negligible_shoot_resistance']
         self.energy_budget = simulation_dict['energy_budget']
@@ -113,7 +112,6 @@ class Energy:
 
     def __init__(self, energy_dict):
         self.solo = energy_dict['solo']
-        self.limit = energy_dict['limit']
         self.t_cloud = energy_dict['t_cloud']
         self.t_sky = energy_dict['t_sky']
 

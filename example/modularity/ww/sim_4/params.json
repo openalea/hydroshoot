@@ -9,7 +9,6 @@
     "tzone": "Europe/Paris",
     "output_index": "",
     "unit_scene_length": "cm",
-    "simplified_form_factors": true,
     "hydraulic_structure": false,
     "negligible_shoot_resistance": true,
     "energy_budget": true,
@@ -73,7 +72,6 @@
   },
   "energy": {
     "solo": true,
-    "limit": -0.000000001,
     "t_cloud": 2.0,
     "t_sky": -20.0
   },

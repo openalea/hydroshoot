@@ -96,7 +96,7 @@ def form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L'
     label = g.property('label')
     opts = {'SW': {vid: ((0.001, 0) if label[vid].startswith(leaf_lbl_prefix) else (0.001,)) for vid in geom}}
     if not icosphere_level:
-        energy, emission, direction, elevation, azimuth = turtle.turtle(sectors=turtle_sectors, format='uoc', energy=1.)
+        direction = turtle.turtle(sectors=turtle_sectors, format='uoc', energy=1.)[2]
     else:
         vert, fac = ico.turtle_dome(icosphere_level)
         direction = ico.sample_faces(vert, fac, iter=None, spheric=False).values()
@@ -212,7 +212,7 @@ def heat_boundary_layer_conductance(leaves_length, wind_speed=0):
 
 # TODO: split leaf_temperature() into two functions following whether solo is used or not
 def leaf_temperature(g, meteo, t_soil, t_sky_eff, t_init=None, form_factors=None, gbh=None, ev=None, ei=None, solo=True,
-                     ff_type=True, leaf_lbl_prefix='L', max_iter=100, t_error_crit=0.01, t_step=0.5):
+                     leaf_lbl_prefix='L', max_iter=100, t_error_crit=0.01, t_step=0.5):
     """Computes the temperature of each individual leaf and soil elements.
 
     Args:
@@ -233,7 +233,6 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, t_init=None, form_factors=None
             if True (default), calculates energy budget for each element assuming the temperatures of surrounding
                 leaves as constant (from previous calculation step)
             if False, computes simultaneously all temperatures using `sympy.solvers.nsolve` (**very costly!!!**)
-        ff_type (bool): form factor type flag. If true fform factor for a given leaf is expected to be a single value, or a dict of ff otherwxie
         leaf_lbl_prefix (str): the prefix of the leaf label
         max_iter (int): maximum allowed iteration (used only when :arg:`solo` is True)
         t_error_crit (float): [°C] maximum allowed error in leaf temperature (used only when :arg:`solo` is True)
@@ -294,11 +293,7 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, t_init=None, form_factors=None
                 evap = properties['ev'][vid]
                 t_leaf = t_prev[vid]
 
-                if not ff_type:
-                    longwave_grain_from_leaves = -sigma * sum(
-                        [ff_leaves[ivid] * (utils.celsius_to_kelvin(t_prev[ivid])) ** 4 for ivid in ff_leaves])
-                else:
-                    longwave_grain_from_leaves = ff_leaves * sigma * (utils.celsius_to_kelvin(t_leaf)) ** 4
+                longwave_grain_from_leaves = ff_leaves * sigma * (utils.celsius_to_kelvin(t_leaf)) ** 4
 
                 def _VineEnergyX(t_leaf):
                     shortwave_abs = a_glob * shortwave_inc
