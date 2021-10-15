@@ -355,12 +355,6 @@
       "type": "object",
       "description": "Parameters of the `hydraulic` module",
       "properties": {
-        "MassConv": {
-          "type": "number",
-          "description": "[g mol-1] Molar mass of pure water",
-          "minimum": 0.0,
-          "exclusiveMinimum": true
-        },
         "psi_min": {
           "type": "number",
           "description": "[MPa] Minimum allowable xylem water potential",
@@ -426,7 +420,6 @@
         }
       },
       "required": [
-        "MassConv",
         "psi_min",
         "Kx_dict",
         "par_K_vul"

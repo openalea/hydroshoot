@@ -110,7 +110,7 @@ def test_hydraulic_prop_attributes_the_right_properties_to_the_different_organs(
             n.E = 0.
             n.An = 0.
 
-    hydraulic.hydraulic_prop(simple_shoot, mass_conv=18.01528, length_conv=1.e-2, a=2.6, b=2.0, min_kmax=0.)
+    hydraulic.hydraulic_prop(simple_shoot, length_conv=1.e-2, a=2.6, b=2.0, min_kmax=0.)
 
     for vtx_id in traversal.post_order2(simple_shoot, vid_base):
         n = simple_shoot.node(vtx_id)
