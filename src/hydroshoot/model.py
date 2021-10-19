@@ -2,14 +2,14 @@
 """This module performs a complete comutation scheme: irradiance absorption, gas-exchange, hydraulic structure,
 energy-exchange, and soil water depletion, for each given time step.
 """
-import numpy as np
 from copy import deepcopy
-from os.path import isfile
 from datetime import datetime, timedelta
-from pandas import read_csv, DataFrame, date_range, DatetimeIndex, merge
+from os.path import isfile
 
+import numpy as np
 import openalea.mtg.traversal as traversal
 from openalea.plantgl.all import Scene, surface
+from pandas import read_csv, DataFrame, date_range, DatetimeIndex
 
 from hydroshoot import (architecture, irradiance, exchange, hydraulic, energy,
                         display, solver)
