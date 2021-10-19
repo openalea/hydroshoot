@@ -8,16 +8,14 @@ This module computes xylem water potential value at each node of the shoot.
 """
 
 from copy import deepcopy
+from math import exp, pi, log
 
 import openalea.mtg.traversal as traversal
 from openalea.plantgl.all import surface as surf
-from scipy import exp, absolute, pi, log, array, optimize
+from numpy import array
+from scipy import optimize
 
 import hydroshoot.constants as cst
-
-# constants
-rho = 997.0479  # density of liquid water at 25 °C temperature [kg m-3]
-g_p = 9.81  # gravity acceleration [m s-2]
 
 
 def conductivity_max(diameter, a=2.8, b=0.1, min_kmax=0.):
@@ -127,7 +125,7 @@ def k_soil_soil(psi, soil_class):
             Soil Science Society of America Journal 44, 892897.
     """
 
-    psi *= 1.e6 / (rho * g_p) * 100.  # MPa -> cm_H20
+    psi *= 1.e6 / (cst.water_density * cst.gravitational_acceleration) * 100.  # MPa -> cm_H20
     param = def_param_soil()[soil_class]
     theta_r, theta_s, alpha, n, k_sat = [param[i] for i in range(5)]
     m = 1. - 1. / n
@@ -187,8 +185,8 @@ def soil_water_potential(psi_soil_init, water_withdrawal, soil_class, soil_total
 
     m = 1. - 1. / n
 
-    psi = psi_soil_init * 1.e6 / (rho * g_p) * 100.  # MPa -> cm_H20
-    theta_init = theta_r + (theta_s - theta_r) / (1. + absolute(alpha * psi) ** n) ** m
+    psi = psi_soil_init * 1.e6 / (cst.water_density * cst.gravitational_acceleration) * 100.  # MPa -> cm_H20
+    theta_init = theta_r + (theta_s - theta_r) / (1. + abs(alpha * psi) ** n) ** m
 
     flux = water_withdrawal * 1.e-3  # kg T-1 -> m3 T-1
 
@@ -204,9 +202,10 @@ def soil_water_potential(psi_soil_init, water_withdrawal, soil_class, soil_total
         psi_soil = 0.0
     else:
         def _water_retention(x):
-            return 1. / (1. + absolute(alpha * x) ** n) ** m - (theta - theta_r) / (theta_s - theta_r)
+            return 1. / (1. + abs(alpha * x) ** n) ** m - (theta - theta_r) / (theta_s - theta_r)
 
-        psi_soil = optimize.fsolve(_water_retention, array([psi]))[0] / (1.e6 / (rho * g_p) * 100)
+        psi_soil = optimize.fsolve(_water_retention, array(psi))[0] / (
+                    1.e6 / (cst.water_density * cst.gravitational_acceleration) * 100)
 
     return max(psi_min, float(psi_soil))
 
@@ -272,7 +271,8 @@ def hydraulic_prop(g, length_conv=1.e-2, a=2.6, b=2.0, min_kmax=0.):
 
 
 def transient_xylem_water_potential(g, model='tuzet', length_conv=1.e-2, psi_soil=-0.6, psi_min=-3., fifty_cent=-0.51,
-                                    sig_slope=1., root_spacing=0.013, root_radius=.0001, negligible_shoot_resistance=False,
+                                    sig_slope=1., root_spacing=0.013, root_radius=.0001,
+                                    negligible_shoot_resistance=False,
                                     start_vid=None, stop_vid=None):
     """Computes a transient hydraulic structure of a plant shoot based on constant values of the hydraulic segments'
     conductivities. The hydraulic segments are assumed isotropic having only axial conductivities.
@@ -338,11 +338,13 @@ def transient_xylem_water_potential(g, model='tuzet', length_conv=1.e-2, psi_soi
                     if n.label.startswith('rhyzo0'):
                         k_soil = k_soil_soil(psi, n.soil_class)  # [cm d-1]
                         g_act = k_soil_root(k_soil, root_spacing, root_radius)  # [cm d-1 m-1]
-                        psi_head = max(psi_min, psi_base - (flux / g_act) * rho * g_p * 1.e-6)
+                        psi_head = max(psi_min, psi_base - (
+                                    flux / g_act) * cst.water_density * cst.gravitational_acceleration * 1.e-6)
                         k_act = None
                     else:
                         k_act = k_soil_soil(psi, n.soil_class)  # [cm d-1]
-                        psi_head = max(psi_min, psi_base - (length * flux / k_act) * rho * g_p * 1.e-6)
+                        psi_head = max(psi_min, psi_base - (
+                                    length * flux / k_act) * cst.water_density * cst.gravitational_acceleration * 1.e-6)
 
                 else:
                     k_max = n.properties()['Kmax']
@@ -350,10 +352,13 @@ def transient_xylem_water_potential(g, model='tuzet', length_conv=1.e-2, psi_soi
                     if not negligible_shoot_resistance:
                         k_act = k_max * cavitation_factor(psi, model, fifty_cent, sig_slope)
                         psi_head = max(psi_min,
-                                       psi_base - length * flux / k_act - (rho * g_p * (z_head - z_base)) * 1.e-6)
+                                       psi_base - length * flux / k_act - (
+                                               cst.water_density * cst.gravitational_acceleration * (
+                                                   z_head - z_base)) * 1.e-6)
                     else:
                         k_act = None
-                        psi_head = max(psi_min, psi_base - (rho * g_p * (z_head - z_base)) * 1.e-6)
+                        psi_head = max(psi_min, psi_base - (
+                                    cst.water_density * cst.gravitational_acceleration * (z_head - z_base)) * 1.e-6)
 
                 n.psi_head = psi_head
                 n.KL = k_act
