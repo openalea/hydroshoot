@@ -6,16 +6,15 @@ plant shoot geometry.
 TODO: plug to the standard interface of Caribu module.
 """
 
-from numpy import array, deg2rad
-from pandas import date_range
-from pytz import timezone, utc
-from pvlib.solarposition import ephemeris
-
-from openalea.plantgl.all import Translated, Sphere, Shape, Material, Color3, Viewer
-from alinea.caribu.sky_tools.spitters_horaire import RdRsH
-from alinea.caribu.sky_tools import turtle, Gensun, GetLightsSun
-from alinea.caribu.CaribuScene import CaribuScene
 import alinea.astk.icosphere as ico
+from alinea.caribu.CaribuScene import CaribuScene
+from alinea.caribu.sky_tools import turtle, Gensun, GetLightsSun
+from alinea.caribu.sky_tools.spitters_horaire import RdRsH
+from numpy import array, deg2rad
+from openalea.plantgl.all import Translated, Sphere, Shape, Material, Color3, Viewer
+from pandas import date_range
+from pvlib.solarposition import ephemeris
+from pytz import timezone, utc
 
 from hydroshoot.architecture import vector_rotation
 
