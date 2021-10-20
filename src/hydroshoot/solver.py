@@ -1,5 +1,7 @@
 from copy import deepcopy
+
 import openalea.mtg.traversal as traversal
+
 from hydroshoot import hydraulic, exchange, energy
 
 
