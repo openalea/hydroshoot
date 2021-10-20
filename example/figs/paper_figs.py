@@ -164,7 +164,7 @@ def plot_figure_9():
             obs_date = date + pd.Timedelta(hours=13)
             g, _ = mtg_load(str(pth) + '/output/', 'mtg%s' % obs_date.strftime('%Y%m%d%H%M%S'))
             ax = display.property_map(g, 'psi_head', ax=ax, prop2='Eabs', color='grey',
-                                      colormap='autumn', colorbar=False)
+                                      colormap='autumn', add_color_bar=False)
 
             obs_df = pd.read_csv(pth / 'var.obs', sep=';', index_col='date')
             obs_df.index = pd.DatetimeIndex(obs_df.index)
@@ -220,7 +220,7 @@ def plot_figure_10():
             obs_date = date + pd.Timedelta(hours=13)
             g, _ = mtg_load(str(pth) + '/output/', 'mtg%s' % obs_date.strftime('%Y%m%d%H%M%S'))
             ax = display.property_map(g, 'gs', ax=ax, prop2='Eabs', color='grey',
-                                      colormap='autumn', colorbar=False)
+                                      colormap='autumn', add_color_bar=False)
 
             obs_df = pd.read_csv(pth / 'var.obs', sep=';', index_col='date')
             obs_df.index = pd.DatetimeIndex(obs_df.index)
