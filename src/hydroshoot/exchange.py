@@ -11,10 +11,7 @@ from copy import deepcopy
 from scipy import exp, arccos, sqrt, cos, log
 
 from hydroshoot import utilities as utils
-
-# Constants
-O = 210  # Oxygen partial pressure [mmol mol-1]
-R = 0.0083144598  # Ideal gaz constant [kJ K-1 mol-1]
+from hydroshoot.constants import oxygen_partial_pressure as o, ideal_gaz_cst as r
 
 
 # ==============================================================================
@@ -144,7 +141,7 @@ def arrhenius_1(param_name, leaf_temperature, photo_params):
     temp_k = utils.celsius_to_kelvin(leaf_temperature)
     param_key = param_list[param_name][1]
     shape_param, activation_energy = [photo_params[param_key][x] for x in ('c', 'deltaHa')]
-    param_value = exp(shape_param - (activation_energy / (R * temp_k)))
+    param_value = exp(shape_param - (activation_energy / (r * temp_k)))
 
     return param_value
 
@@ -180,8 +177,8 @@ def arrhenius_2(param_name, leaf_temperature, photo_params):
     param_key = param_list[param_name][1]
     param_value_at_25 = photo_params[param_list[param_name][0]]
     shape_param, activation_energy = [photo_params[param_key][x] for x in ('c', 'deltaHa')]
-    param_value = param_value_at_25 * (exp(shape_param - (activation_energy / (R * temp_k)))) / (
-            1. + exp((enthalpy_activation * temp_k - enthalpy_deactivation) / (R * temp_k)))
+    param_value = param_value_at_25 * (exp(shape_param - (activation_energy / (r * temp_k)))) / (
+            1. + exp((enthalpy_activation * temp_k - enthalpy_deactivation) / (r * temp_k)))
 
     return param_value
 
@@ -259,7 +256,7 @@ def compute_an_2par(params_photo, ppfd, leaf_temp):
     j = (alpha * ppfd) / ((1 + ((alpha ** 2 * ppfd ** 2) / (j_max ** 2))) ** 0.5)
 
     x1c = v_cmax
-    x2c = k_c * (1 + O / k_o)
+    x2c = k_c * (1 + o / k_o)
 
     x1j = j / 4.
     x2j = 2. * gamma
@@ -307,7 +304,7 @@ def fvpd_3(model, vpd, psi, psi_crit=-0.37, m0=5.278, steepness_tuzet=1.85, d0_l
         reduction_factor = 1. / (1. + (psi / psi_crit) ** steepness_tuzet)
     elif model == 'tuzet':
         reduction_factor = (1. + exp(steepness_tuzet * psi_crit)) / (
-                    1. + exp(float(steepness_tuzet * (psi_crit - psi))))
+                1. + exp(float(steepness_tuzet * (psi_crit - psi))))
     elif model == 'linear':
         reduction_factor = 1. - min(1., float(psi / psi_crit))
     elif model == 'vpd':
@@ -333,7 +330,7 @@ def mesophyll_conductance(leaf_temperature, gm25=0.1025, activation_energy=49600
 
     """
 
-    R2 = R * 1.e3  # Ideal gaz constant in [J K-1 mol-1]
+    R2 = r * 1.e3  # Ideal gaz constant in [J K-1 mol-1]
 
     return gm25 * exp((1. / 298. - 1. / (leaf_temperature + 273.)) * activation_energy / R2) * (
             1. + exp(entropy / R2 - deactivation_energy / 298. / R2)) / (
@@ -424,7 +421,7 @@ def compute_amono_analytic(x1, x2, leaf_temperature, vpd, gammax, rd, psi, model
     cube_r = -(cube_a * cube_b / cube_e)
     cube_Q = (cube_p ** 2. - 3. * cube_q) / 9.
     cube_R = (2. * cube_p ** 3. - 9. * cube_p * cube_q + 27. * cube_r) / 54.
-    cube_xi = arccos(max(-1., min(1., cube_R / sqrt(cube_Q ** 3.))))
+    cube_xi = acos(max(-1., min(1., cube_R / sqrt(cube_Q ** 3.))))
 
     a_mono = -2. * sqrt(cube_Q) * cos(cube_xi / 3.) - cube_p / 3.
 
@@ -639,7 +636,7 @@ def gas_exchange_rates(g, photo_params, photo_n_params, gs_params, meteo, E_type
                 a_n, c_c, c_i, gs = an_gs_ci(node.par_photo, meteo_leaf, psi, t_leaf,
                                              model, g0, rbt, c_a, m0, psi0, D0, n)
 
-                gb = boundary_layer_conductance(node.Length, u, atm_press, t_air, R)
+                gb = boundary_layer_conductance(node.Length, u, atm_press, t_air, r)
 
                 # Transpiration
                 es_a = utils.saturated_air_vapor_pressure(t_air)
