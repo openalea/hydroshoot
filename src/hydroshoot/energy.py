@@ -10,14 +10,14 @@ given plant shoot.
 
 import time
 from math import pi
-from scipy import optimize, mean
-from sympy.solvers import nsolve
-from sympy import Symbol
 
-from alinea.caribu.CaribuScene import CaribuScene
-from alinea.caribu.sky_tools import turtle
 import alinea.astk.icosphere as ico
 import openalea.plantgl.all as pgl
+from alinea.caribu.CaribuScene import CaribuScene
+from alinea.caribu.sky_tools import turtle
+from scipy import optimize
+from sympy import Symbol
+from sympy.solvers import nsolve
 
 import hydroshoot.constants as cst
 from hydroshoot import utilities as utils
