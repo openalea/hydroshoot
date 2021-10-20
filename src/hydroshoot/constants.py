@@ -10,4 +10,10 @@ gravitational_acceleration = 9.81
 """gravitational acceleration [m s-2]
 """
 
+oxygen_partial_pressure = 210
+"""[mmol mol-1]Oxygen partial pressure
+"""
 
+ideal_gaz_cst = 0.0083144598
+"""[kJ K-1 mol-1] Ideal gaz constant
+"""
