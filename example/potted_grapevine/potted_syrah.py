@@ -32,14 +32,10 @@ for v in traversal.iter_mtg2(g, g.root):
     architecture.vine_transform(g, v)
 
 # Display of the plant mock-up (result in 'fig_01_plant_mock_up.png')
-# scene = HSVisu.visu(g,def_elmnt_color_dict=True,scene=Scene(),
-#                    snap_shot_path='mockup.png')
-scene = display.visu(g, def_elmnt_color_dict=True, scene=Scene(),
-                     view_result=True)
+scene = display.visu(g, def_elmnt_color_dict=True, scene=Scene(), view_result=True)
 
 # =============================================================================
 # Run HydroShoot
 # =============================================================================
 
-model.run(g, str(getcwd()) + '/', scene, psi_soil=-0.5,
-          gdd_since_budbreak=1000.)
+model.run(g, str(getcwd()) + '/', scene, psi_soil=-0.5, gdd_since_budbreak=1000.)
