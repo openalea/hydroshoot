@@ -19,18 +19,8 @@ from alinea.caribu.sky_tools import turtle
 import alinea.astk.icosphere as ico
 import openalea.plantgl.all as pgl
 
+import hydroshoot.constants as cst
 from hydroshoot import utilities as utils
-
-
-a_PAR = 0.87
-a_NIR = 0.35
-a_glob = 0.6
-e_sky = 1.0
-e_leaf = 0.96
-e_soil = 0.95
-sigma = 5.670373e-8
-lambda_ = 44.0e3
-Cp = 29.07
 
 
 def pgl_scene(g, flip=False):
@@ -293,15 +283,15 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, t_init=None, form_factors=None
                 evap = properties['ev'][vid]
                 t_leaf = t_prev[vid]
 
-                longwave_grain_from_leaves = ff_leaves * sigma * (utils.celsius_to_kelvin(t_leaf)) ** 4
+                longwave_grain_from_leaves = ff_leaves * cst.sigma * (utils.celsius_to_kelvin(t_leaf)) ** 4
 
                 def _VineEnergyX(t_leaf):
-                    shortwave_abs = a_glob * shortwave_inc
-                    longwave_net = e_leaf * (ff_sky * e_sky * sigma * temp_sky ** 4 +
-                                             e_leaf * longwave_grain_from_leaves +
-                                             ff_soil * e_soil * sigma * temp_soil ** 4) \
-                                   - 2 * e_leaf * sigma * t_leaf ** 4
-                    latent_heat_loss = -lambda_ * evap
+                    shortwave_abs = cst.a_glob * shortwave_inc
+                    longwave_net = cst.e_leaf * (ff_sky * cst.e_sky * cst.sigma * temp_sky ** 4 +
+                                                 cst.e_leaf * longwave_grain_from_leaves +
+                                                 ff_soil * cst.e_soil * cst.sigma * temp_soil ** 4) \
+                                   - 2 * cst.e_leaf * cst.sigma * t_leaf ** 4
+                    latent_heat_loss = -cst.lambda_ * evap
                     sensible_heat_net = -gb_h * (t_leaf - temp_air)
                     energy_balance = shortwave_abs + longwave_net + latent_heat_loss + sensible_heat_net
                     return energy_balance
@@ -361,11 +351,11 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, t_init=None, form_factors=None
                 if not g.node(ivid).label.startswith('soil'):
                     eq_aux += -ff_leaves[ivid] * ((t_dict[ivid]) ** 4)
 
-            eq = (a_glob * shortwave_inc +
-                  e_leaf * sigma * (ff_sky * e_sky * (temp_sky ** 4) +
-                                    e_leaf * eq_aux + ff_soil * e_soil * (temp_sky ** 4) -
-                                    2 * (t_dict[vid]) ** 4) -
-                  lambda_ * evap - gb_h * Cp * (t_dict[vid] - temp_air))
+            eq = (cst.a_glob * shortwave_inc +
+                  cst.e_leaf * cst.sigma * (ff_sky * cst.e_sky * (temp_sky ** 4) +
+                                            cst.e_leaf * eq_aux + ff_soil * cst.e_soil * (temp_sky ** 4) -
+                                            2 * (t_dict[vid]) ** 4) -
+                  cst.lambda_ * evap - gb_h * (t_dict[vid] - temp_air))
 
             eq_lst.append(eq)
 
