@@ -381,53 +381,6 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, t_init=None, form_factors=None
     return t_new, it
 
 
-def soil_temperature(g, meteo, temp_sky_eff, soil_label_prefix='other'):
-    """Computes soil temperature
-
-    Args:
-        g: a multiscale tree graph object
-        meteo (DataFrame): forcing meteorological variables
-        t_sky_eff (float): [°C] effective sky temperature
-        soil_label_prefix(str): prefix of soil nodes
-
-    Returns:
-        (double): [°C] soil temperature
-
-    Notes:
-        Heat loss into deeper soil layers is not considered.
-
-    """
-
-    relative_humidity, atm_pressure, temp_air = [float(meteo[x]) for x in ('hs', 'Pa', 'Tac')]
-
-    temp_sky_eff = utils.celsius_to_kelvin(temp_sky_eff)
-
-    soil_nodes = [g.node(vid) for vid in g.property('geometry') if g.node(vid).label.startswith(soil_label_prefix)][0]
-    temp_leaves = utils.celsius_to_kelvin(mean(g.property('Tlc').values()))
-
-    shortwave_inc = soil_nodes.Ei / (0.48 * 4.6)  # Ei not Eabs
-    temp_soil = soil_nodes.Tsoil if 'Tsoil' in soil_nodes.properties() else temp_air
-
-    def _SoilEnergyX(temp_soil):
-        shortwave_abs = (1 - 0.25) * shortwave_inc  # 0.25 is rough estimation of albedo of a bare soil
-        longwave_net = e_soil * sigma * (1. * e_sky * temp_sky_eff ** 4 +
-                                         1. * e_leaf * temp_leaves ** 4 -
-                                         temp_soil ** 4)
-        latent_heat = -lambda_ * 0.06 * utils.vapor_pressure_deficit(temp_air, temp_soil,
-                                                                     relative_humidity) / atm_pressure  # 0.06 is gM from Bailey 2016 AFM 218-219:146-160
-        sensible_heat = -0.5 * Cp * utils.celsius_to_kelvin(
-            temp_soil - temp_air)  # 0.5 is gH from Bailey 2016 AFM 218-219:146-160
-        energy_balance = shortwave_abs + longwave_net + latent_heat + sensible_heat
-        return energy_balance
-
-    t_soil0 = utils.kelvin_to_celsius(
-        optimize.newton_krylov(_SoilEnergyX, utils.celsius_to_kelvin(temp_soil)))
-
-    soil_nodes.Tsoil = t_soil0
-
-    return t_soil0
-
-
 def forced_soil_temperature(meteo):
     """A very simple model of soil temperature
 

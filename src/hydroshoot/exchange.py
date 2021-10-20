@@ -77,27 +77,6 @@ def par_photo_default(Vcm25=89.0, Jm25=143.0, cRd=0.008, TPU25=10.0,
     return par_photodef
 
 
-def par_25_N_dict(Vcm25_N=(34.02, -3.13), Jm25_N=(78.27, -17.3),
-                  Rd_N=(0.42, -0.01), TPU25_N=(6.24, -1.92)):
-    """
-    Generates a dictionary containing the (slope, intercept) values of
-    the linear relationship between photosynthetic capacity parameters
-    (Vcmax, Jmax, TPU, Rd) and surface-based leaf Nitrogen content,
-    according to Prieto et al. (2012, doi: 10.1111/j.1365-3040.2012.02491.x)
-
-    :Parameters:
-    - **The first value of each tuple**: float, the **slope** (parameter/Na) [umol g-1 s-1]
-    - **The second value of each tuple**: float, the **intercept** [umol m-2 s-1]
-    """
-    par_dict = {
-        'Vcm25_N': Vcm25_N,
-        'Jm25_N': Jm25_N,
-        'Rd_N': Rd_N,
-        'TPU25_N': TPU25_N}
-
-    return par_dict
-
-
 def leaf_Na(age_gdd, ppfd_10, a_n=-0.0008, b_n=3.3, a_m=6.471, b_m=56.635):
     """Computes Nitrogen content per unit leaf area.
 
