@@ -18,62 +18,6 @@ from hydroshoot.constants import oxygen_partial_pressure as o, ideal_gaz_cst as 
 # Farquhar Parameters
 # ==============================================================================
 
-# Initial values (before accountinf for Na)
-def par_photo_default(Vcm25=89.0, Jm25=143.0, cRd=0.008, TPU25=10.0,
-                      Kc25=404.9, Ko25=278.4, Tx25=42.75,
-                      alpha=[0.2, 0.2, 0.19, 0.19, 0.14, 0.12], alpha_T_limit=[15, 20, 25, 30, 34, 50],
-                      a1=0.98, a2=0.98, a3=0.98, ds=0.635, dHd=200,
-                      RespT_Kc={'model': 'Ahrenius', 'c': 38.05, 'deltaHa': 79.43},
-                      RespT_Ko={'model': 'Ahrenius', 'c': 20.30, 'deltaHa': 36.38},
-                      RespT_Vcm={'model': 'Ahrenius', 'c': 26.35, 'deltaHa': 65.33},
-                      RespT_Jm={'model': 'Ahrenius', 'c': 17.57, 'deltaHa': 43.54},
-                      RespT_TPU={'model': 'Ahrenius', 'c': 21.46, 'deltaHa': 53.1},
-                      RespT_Rd={'model': 'Ahrenius', 'c': 18.72, 'deltaHa': 46.39},
-                      RespT_Tx={'model': 'Ahrenius', 'c': 19.02, 'deltaHa': 37.83}):
-    """
-    Generates a dictionary containing default **25 degrees** paramter values of the Farquhar's model for Vitis vinifera cv. Syrah.
-
-   :Parameters:
-   - **Vcm25**: Maximum RuBP-saturated rate of carboxylation [umol m-2 s-1]
-   - **Jm25**: Maximum of electron transport [umol m-2 s-1]
-   - **cRd**: the coefficient of mitochondrial respiration to `Vcm25`
-   - **TPU25**: the rate of triose phosphate transport [umol m-2 s-1]
-   - **Kc25**: Michaelis-Menten constant for the carboxylase [umol mol-1]
-   - **Ko25**: Michaelis-Menten constant for the oxygenase [mmol mol-1]
-   - **Tx25**: CO2 compensation point in the absence of mitochondrial respiration [umol mol-1]
-   - **alpha**, **alpha_T_limit**, **a1**, **a2**, **a3**: parameters regulating electron transport for sunlit and shaded leaves (**not used**)
-   - **c**: empirical parameter defining the temperature response curves of each of Kc, Ko, Vcm, Jm, TPU, Rd and Tx
-   - **deltaHa**: Activation energy of the Arrhenius functions [kJ molCO2-1] 
-   - **ds**: float, enthalpy of activation [KJ mol-1]
-   - **dHd**: float, enthalpy of deactivation [KJ mol-1]
-   """
-
-    par_photodef = {}
-    par_photodef['Vcm25'] = Vcm25
-    par_photodef['Jm25'] = Jm25
-    par_photodef['Rd'] = cRd * Vcm25
-    par_photodef['TPU25'] = TPU25
-    par_photodef['Kc25'] = Kc25
-    par_photodef['Ko25'] = Ko25
-    par_photodef['Tx25'] = Tx25
-    par_photodef['alpha'] = alpha
-    par_photodef['alpha_T_limit'] = alpha_T_limit
-    par_photodef['a1'] = a1
-    par_photodef['a2'] = a2
-    par_photodef['a3'] = a3
-    par_photodef['ds'] = ds
-    par_photodef['dHd'] = dHd
-    par_photodef['RespT_Kc'] = RespT_Kc
-    par_photodef['RespT_Ko'] = RespT_Ko
-    par_photodef['RespT_Vcm'] = RespT_Vcm
-    par_photodef['RespT_Jm'] = RespT_Jm
-    par_photodef['RespT_TPU'] = RespT_TPU
-    par_photodef['RespT_Rd'] = RespT_Rd
-    par_photodef['RespT_Tx'] = RespT_Tx
-
-    return par_photodef
-
-
 def leaf_Na(age_gdd, ppfd_10, a_n=-0.0008, b_n=3.3, a_m=6.471, b_m=56.635):
     """Computes Nitrogen content per unit leaf area.
 
