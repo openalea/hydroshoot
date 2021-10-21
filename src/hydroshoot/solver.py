@@ -62,8 +62,8 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
         par_gs['model'] = 'vpd'
         negligible_shoot_resistance = True
 
-        print "par_gs: 'model' is forced to 'vpd'"
-        print "negligible_shoot_resistance is forced to True."
+        print("par_gs: 'model' is forced to 'vpd'")
+        print("negligible_shoot_resistance is forced to True.")
 
     # Initialize all xylem potential values to soil water potential
     for vtx_id in traversal.pre_order2(g, vid_base):
@@ -125,8 +125,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
                 psi_error = max(psi_error_dict.values())
                 psi_error_trace.append(psi_error)
 
-                print 'psi_error = ', round(psi_error,
-                                            3), ':: Nb_iter = %d' % n_iter_psi, 'ipsi_step = %f' % ipsi_step
+                print('psi_error = ', round(psi_error, 3), ':: Nb_iter = %d' % n_iter_psi, 'ipsi_step = %f' % ipsi_step)
 
                 # Manage temperature step to ensure convergence
                 if psi_error < psi_error_threshold:
@@ -178,7 +177,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
             error_dict = {vtx: abs(t_prev[vtx] - t_new[vtx]) for vtx in g.property('Tlc').keys()}
 
             t_error = round(max(error_dict.values()), 3)
-            print 't_error = ', t_error, 'counter =', it, 't_iter = ', t_iter, 'it_step = ', it_step
+            print('t_error = ', t_error, 'counter =', it, 't_iter = ', t_iter, 'it_step = ', it_step)
             t_error_trace.append(t_error)
 
             # Manage temperature step to ensure convergence

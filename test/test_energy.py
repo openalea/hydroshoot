@@ -1,4 +1,4 @@
-from non_regression_data import potted_syrah, meteo
+from test.non_regression_data import potted_syrah, meteo
 from hydroshoot.energy import form_factors_simplified, leaf_temperature, forced_soil_temperature
 from numpy.testing import assert_almost_equal
 import openalea.plantgl.all as pgl
@@ -65,7 +65,7 @@ def test_leaf_temperature():
 
     tleaf, it = leaf_temperature(g, met, tsoil, tsky)
     assert len(tleaf) == 46
-    first = tleaf.keys()[0]
+    first = list(tleaf.keys())[0]
     for vid in tleaf:
         assert tleaf[vid] == tleaf[first]
         assert tleaf[vid] != met.Tac[0]
@@ -74,7 +74,7 @@ def test_leaf_temperature():
     u = energy.leaf_wind_as_air_wind(g, met)
     gbH = energy.heat_boundary_layer_conductance(l, u)
     tleaf, it = leaf_temperature(g, met, tsoil, tsky, gbh=gbH)
-    first = tleaf.keys()[0]
+    first = list(tleaf.keys())[0]
     assert len(tleaf) == 46
     for vid in tleaf:
         assert tleaf[vid] != met.Tac[0]
