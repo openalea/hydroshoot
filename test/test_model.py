@@ -2,7 +2,7 @@
 from os.path import join
 from numpy.testing import assert_array_almost_equal
 
-import non_regression_data
+from test import non_regression_data
 from hydroshoot import model
 
 

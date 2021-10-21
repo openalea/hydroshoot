@@ -1,4 +1,4 @@
-from non_regression_data import potted_syrah, meteo
+from test.non_regression_data import potted_syrah, meteo
 from hydroshoot.irradiance import irradiance_distribution, hsCaribu, optical_prop, e_conv_PPFD
 from numpy.testing import assert_almost_equal
 
@@ -89,7 +89,7 @@ def test_hsCaribu():
     g = optical_prop(g)
     ng = len(g.property('geometry'))
     label = g.property('label')
-    g.properties()['radiative_geometry'] = {k: v for k, v in g.property('geometry').iteritems() if label[k].startswith(('L', 'other', 'soil'))}
+    g.properties()['radiative_geometry'] = {k: v for k, v in g.property('geometry').items() if label[k].startswith(('L', 'other', 'soil'))}
     assert len(g.property('radiative_geometry')) < ng
     g, cs = hsCaribu(g, unit_scene_length, geometry='radiative_geometry')
     assert len(g.property('Ei')) == len(cs.scene)

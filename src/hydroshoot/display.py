@@ -173,7 +173,8 @@ def visu(g, plot_prop=None,min_value=None, max_value=None,tt=1001,cmap='jet',fmt
                 def_color_dict = default_color_dict()
                 elmnt_color_dict = {key_: def_color_dict[key_] for key_ in elmnt_labels}
             elif use_mtg_color==False:
-                raise StandardError ("Elements colors are missing. You may set elmnt_color_dict=True to use default colors provied by default_color_dict().")
+                raise Exception("Element colors are missing. You may set elmnt_color_dict=True to use default colors"
+                                "provied by default_color_dict().")
 
         for vid in g.property('geometry'):
             n = g.node(vid)

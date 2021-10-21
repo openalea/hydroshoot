@@ -30,9 +30,9 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
         - **sun2scene**: PlantGl scene, when prodivided, a sun object (sphere) is added to it
         - **soil_size**: [cm] length of squared mesh size
     """
-    print '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
-    print '+ Project: ', wd
-    print '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
+    print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+    print('+ Project: ', wd)
+    print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
     time_on = datetime.now()
 
     # Read user parameters
@@ -60,7 +60,7 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
     sdate = datetime.strptime(params.simulation.sdate, "%Y-%m-%d %H:%M:%S")
     edate = datetime.strptime(params.simulation.edate, "%Y-%m-%d %H:%M:%S")
     datet = date_range(sdate, edate, freq='H')
-    meteo = meteo_tab.ix[datet]
+    meteo = meteo_tab.loc[datet, :]
     time_conv = {'D': 86.4e3, 'H': 3600., 'T': 60., 'S': 1.}[datet.freqstr]
 
     # Reading available pre-dawn soil water potential data
@@ -84,7 +84,7 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
         gdd_since_budbreak = kwargs['gdd_since_budbreak']
     elif min(meteo_tab.index) <= budbreak_date:
         tdays = date_range(budbreak_date, sdate, freq='D')
-        tmeteo = meteo_tab.ix[tdays].Tac.to_frame()
+        tmeteo = meteo_tab.loc[tdays, :].Tac.to_frame()
         tmeteo = tmeteo.set_index(DatetimeIndex(tmeteo.index).normalize())
         df_min = tmeteo.groupby(tmeteo.index).aggregate(np.min).Tac
         df_max = tmeteo.groupby(tmeteo.index).aggregate(np.max).Tac
@@ -97,7 +97,7 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
     else:
         raise ValueError('Cumulative degree-days temperature is not provided.')
 
-    print 'GDD since budbreak = %d °Cd' % gdd_since_budbreak
+    print('GDD since budbreak = %d °Cd' % gdd_since_budbreak)
 
     # Determination of perennial structure arms (for grapevine)
     # arm_vid = {g.node(vid).label: g.node(vid).components()[0]._vid for vid in g.VtxList(Scale=2) if
@@ -146,12 +146,12 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
     energy_budget = params.simulation.energy_budget
     solo = params.energy.solo
     simplified_form_factors = params.simulation.simplified_form_factors
-    print 'Energy_budget: %s' % energy_budget
+    print('Energy_budget: %s' % energy_budget)
 
     # Optical properties
     opt_prop = params.irradiance.opt_prop
 
-    print 'Hydraulic structure: %s' % params.simulation.hydraulic_structure
+    print('Hydraulic structure: %s' % params.simulation.hydraulic_structure)
 
     psi_min = params.hydraulic.psi_min
 
@@ -161,7 +161,7 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
     # Computation of the form factor matrix
     form_factors=None
     if energy_budget:
-        print 'Computing form factors...'
+        print('Computing form factors...')
         if not simplified_form_factors:
             form_factors = energy.form_factors_matrix(g, pattern, length_conv, limit=limit)
         else:
@@ -171,7 +171,7 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
 
     # Soil class
     soil_class = params.soil.soil_class
-    print 'Soil class: %s' % soil_class
+    print('Soil class: %s' % soil_class)
 
     # Rhyzosphere concentric radii determination
     rhyzo_radii = params.soil.rhyzo_radii
@@ -179,7 +179,7 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
 
     # Add rhyzosphere elements to mtg
     rhyzo_solution = params.soil.rhyzo_solution
-    print 'rhyzo_solution: %s' % rhyzo_solution
+    print('rhyzo_solution: %s' % rhyzo_solution)
 
     if rhyzo_solution:
         dist_roots, rad_roots = params.soil.roots
@@ -241,13 +241,13 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
     # Estimation of Nitroen surface-based content according to Prieto et al. (2012)
     # Estimation of intercepted irradiance over past 10 days:
     if not 'Na' in g.property_names():
-        print 'Computing Nitrogen profile...'
+        print('Computing Nitrogen profile...')
         assert (sdate - min(
             meteo_tab.index)).days >= 10, 'Meteorological data do not cover 10 days prior to simulation date.'
 
         ppfd10_date = sdate + timedelta(days=-10)
         ppfd10t = date_range(ppfd10_date, sdate, freq='H')
-        ppfd10_meteo = meteo_tab.ix[ppfd10t]
+        ppfd10_meteo = meteo_tab.loc[ppfd10t, :]
         caribu_source, RdRsH_ratio = irradiance.irradiance_distribution(ppfd10_meteo, geo_location, E_type,
                                                                         tzone, turtle_sectors, turtle_format,
                                                                         None, scene_rotation, None)
@@ -293,8 +293,8 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
 
     # The time loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     for date in meteo.time:
-        print "=" * 72
-        print 'Date', date, '\n'
+        print("=" * 72)
+        print('Date', date, '\n')
 
         # Select of meteo data
         imeteo = meteo[meteo.time == date]
@@ -308,7 +308,7 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
         else:
             if date.hour == 0:
                 try:
-                    psi_soil_init = psi_pd.ix[date.date()][0]
+                    psi_soil_init = psi_pd.loc[date, :][0]
                     psi_soil = psi_soil_init
                 except KeyError:
                     pass
@@ -370,20 +370,20 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
         an_dict[date] = deepcopy(g.property('An'))
         gs_dict[date] = deepcopy(g.property('gs'))
 
-        print '---------------------------'
-        print 'psi_soil', round(psi_soil, 4)
-        print 'psi_collar', round(g.node(3).psi_head, 4)
-        print 'psi_leaf', round(np.median([g.node(vid).psi_head for vid in g.property('gs').keys()]), 4)
-        print ''
-        # print 'Rdiff/Rglob ', RdRsH_ratio
-        # print 't_sky_eff ', t_sky_eff
-        print 'gs', np.median(g.property('gs').values())
-        print 'flux H2O', round(g.node(vid_collar).Flux * 1000. * time_conv, 4)
-        print 'flux C2O', round(g.node(vid_collar).FluxC, 4)
-        print 'Tleaf ', round(np.median([g.node(vid).Tlc for vid in g.property('gs').keys()]), 2), \
-            'Tair ', round(imeteo.Tac[0], 4)
-        print ''
-        print "=" * 72
+        print('---------------------------')
+        print('psi_soil', round(psi_soil, 4))
+        print('psi_collar', round(g.node(3).psi_head, 4))
+        print('psi_leaf', round(np.median([g.node(vid).psi_head for vid in g.property('gs').keys()]), 4))
+        print('')
+        # print('Rdiff/Rglob ', RdRsH_ratio)
+        # print('t_sky_eff ', t_sky_eff)
+        print('gs', np.median(list(g.property('gs').values())))
+        print('flux H2O', round(g.node(vid_collar).Flux * 1000. * time_conv, 4))
+        print('flux C2O', round(g.node(vid_collar).FluxC, 4))
+        print('Tleaf ', round(np.median([g.node(vid).Tlc for vid in g.property('gs').keys()]), 2),
+              'Tair ', round(imeteo.Tac[0], 4))
+        print('')
+        print("=" * 72)
 
     # End time loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -394,7 +394,7 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
     # sapEast, sapWest = [np.array(flow) * time_conv * 1000. for i, flow in enumerate((sapEast, sapWest))]
 
     # Median leaf temperature
-    t_ls = [np.median(Tlc_dict[date].values()) for date in meteo.time]
+    t_ls = [np.median(list(Tlc_dict[date].values())) for date in meteo.time]
 
     # Intercepted global radiation
     rg_ls = np.array(rg_ls) / (soil_dimensions[0] * soil_dimensions[1])
@@ -418,10 +418,9 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
 
     time_off = datetime.now()
 
-    print ("")
-    print ("beg time", time_on)
-    print ("end time", time_off)
-    print ("--- Total runtime: %d minute(s) ---" %
-           int((time_off - time_on).seconds / 60.))
+    print("")
+    print("beg time", time_on)
+    print("end time", time_off)
+    print("--- Total runtime: %d minute(s) ---" % int((time_off - time_on).seconds / 60.))
 
     return results_df

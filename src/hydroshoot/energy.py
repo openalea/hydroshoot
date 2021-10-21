@@ -57,7 +57,7 @@ def get_leaves_length(g, leaf_lbl_prefix='L', length_lbl='Length', unit_scene_le
     conv = {'mm': 1.e-3, 'cm': 1.e-2, 'm': 1.}[unit_scene_length]
     leaves = get_leaves(g, leaf_lbl_prefix)
     length = g.property(length_lbl)
-    return {k: v * conv for k, v in length.iteritems() if k in leaves}
+    return {k: v * conv for k, v in length.items() if k in leaves}
 
 
 def form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L', turtle_sectors='46',
@@ -103,11 +103,11 @@ def form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L'
         direction = [i[0] for i in direction]
         direction = map(lambda x: tuple(list(x[:2]) + [-x[2]]), direction)
 
-    caribu_source = zip(len(direction) * [1. / len(direction)], direction)
+    caribu_source = list(zip(len(direction) * [1. / len(direction)], direction))
     k_soil, k_sky, k_leaves = {}, {}, {}
 
     for s in ('pirouette', 'cacahuete'):
-        print '... %s' % s
+        print('... %s' % s)
         if s == 'pirouette':
             scene = pgl_scene(g, flip=True)
         else:
@@ -376,7 +376,7 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, t_init=None, form_factors=None
 
         tt = time.time()
         t_leaf0_lst = nsolve(eq_lst, t_lst, t_leaf_lst, verify=False) - 273.15
-        print ("---%s seconds ---" % (time.time() - tt))
+        print("---%s seconds ---" % (time.time() - tt))
 
         t_new = {}
         for ivid, vid in enumerate(leaves):

@@ -3,7 +3,7 @@ from numpy import arange
 from openalea.mtg import traversal
 
 from hydroshoot import hydraulic, architecture
-from non_regression_data import potted_syrah
+from test.non_regression_data import potted_syrah
 
 
 def test_conductivity_max_increases_as_segment_diameter_increases():
@@ -19,8 +19,8 @@ def test_conductivity_max_is_higher_or_equal_to_its_minimal_value():
 def test_conductivity_max_changes_following_parameters_values():
     cond_max_a = [hydraulic.conductivity_max(diameter=0.01, a=a, b=0.1, min_kmax=0.) for a in arange(2.5, 2.8, 0.1)]
     cond_max_b = [hydraulic.conductivity_max(diameter=0.01, a=2.8, b=b, min_kmax=0.) for b in arange(2., 5., 0.5)]
-    assert all(x < b for x, y in zip(cond_max_a, cond_max_a[1:]))
-    assert all(x < b for x, y in zip(cond_max_b, cond_max_b[1:]))
+    assert all(x < y for x, y in zip(cond_max_a, cond_max_a[1:]))
+    assert all(x > y for x, y in zip(cond_max_b, cond_max_b[1:]))
 
 
 def test_cavitation_factor_raises_error_if_undefined_model():
