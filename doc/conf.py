@@ -21,7 +21,7 @@
 import sphinx_rtd_theme
 
 project = u'HydroShoot'
-copyright = u'2019, Rami Albasha'
+copyright = u'2021, Rami Albasha'
 author = u'Rami Albasha'
 
 # The short X.Y version
