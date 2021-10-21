@@ -17,9 +17,11 @@ Welcome to HydroShoot's documentation!
 
 
 
-Indices and tables
-==================
+Further reading
+===============
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. toctree::
+
+   authors
+   history
+   contributing

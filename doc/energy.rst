@@ -80,7 +80,7 @@ This refers to the method used to calculate the lumped sky and soil form factors
 
 In order to reduce calculation costs, :math:`k_{sky}` and :math:`k_{soil}`) are obtained by flip flopping the canopy:
 
-.. figure:: figs/energy_pirouete_cacahute.png
+.. figure:: figs/energy_3.png
     :align: center
 
 At first, the canopy is turned downwards. A unit irradiance is emitted from each sky sector and irradiance that is
