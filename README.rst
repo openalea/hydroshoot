@@ -8,6 +8,10 @@ HydroShoot
 .. image:: https://travis-ci.org/openalea/hydroshoot.svg?branch=master
     :alt: Travis build status
     :target: https://travis-ci.org/openalea/hydroshoot
+    
+.. image:: https://readthedocs.org/projects/hydroshoot/badge/?version=latest
+:target: https://hydroshoot.readthedocs.io/en/latest/?badge=latest
+:alt: Documentation Status
 
 .. }
 
