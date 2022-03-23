@@ -31,6 +31,7 @@ def local2solar(local_time, latitude, longitude, time_zone, temperature=25.):
         temperature (float): [°C] air temperature
 
     Returns:
+        (datetime): utc time
         (float): [decimal hours] solar time
 
     """
