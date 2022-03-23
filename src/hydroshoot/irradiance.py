@@ -213,7 +213,7 @@ def irradiance_distribution(meteo, geo_location, irradiance_unit,
             direction = [idirect[0] for idirect in direction]
             direction = map(lambda x: tuple(list(x[:2]) + [-x[2]]), direction)
 
-        sky = list(zip(energy2, direction))
+        sky = list(zip(len(direction) * [irradiance_diff / len(direction)], direction))
 
         # direct irradiance
         sun = Gensun.Gensun()(Rsun=irradiance_dir, DOY=doy, heureTU=solar_time, lat=latitude)
