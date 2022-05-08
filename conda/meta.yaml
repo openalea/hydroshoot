@@ -1,17 +1,21 @@
+{% set data = load_setup_py_data() %}
+
 package:
-  name: hydroshoot
-  version: "1.0.0"
+  name: openalea.hydroshoot
+  version: {{ data.get('version') }}
+
 
 source:
   git_url: ../
 
 build:
+  noarch: python
   preserve_egg_dir: True
-  script: python setup.py install
+  script: {{PYTHON}} setup.py install
 
 requirements:
   build:
-    - python
+    - python {{PY_VER}}
     - setuptools
 
   run:
