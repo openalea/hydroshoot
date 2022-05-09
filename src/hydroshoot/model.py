@@ -16,7 +16,7 @@ from hydroshoot import (architecture, irradiance, exchange, hydraulic, energy,
 from hydroshoot.params import Params
 
 
-def run(g, wd, scene=None, write_result=True, **kwargs):
+def run(g, wd, scene=None, write_result=True, sapflow_per_cordon=False, **kwargs):
     """
     Calculates leaf gas and energy exchange in addition to the hydraulic structure of an individual plant.
 
@@ -24,6 +24,8 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
     - **g**: a multiscale tree graph object
     - **wd**: string, working directory
     - **scene**: PlantGl scene
+    - **sapflow_per_cordon**: to return simulated sapflow per cordon if `True`, otherwise (default `False`) to return
+        only total sapflow of the whole plant
     - **kwargs** can include:
         - **psi_soil**: [MPa] predawn soil water potential
         - **gdd_since_budbreak**: [°Cd] growing degree-day since bubreak
@@ -100,8 +102,9 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
     print('GDD since budbreak = %d °Cd' % gdd_since_budbreak)
 
     # Determination of perennial structure arms (for grapevine)
-    # arm_vid = {g.node(vid).label: g.node(vid).components()[0]._vid for vid in g.VtxList(Scale=2) if
-    #            g.node(vid).label.startswith('arm')}
+    if sapflow_per_cordon:
+        arm_vid = {g.node(vid).label: g.node(vid).components()[0]._vid for vid in g.VtxList(Scale=2) if
+                   g.node(vid).label.startswith('arm')}
 
     # Soil reservoir dimensions (inter row, intra row, depth) [m]
     soil_dimensions = params.soil.soil_dimensions
@@ -272,9 +275,11 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
     # Simulations
     # ==============================================================================
 
-    sapflow = []
-    # sapEast = []
-    # sapWest = []
+    if sapflow_per_cordon:
+        sapflow = {k: [] for k in arm_vid.keys()}
+    else:
+        sapflow = {'E': []}
+
     an_ls = []
     rg_ls = []
     psi_stem = {}
@@ -349,9 +354,11 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
             architecture.mtg_save(g, scene, output_path)
 
         # Plot stuff..
-        sapflow.append(g.node(vid_collar).Flux)
-        # sapEast.append(g.node(arm_vid['arm1']).Flux)
-        # sapWest.append(g.node(arm_vid['arm2']).Flux)
+        if sapflow_per_cordon:
+            for cordon in sapflow.keys():
+                sapflow[cordon].append(g.node(arm_vid[cordon]).Flux)
+        else:
+            sapflow['E'].append(g.node(vid_collar).Flux)
 
         an_ls.append(g.node(vid_collar).FluxC)
 
@@ -380,9 +387,7 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
 
     # Write output
     # Plant total transpiration
-    sapflow = [flow * time_conv * 1000. for flow in sapflow]
-
-    # sapEast, sapWest = [np.array(flow) * time_conv * 1000. for i, flow in enumerate((sapEast, sapWest))]
+    sapflow = {k: [flow * time_conv * 1000. for flow in cordon_flow] for k, cordon_flow in sapflow.items()}
 
     # Median leaf temperature
     t_ls = [np.median(list(Tlc_dict[date].values())) for date in meteo.time]
@@ -393,11 +398,10 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
     results_dict = {
         'Rg': rg_ls,
         'An': an_ls,
-        'E': sapflow,
-        # 'sapEast': sapEast,
-        # 'sapWest': sapWest,
         'Tleaf': t_ls
     }
+
+    results_dict.update(sapflow)
 
     # Results DataFrame
     results_df = DataFrame(results_dict, index=meteo.time)

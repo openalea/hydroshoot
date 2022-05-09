@@ -35,4 +35,4 @@ scene = display.visu(g, def_elmnt_color_dict=True, scene=Scene(),
 # Run HydroShoot
 # =============================================================================
 
-model.run(g, str(getcwd()) + '/', scene)
+model.run(g, str(getcwd()) + '/', scene, sapflow_per_cordon=True)
