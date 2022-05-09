@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Thu Oct 25 20:10:00 2018
@@ -43,10 +43,10 @@ class Params:
         """
 
         with open(self._params_path, mode='r') as f:
-            json_file = load(f, encoding="utf-8")
+            json_file = load(f)
 
         with open(self._params_schema, mode='r') as f:
-            json_schm = load(f, encoding="utf-8")
+            json_schm = load(f)
 
         validate(json_file, json_schm)
 
