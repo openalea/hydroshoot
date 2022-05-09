@@ -10,7 +10,17 @@ digitalization data using the `openalea.mtg` package.
 The resulting MTG incorporates geometry
 """
 
+from numpy import array
+from numpy import (
+    radians, asarray, dot, cos,
+    sin, subtract, cross, sign, pi,
+    where, concatenate, sign, linspace,
+    meshgrid
+    )
+from numpy.lib.scimath import sqrt, arcsin, arccos
+from numpy.random import randn, rand
 import scipy
+#from scipy import sqrt, arccos, arcsin
 from scipy.linalg import norm
 from numpy.linalg import det
 from scipy.spatial import distance
@@ -37,19 +47,19 @@ def cart_to_pol (coordxy) :
     """
 
     x,y,z = coordxy[0], coordxy[1], coordxy[2]
-    r = scipy.sqrt(x*x+y*y+z*z)
+    r = sqrt(x*x+y*y+z*z)
     if r==0 :
         incli =0
     else :
-        incli = scipy.arcsin(z/r)
+        incli = arcsin(z/r)
     if (x==0 and y==0):
         azi = 0
     elif (y>=0) :
-        azi = scipy.arccos(x/scipy.sqrt(x*x+y*y))
+        azi = arccos(x/sqrt(x*x+y*y))
     else :
-        azi = -scipy.arccos(x/scipy.sqrt(x*x+y*y))
+        azi = -arccos(x/sqrt(x*x+y*y))
 
-    return scipy.array([r,azi,incli])
+    return array([r,azi,incli])
 
 
 def pol_to_cart (coordpol) :
@@ -58,12 +68,12 @@ def pol_to_cart (coordpol) :
     """
 
     r,azi,incli = coordpol[0], coordpol[1], coordpol[2]
-    z = r * scipy.sin(incli)
-    l = scipy.sqrt (r*r-z*z)
-    x = l * scipy.cos(azi)
-    y = l * scipy.sin (azi)
+    z = r * sin(incli)
+    l = sqrt (r*r-z*z)
+    x = l * cos(azi)
+    y = l * sin (azi)
 
-    return scipy.array([x, y, z])
+    return array([x, y, z])
 
 
 def transformation(obj, sx, sy, sz, rx, ry, rz, tx, ty, tz ):
@@ -353,7 +363,7 @@ def vine_mtg(file_path):
             ind_leaf_points.append(vid_position)
             if bool(search('5', str(shoot_id))):
                 leaf_label = 'LI' + str(g.node(pet_connect).index())
-                leaf = g.add_child(petiole, label=leaf_label, edge_type='+', TopPosition=ind_leaf_points[2],TopPositionPoints=scipy.array(ind_leaf_points))
+                leaf = g.add_child(petiole, label=leaf_label, edge_type='+', TopPosition=ind_leaf_points[2],TopPositionPoints=array(ind_leaf_points))
                 ind_leaf_points=[]
 
     return g
@@ -388,7 +398,7 @@ def vine_phyto_modular(g,v, *args):
             n.PhytoType = 0
             for i in vid_axis[1:]:
                 vid = g.node(i)
-                rand_val = scipy.rand()
+                rand_val = rand()
                 if vid.parent().PhytoType == 0:
                     if P0_counter < Pzones_nb and rand_val > P0toP1[P0_counter]:
                             vid.PhytoType = 0
@@ -458,19 +468,19 @@ def vine_NFII(in_order, pruning_type='avg_field_model',N_init=0.18,N_max=2.25,N_
 
     if pruning_type in NFII_dict.keys():
         try:
-            NFII = NFII_dict[pruning_type][in_order][0] + NFII_dict[pruning_type][in_order][1]*(min(1,max(-1,scipy.randn()/2.96)))
+            NFII = NFII_dict[pruning_type][in_order][0] + NFII_dict[pruning_type][in_order][1]*(min(1,max(-1,randn()/2.96)))
         except:
             NFII = 0
     elif pruning_type == 'Pot':
         N_reduction_slope = 0.0055 if phyto_type == 'P2' else 0.
-        NFII_init = a1*in_order + b1 if in_order <= N_max_order else 2*N_max*(1-1/(1+scipy.exp(-(in_order-(N_max_order-1))/sig_slope)))
-        NFII_init = NFII_init*(1+CI_2_coef*(min(1,max(-1,scipy.randn()/2.96))))
+        NFII_init = a1*in_order + b1 if in_order <= N_max_order else 2*N_max*(1-1/(1+exp(-(in_order-(N_max_order-1))/sig_slope)))
+        NFII_init = NFII_init*(1+CI_2_coef*(min(1,max(-1,randn()/2.96))))
         reduction_coeff = N_reduction_slope*in_order+Phyto_type_dict[phyto_type]
         NFII=reduction_coeff*NFII_init
     else : # default_pruning_type = 'avg_field_model'
         NFII_init = a1*(in_order-1) + b1 if in_order <= N_max_order else a2*in_order + b2
         NFII_init = max(0.,NFII_init)
-        NFII = NFII_init+CI_1*(min(1,max(-1,scipy.randn()/2.96)))
+        NFII = NFII_init+CI_1*(min(1,max(-1,randn()/2.96)))
 
     NFII = int(round(NFII,0))
 
@@ -547,8 +557,8 @@ def vine_axis_curvature(incli_init, length, Fifty_cent=400., sig_slope=70.,
     - **curv_type**: in plant exterior direction even 'convex' or 'concave'
     """
 
-    curv_max = scipy.pi/2. + incli_init
-    curv_tot = curv_max/(1.+scipy.exp(-(length-Fifty_cent)/sig_slope)) # TODO: Rule to be confirmed
+    curv_max = pi/2. + incli_init
+    curv_tot = curv_max/(1.+exp(-(length-Fifty_cent)/sig_slope)) # TODO: Rule to be confirmed
     if curv_type == 'convexe':
         curv_tot = -curv_tot
 
@@ -566,18 +576,18 @@ def vector_rotation(vector,axis, theta):
     """
     #cf. http://stackoverflow.com/questions/6802577/python-rotation-of-3d-vector
 
-    axis = scipy.asarray(axis)
-    theta = scipy.asarray(theta)
-    axis = axis/scipy.sqrt(scipy.dot(axis, axis))
-    a = scipy.cos(theta/2.0)
-    b, c, d = -axis*scipy.sin(theta/2.0)
+    axis = asarray(axis)
+    theta = asarray(theta)
+    axis = axis/sqrt(dot(axis, axis))
+    a = cos(theta/2.0)
+    b, c, d = -axis*sin(theta/2.0)
     aa, bb, cc, dd = a*a, b*b, c*c, d*d
     bc, ad, ac, ab, bd, cd = b*c, a*d, a*c, a*b, b*d, c*d
-    rotation_matrix = scipy.array([[aa+bb-cc-dd, 2*(bc+ad), 2*(bd-ac)],
+    rotation_matrix = array([[aa+bb-cc-dd, 2*(bc+ad), 2*(bd-ac)],
                      [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
                      [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
 
-    return scipy.dot(rotation_matrix, vector)
+    return dot(rotation_matrix, vector)
 
 
 def VineAxeIIinsert(inI_vector, insert_angle=46.,insert_angle_CI=4.6,rot_range=180.):
@@ -600,14 +610,14 @@ def vine_axeII_insert(inI_vector, insert_angle=46.,insert_angle_CI=4.6,rot_range
 
     len_I, azi_I, incli_I = [inI_vector[i] for i in [0,1,2]]
 
-    a_insert = insert_angle + insert_angle_CI*(min(1,max(-1,scipy.randn()/2.96)))
-    a_insert = a_insert*scipy.pi/180.
-    rot_range = rot_range*scipy.pi/180.
-    rand_rotate = rot_range*scipy.rand()
-#    azi_init = azi_I + a_insert*scipy.sin(rand_rotate)
-#    incli_init = incli_I + a_insert*scipy.cos(rand_rotate)
+    a_insert = insert_angle + insert_angle_CI*(min(1,max(-1,randn()/2.96)))
+    a_insert = a_insert*pi/180.
+    rot_range = rot_range*pi/180.
+    rand_rotate = rot_range*rand()
+#    azi_init = azi_I + a_insert*sin(rand_rotate)
+#    incli_init = incli_I + a_insert*cos(rand_rotate)
     dx, dy, dz = pol_to_cart((len_I, azi_I, incli_I))
-    rot_axis_1 = scipy.cross((dx, dy, dz),(0.,0.,1.))
+    rot_axis_1 = cross((dx, dy, dz),(0.,0.,1.))
     vec_2 = vector_rotation((dx, dy, dz), rot_axis_1, a_insert)
     vec_2 = vector_rotation(vec_2, (dx, dy, dz), rand_rotate)
     len_init, azi_init, incli_init = cart_to_pol(vec_2)
@@ -661,7 +671,7 @@ def vine_axeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
     - **curv_type**: in plant exterior direction even 'convex' or 'concave'
     """
 
-    phyllo_angle = phyllo_angle*scipy.pi/180.
+    phyllo_angle = phyllo_angle*pi/180.
 
     if not 0. <= PT_init <= 1.0 : PT_init = max(0., min(PT_init,1.))
     #insert_angle=insert_angle*pi/180.
@@ -699,19 +709,19 @@ def vine_axeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
                                 sibling = vtx
                                 BotPos_sg = grandpa.TopPosition
                                 TopPos_sg = sibling.TopPosition
-                                dx_sg, dy_sg, dz_sg = [round(float(i),2) for i in scipy.subtract(TopPos_sg,BotPos_sg)]
+                                dx_sg, dy_sg, dz_sg = [round(float(i),2) for i in subtract(TopPos_sg,BotPos_sg)]
                                 len_sg,azi_sg,incli_sg = cart_to_pol((dx_sg,dy_sg,dz_sg))
 
 #                               Getting the vector of the primary internode holding the previous axisII
                                 TopPos_gp = grandpa.TopPosition
                                 BotPos_gp = grandpa.parent().TopPosition
-                                dx_gp, dy_gp, dz_gp = [round(float(i),2) for i in scipy.subtract(TopPos_gp,BotPos_gp)]
+                                dx_gp, dy_gp, dz_gp = [round(float(i),2) for i in subtract(TopPos_gp,BotPos_gp)]
                                 len_gp,azi_gp,incli_gp = cart_to_pol((dx_gp,dy_gp,dz_gp))
 
                                 # Getting the vector of the primary internode holding the actual axisII
                                 TopPos_f = fatherI.TopPosition
                                 BotPos_f = grandpa.TopPosition
-                                dx_f, dy_f, dz_f = [round(float(i),2) for i in scipy.subtract(TopPos_f,BotPos_f)]
+                                dx_f, dy_f, dz_f = [round(float(i),2) for i in subtract(TopPos_f,BotPos_f)]
                                 len_f,azi_f,incli_f = cart_to_pol((dx_f,dy_f,dz_f))
 
 #                               First correction azi and incli follow the dirction of the holding primary internode.
@@ -722,13 +732,13 @@ def vine_axeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
                                 incli_tempo1 = incli_sg + dincli
 
                                 if abs(azi_tempo1) >= abs(azi_f):
-                                    phyllo_angle = -phyllo_angle*scipy.sign(incli_f)
+                                    phyllo_angle = -phyllo_angle*sign(incli_f)
                                 else:
-                                    phyllo_angle = phyllo_angle*scipy.sign(incli_f)
+                                    phyllo_angle = phyllo_angle*sign(incli_f)
 
                                 vector = pol_to_cart((length,azi_tempo1,incli_tempo1))
                                 axis_I = (dx_f, dy_f, dz_f)
-                                phyllotaxis = phyllo_angle*(1.+0.1*min(1,max(-1,scipy.randn()/2.96))) # the confidence interval 0.1 is to be confirmed.
+                                phyllotaxis = phyllo_angle*(1.+0.1*min(1,max(-1,randn()/2.96))) # the confidence interval 0.1 is to be confirmed.
 
 #                               Second correction: the axisII insertion internode must adhere to phyllotaxis rule.
                                 dx, dy, dz = vector_rotation(vector,axis_I,phyllotaxis)
@@ -737,18 +747,18 @@ def vine_axeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
 #                               Third correction: Considering the uncertainty in the insertion angle
                                 ins_min = insert_angle - insert_angle_CI
                                 ins_max = insert_angle + insert_angle_CI
-                                a_insert = scipy.arccos(min(max(-1,scipy.dot((dx, dy, dz),(axis_I))),1))
+                                a_insert = arccos(min(max(-1,dot((dx, dy, dz),(axis_I))),1))
                                 sup_range = max(0.,ins_max - a_insert)
                                 inf_range = -max(0., a_insert - ins_min)
-                                rot_range = scipy.rand()*(sup_range - inf_range) + inf_range
-                                normal_vec = scipy.cross((dx, dy, dz),(axis_I)) # the normal vector to the plane defined by the primary internode and the insertion secondary internode
+                                rot_range = rand()*(sup_range - inf_range) + inf_range
+                                normal_vec = cross((dx, dy, dz),(axis_I)) # the normal vector to the plane defined by the primary internode and the insertion secondary internode
                                 dx, dy, dz = vector_rotation((dx, dy, dz),normal_vec,rot_range)
                                 len_init,azi_init,incli_init = cart_to_pol((dx,dy,dz))
 
                         if counter ==0:
                             TopPos_f = fatherI.TopPosition
                             BotPos_f = grandpa.TopPosition
-                            dx_f, dy_f, dz_f = [round(float(i),2) for i in scipy.subtract(TopPos_f,BotPos_f)]
+                            dx_f, dy_f, dz_f = [round(float(i),2) for i in subtract(TopPos_f,BotPos_f)]
                             len_f,azi_f,incli_f = cart_to_pol((dx_f,dy_f,dz_f))
 
                             father_vec = (len_f,azi_f,incli_f)
@@ -759,13 +769,13 @@ def vine_axeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
                         vidII = g.node(en_c)
                         fatherII = vidII.parent()
                         grandpaII = fatherII.parent()
-                        dx_prec,dy_prec,dz_prec = [round(float(i),2) for i in scipy.subtract(fatherII.TopPosition,grandpaII.TopPosition)]
+                        dx_prec,dy_prec,dz_prec = [round(float(i),2) for i in subtract(fatherII.TopPosition,grandpaII.TopPosition)]
                         vector_prec = (dx_prec,dy_prec,dz_prec)
                         len_prec,azi_prec,incli_prec = cart_to_pol(vector_prec)
 
                         curv_tot = vine_axis_curvature(incli_init, tot_len*10., Fifty_cent, slope_curv,curv_type)
 
-                        PT = PT_init #+ ((scipy.pi - curv_tot)/scipy.pi)*(1-PT_init)
+                        PT = PT_init #+ ((pi - curv_tot)/pi)*(1-PT_init)
 
                         n1 = int(round(PT*NFII,0))
                         n2 = NFII - n1
@@ -776,11 +786,11 @@ def vine_axeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
                         TopPos_f = fatherII.TopPosition
 
 #                       In order to avoid that all vertical ramifications goes in the direction of x axis.
-                        if incli_prec == scipy.pi/2.: azi_prec = scipy.rand()*scipy.pi*2.
+                        if incli_prec == pi/2.: azi_prec = rand()*pi*2.
 
-                        dx = length*scipy.cos(incli)*scipy.cos(azi_prec)
-                        dy = length*scipy.cos(incli)*scipy.sin(azi_prec)
-                        dz = length*scipy.sin(incli)
+                        dx = length*cos(incli)*cos(azi_prec)
+                        dy = length*cos(incli)*sin(azi_prec)
+                        dz = length*sin(incli)
 
                     x_bot, y_bot,z_bot = [TopPos_f[i] for i in [0,1,2]]
                     x_n, y_n, z_n = round(x_bot + dx, 2), round(y_bot + dy,2), round(z_bot + dz,2)
@@ -809,7 +819,7 @@ def vine_petiole_length(in_order, len_max=8.,Fifty_cent=30.,sig_slope=4.2):
     - **sig_slope**: float, the slope (b) of the sigmoidal curve Diam=f(range)
     """
 
-    petiol_len = len_max*(1-1/(1+scipy.exp(-(in_order-Fifty_cent)/sig_slope)))
+    petiol_len = len_max*(1-1/(1+exp(-(in_order-Fifty_cent)/sig_slope)))
     # TODO: The confidence intervals may be added
 
     return petiol_len
@@ -849,7 +859,7 @@ def vine_petiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
     - **sig_slope**: float, the slope (b) of the sigmoidal curve Diam=f(range)
     """
 
-    pet_ins, phyllo_angle = [scipy.radians(x) for x in (pet_ins, phyllo_angle)]
+    pet_ins, phyllo_angle = [radians(x) for x in (pet_ins, phyllo_angle)]
 
     if vid > 0:
         n = g.node(vid)
@@ -863,37 +873,37 @@ def vine_petiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
             len_max = vine_midrib_length(in_order, len_max, len_max/10.) # TODO: insert parameters
             len_petI = vine_petiole_length(in_order, len_max, Fifty_cent,sig_slope)
 
-            vec_f = scipy.subtract(father.TopPosition,grandpa.TopPosition)
+            vec_f = subtract(father.TopPosition,grandpa.TopPosition)
             len_f,azi_f,incli_f = cart_to_pol(vec_f)
 
-            vec_gp = scipy.subtract(grandpa.TopPosition,grandgrandpa.TopPosition)
+            vec_gp = subtract(grandpa.TopPosition,grandgrandpa.TopPosition)
             len_gp,azi_gp,incli_gp = cart_to_pol(vec_gp)
 
             if in_order == 1:
                 # Generating first petiole
-                normal_vec = scipy.cross(vec_gp,vec_f)
-                rotation_axis1 = scipy.cross(vec_f,normal_vec)
-                arb = 1. #scipy.rand()
+                normal_vec = cross(vec_gp,vec_f)
+                rotation_axis1 = cross(vec_f,normal_vec)
+                arb = 1. #rand()
             else:
                 # Determining the actual petiolar vector as a function of the previous petiolar vector (phyllotaxis)
                 for sibling in grandpa.children():
                     if sibling.label.startswith('PetI'):
                         BotPos_sg = grandpa.TopPosition
                         TopPos_sg = sibling.TopPosition
-                        vec_sg = scipy.subtract(TopPos_sg,BotPos_sg)
+                        vec_sg = subtract(TopPos_sg,BotPos_sg)
                         len_sg,azi_sg,incli_sg = cart_to_pol(vec_sg)
-                rotation_axis1 = scipy.cross(vec_f, vec_sg)
+                rotation_axis1 = cross(vec_f, vec_sg)
                 arb = 1.
 
 #           Initiating the petiole
             pet_vec = vec_f/norm(vec_f)*len_petI
 
 #           Insertion angle
-            pet_ins = pet_ins*(1.+(pet_ins_cv/100.)*min(1,max(-1,scipy.randn()/2.96)))
+            pet_ins = pet_ins*(1.+(pet_ins_cv/100.)*min(1,max(-1,randn()/2.96)))
             pet_vec = vector_rotation(pet_vec,rotation_axis1, pet_ins)
 
 #           Phyllotaxis
-            phyllotaxis = phyllo_angle*(1.+(phyllo_angle_cv/100.)*min(1,max(-1,scipy.randn()/2.96)))*arb
+            phyllotaxis = phyllo_angle*(1.+(phyllo_angle_cv/100.)*min(1,max(-1,randn()/2.96)))*arb
             dx_pet, dy_pet, dz_pet = vector_rotation(pet_vec, vec_f, phyllotaxis)
 
             # Setting the TopPosition coordinates of the primary petiole
@@ -964,7 +974,7 @@ def vine_leaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
     - **order_lim_max** and **max_order**: shape parameters
     """
 
-    leaf_inc, rand_rot_angle = [scipy.radians(angle) for angle in (leaf_inc, rand_rot_angle)]
+    leaf_inc, rand_rot_angle = [radians(angle) for angle in (leaf_inc, rand_rot_angle)]
 
     if vid > 0:
         n = g.node(vid)
@@ -977,17 +987,17 @@ def vine_leaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
             leaf = g.add_child(vid, label=leaf_label, edge_type='+')
 
             limbe_len = vine_midrib_length(in_order, lim_max, lim_min, order_lim_max, max_order)
-            limbe_vec = scipy.array([0.,0.,1.])*limbe_len
+            limbe_vec = array([0.,0.,1.])*limbe_len
 
             if cordon_vector is None:
-                vec_pet = scipy.subtract(n.TopPosition, n.parent().TopPosition)
-                rotation_axis = scipy.cross([0.,0.,1.],vec_pet)
+                vec_pet = subtract(n.TopPosition, n.parent().TopPosition)
+                rotation_axis = cross([0.,0.,1.],vec_pet)
             else:
                 rotation_axis = leaf_rotation_axis(n.TopPosition,cordon_vector)
-            rotation_angle = scipy.pi/2. - leaf_inc *(1.+(leaf_inc_cv/100.)*min(1,max(-1,scipy.randn()/2.96)))
+            rotation_angle = pi/2. - leaf_inc *(1.+(leaf_inc_cv/100.)*min(1,max(-1,randn()/2.96)))
             dx_limbe, dy_limbe, dz_limbe = vector_rotation(limbe_vec,rotation_axis,rotation_angle)
 
-            rotation_angle = rand_rot_angle * min(1,max(-1,scipy.randn()/2.96))
+            rotation_angle = rand_rot_angle * min(1,max(-1,randn()/2.96))
             dx_limbe, dy_limbe, dz_limbe = vector_rotation((dx_limbe, dy_limbe, dz_limbe),(0.,0.,1.),rotation_angle)
 
             x_bot, y_bot, z_bot = [n.TopPosition[i] for i in [0,1,2]]
@@ -1022,11 +1032,11 @@ def vine_lobes_tips(pPet, lobes_tips):
 
     #p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15 = [points[i] for i in range(16)]
 
-    theta_1 = 1.06185394004232810 #arccos(scipy.dot(p9,p10)/norm(p9)/norm(p10))
-    theta_2 = 0.26671436996865744 #arccos(scipy.dot(p11,p10)/norm(p11)/norm(p10))
-    theta_3 = 0.74194726800591759 #arccos(scipy.dot(p12,p10)/norm(p12)/norm(p10))
-    theta_4 = 0.18369778647701493 #arccos(scipy.dot(p14,p13)/norm(p14)/norm(p13))
-    theta_5 = 0.18551156925222045 #arccos(scipy.dot(p15,p13)/norm(p15)/norm(p13))
+    theta_1 = 1.06185394004232810 #arccos(dot(p9,p10)/norm(p9)/norm(p10))
+    theta_2 = 0.26671436996865744 #arccos(dot(p11,p10)/norm(p11)/norm(p10))
+    theta_3 = 0.74194726800591759 #arccos(dot(p12,p10)/norm(p12)/norm(p10))
+    theta_4 = 0.18369778647701493 #arccos(dot(p14,p13)/norm(p14)/norm(p13))
+    theta_5 = 0.18551156925222045 #arccos(dot(p15,p13)/norm(p15)/norm(p13))
 
     ratio_1 = 0.58098705311078391 #norm(p9)/norm(p10)
     ratio_2 = 0.69745466856698446 #norm(p11)/norm(p10)
@@ -1042,10 +1052,10 @@ def vine_lobes_tips(pPet, lobes_tips):
     p3_pPet = p3-pPet
     p6_pPet = p6-pPet
 
-    norm_Pet_10_13 = scipy.cross(p10_pPet,p13_pPet)
-    norm_Pet_13_0 = scipy.cross(p13_pPet,p0_pPet)
-    norm_pet_0_3 = scipy.cross(p0_pPet,p3_pPet)
-    norm_pet_3_6 = scipy.cross(p3_pPet,p6_pPet)
+    norm_Pet_10_13 = cross(p10_pPet,p13_pPet)
+    norm_Pet_13_0 = cross(p13_pPet,p0_pPet)
+    norm_pet_0_3 = cross(p0_pPet,p3_pPet)
+    norm_pet_3_6 = cross(p3_pPet,p6_pPet)
 
     p9  = vector_rotation(p10_pPet * ratio_1, norm_Pet_10_13, -theta_1) + pPet
     p11 = vector_rotation(p10_pPet * ratio_2, norm_Pet_10_13, theta_2) + pPet
@@ -1096,20 +1106,20 @@ def cordon_vector(g):
             ls.append(vid)
 
     pos_data = {vid:g.property('TopPosition')[vid] for vid in ls}
-    data = scipy.array(pos_data.values())
+    data = array(pos_data.values())
     datamean = data.mean(axis=0)
 #   Do a singular value decomposition on the mean-centered data.
     uu, dd, vv = scipy.linalg.svd(data - datamean)
 
     data_dist = distance.cdist(data,data,'euclidean')
-    extr_pair0 = scipy.where(data_dist == data_dist.max())
-    extr_pair = extr_pair0[0] if len(extr_pair0[0])==2 else scipy.concatenate((extr_pair0[0],extr_pair0[1]), axis=0)
+    extr_pair0 = where(data_dist == data_dist.max())
+    extr_pair = extr_pair0[0] if len(extr_pair0[0])==2 else concatenate((extr_pair0[0],extr_pair0[1]), axis=0)
 
-    extr_pos = scipy.array([data[index_] for index_ in extr_pair])
+    extr_pos = array([data[index_] for index_ in extr_pair])
     linepts = vv[0] * extr_pos
     # shift by the mean to get the line in the right place
 
-    return linepts, scipy.array([linepts[0][i]-linepts[1][i] for i in range(2)] + [0.])
+    return linepts, array([linepts[0][i]-linepts[1][i] for i in range(2)] + [0.])
 
 
 def leaf_rotation_axis(petiole_tip,rotation_axis):
@@ -1121,10 +1131,10 @@ def leaf_rotation_axis(petiole_tip,rotation_axis):
     - **rotation_axis**: rotation axis vector in a cartesian system
     """
 
-    v1 = scipy.array(petiole_tip[:2])
-    v2 = scipy.array(rotation_axis[:2])
+    v1 = array(petiole_tip[:2])
+    v2 = array(rotation_axis[:2])
 
-    return scipy.sign(det((v1,v2))) * rotation_axis
+    return sign(det((v1,v2))) * rotation_axis
 
 
 def add_soil(g, side_length=10.):
@@ -1139,9 +1149,9 @@ def add_soil(g, side_length=10.):
     y_min, y_max = min(yls), max(yls)
     nbX = int((x_max - x_min)/side_length) + 1
     nbY = int((y_max - y_min)/side_length) + 1
-    x = scipy.linspace(x_min, x_min+nbX*side_length,num=nbX)
-    y = scipy.linspace(y_min, y_min+nbY*side_length,num=nbY)
-    xu, yu = scipy.meshgrid(x,y)
+    x = linspace(x_min, x_min+nbX*side_length,num=nbX)
+    y = linspace(y_min, y_min+nbY*side_length,num=nbY)
+    xu, yu = meshgrid(x,y)
     xu, yu = [reduce(lambda ix, iy: list(ix) +list(iy), ls) for ls in (xu,yu)]
     pos = zip(xu, yu)
     Soil = g.add_component(g.root, label='Soil', edge_type='/')
@@ -1205,9 +1215,9 @@ def _distance(coord1,coord2):
 
     try:
 #        deltaZ=coord2[2]-coord1[2]
-        distance = scipy.sqrt((coord2[0]-coord1[0])**2+(coord2[1]-coord1[1])**2+(coord2[2]-coord1[2])**2)
+        distance = sqrt((coord2[0]-coord1[0])**2+(coord2[1]-coord1[1])**2+(coord2[2]-coord1[2])**2)
     except ValueError:
-        distance = scipy.sqrt((coord2[0]-coord1[0])**2+(coord2[1]-coord1[1])**2)
+        distance = sqrt((coord2[0]-coord1[0])**2+(coord2[1]-coord1[1])**2)
 
     return round(distance,2)
 
@@ -1218,15 +1228,15 @@ def slim_cylinder(length, radius_base, radius_top):
     """
 
     rb, rt = radius_base, radius_top
-    a1, a2, a3 = 0, 2*scipy.pi/3., 4*scipy.pi/3.
+    a1, a2, a3 = 0, 2*pi/3., 4*pi/3.
     r = rb
-    p1 = (r*scipy.cos(a1), r*scipy.sin(a1),0)
-    p2 = (r*scipy.cos(a2), r*scipy.sin(a2),0)
-    p3 = (r*scipy.cos(a3), r*scipy.sin(a3),0)
+    p1 = (r*cos(a1), r*sin(a1),0)
+    p2 = (r*cos(a2), r*sin(a2),0)
+    p3 = (r*cos(a3), r*sin(a3),0)
     r = rt
-    q1 = (r*scipy.cos(a1+scipy.pi), r*scipy.sin(a1+scipy.pi),length)
-    q2 = (r*scipy.cos(a2+scipy.pi), r*scipy.sin(a2+scipy.pi),length)
-    q3 = (r*scipy.cos(a3+scipy.pi), r*scipy.sin(a3+scipy.pi),length)
+    q1 = (r*cos(a1+pi), r*sin(a1+pi),length)
+    q2 = (r*cos(a2+pi), r*sin(a2+pi),length)
+    q3 = (r*cos(a3+pi), r*sin(a3+pi),length)
     set = pgl.TriangleSet([p1, p2, p3, q1, q2, q3],
                       [(2,1,0), (3,4,5), (0,5,4), (0,4,2), (2,4,3), (3,1,2), (1,3,5), (5,0,1)])
 
@@ -1298,12 +1308,12 @@ def vine_diam(g, vid, D_trunk=5.06, D_arm=3.77, D_Cx=2.91, D_3y=1.75,
     if n.label.startswith(('sh','G')):
 #       Setting the axisI initial diameter randomly
         if n.label.count('I') == 1:
-            init_diam = D_cane*(1+0.1*(min(1,max(-1,scipy.randn()/2.96))))
+            init_diam = D_cane*(1+0.1*(min(1,max(-1,randn()/2.96))))
 
 #       Setting the axisII initial diameter empirically as a function of the diameter of the holding primary internode
         elif n.label.count('I') > 1:
             init_diam = n.components()[0].parent().TopDiameter
-        init_diam = init_diam*((scipy.rand()*3+1)/4.)
+        init_diam = init_diam*((rand()*3+1)/4.)
         n.InitDiam = init_diam
         Diam = None
 
@@ -1316,13 +1326,13 @@ def vine_diam(g, vid, D_trunk=5.06, D_arm=3.77, D_Cx=2.91, D_3y=1.75,
         Diam = D_Cx
     if n.label.startswith(('inT3y','inT2y')):
         in_order = int(n.index()) if not n.label[-1].isalpha() else int(findall('\d+',str(n.label))[-1]) # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
-        Diam = D_spur #*(1-1/(1+scipy.exp(-(in_order-Fifty_cent)/sig_slope)))
+        Diam = D_spur #*(1-1/(1+exp(-(in_order-Fifty_cent)/sig_slope)))
     if n.label.startswith('inI'):
         init_diam = g.node(g.Complex(vid)).InitDiam
         in_order = int(n.index()) if not n.label[-1].isalpha() else int(findall('\d+',str(n.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
-        Diam = init_diam #*(1-1/(1+scipy.exp(-(in_order-Fifty_cent)/sig_slope)))
+        Diam = init_diam #*(1-1/(1+exp(-(in_order-Fifty_cent)/sig_slope)))
     if n.label.startswith('Pet'):
-        Diam = D_pet #*max(0,(scipy.rand()+1)/2)
+        Diam = D_pet #*max(0,(rand()+1)/2)
 
     return Diam
 
@@ -1398,7 +1408,7 @@ def vine_mtg_geometry(g, vid):
     - **g**: mtg object
     - **vid**: integer, mtg vertex ID
     """
-#    theta_1, theta_2 = [scipy.radians(x) for x in (theta_1, theta_2)]
+#    theta_1, theta_2 = [radians(x) for x in (theta_1, theta_2)]
 
     try:
         n = g.node(vid)
@@ -1417,13 +1427,13 @@ def vine_mtg_geometry(g, vid):
                 points = vine_lobes_tips(pPet, n.TopPositionPoints)
                 mesh = leaf_obs(points)
             else:
-                leaf_mesh = transformation(leaf0(1), 1., 1., 1., -scipy.pi/2.,0.,0.,0.,0.,0.)
+                leaf_mesh = transformation(leaf0(1), 1., 1., 1., -pi/2.,0.,0.,0.,0.,0.)
 
                 length = n.properties()['Length']
-                leaf_vec = scipy.subtract(n.TopPosition, n.parent().TopPosition)
+                leaf_vec = subtract(n.TopPosition, n.parent().TopPosition)
                 leaf_len, leaf_azi, leaf_incli = cart_to_pol(leaf_vec)
-#                theta_1 = -scipy.pi/2.
-#                theta_2 = 0. #scipy.pi*(1.+(theta_2_cv/100.)*min(1,max(-1,scipy.randn()/2.96)))
+#                theta_1 = -pi/2.
+#                theta_2 = 0. #pi*(1.+(theta_2_cv/100.)*min(1,max(-1,randn()/2.96)))
                 mesh = transformation(leaf_mesh, length, length, 1., 0., 0.,0.,0.,0.,0.)
                 #mesh = leaf0(length)
             g.node(vid).geometry = mesh
@@ -1453,18 +1463,18 @@ def vine_transform(g, vid):
 #       Internodes, pruning complices and petioles
         if n.label.startswith(('inT','cx','inT3y','inT2y','inI','inII','Pet')):
             Length = n.properties()['Length']
-            x,y,z = [round(float(i),2) for i in scipy.subtract(n.properties()['TopPosition'],n.properties()['BotPosition'])]
+            x,y,z = [round(float(i),2) for i in subtract(n.properties()['TopPosition'],n.properties()['BotPosition'])]
 
             if Length==0:
                 incli =0
             else:
-                incli = float(scipy.arcsin(z/Length))
+                incli = float(arcsin(z/Length))
             if (x==0 and y==0):
                 azi = 0
             elif (y>=0) :
-                azi = scipy.arccos(min(max(-1,x/scipy.sqrt(x**2+y**2)),1))
+                azi = arccos(min(max(-1,x/sqrt(x**2+y**2)),1))
             else :
-                azi = -scipy.arccos(min(max(-1,x/scipy.sqrt(x**2+y**2)),1))
+                azi = -arccos(min(max(-1,x/sqrt(x**2+y**2)),1))
 
             mesh = n.geometry
             mesh = pgl.EulerRotated (azi, 3.14/2.-incli, 0, mesh)
@@ -1476,7 +1486,7 @@ def vine_transform(g, vid):
             if not hasattr(n, 'TopPositionPoints'):
                 x_bot,y_bot,z_bot = [n.BotPosition[i] for i in [0,1,2]]
                 mesh = n.geometry
-                vec_lim = scipy.subtract(n.TopPosition, n.BotPosition)
+                vec_lim = subtract(n.TopPosition, n.BotPosition)
                 len_lim, azi_lim, incli_lim = cart_to_pol(vec_lim)
                 mesh = transformation(mesh, len_lim, len_lim, 1., azi_lim, -1*incli_lim,0.,x_bot,y_bot,z_bot)
                 g.node(vid).geometry = mesh
@@ -1505,17 +1515,17 @@ def vine_orientation(g, vid, theta, v_axis=[0.,0.,1.], local_rotation=False):
     """
 
     if float(theta) != 0.:
-        v_axis = scipy.array(v_axis)
+        v_axis = array(v_axis)
         n = g.node(vid)
         try:
             TopPosition = n.TopPosition
             if local_rotation:
                 nBase = g.node(g.Trunk(vid, Scale=1)[0])
-                TopPosition = scipy.array(TopPosition) - scipy.array(nBase.baseXYZ)
-                TopPosition = vector_rotation(TopPosition,v_axis,scipy.radians(theta))
-                TopPosition = TopPosition + scipy.array(nBase.baseXYZ)
+                TopPosition = array(TopPosition) - array(nBase.baseXYZ)
+                TopPosition = vector_rotation(TopPosition,v_axis,radians(theta))
+                TopPosition = TopPosition + array(nBase.baseXYZ)
             else:
-                TopPosition = vector_rotation(TopPosition,v_axis,scipy.radians(theta))
+                TopPosition = vector_rotation(TopPosition,v_axis,radians(theta))
             n.TopPosition = TopPosition
         except:
             pass
@@ -1523,22 +1533,22 @@ def vine_orientation(g, vid, theta, v_axis=[0.,0.,1.], local_rotation=False):
         if 'baseXYZ' in n.properties():
             if local_rotation == False:
                 baseXYZ = n.baseXYZ
-                baseXYZ = vector_rotation(baseXYZ,v_axis,scipy.radians(theta))
+                baseXYZ = vector_rotation(baseXYZ,v_axis,radians(theta))
                 n.baseXYZ = baseXYZ
 
         if 'TopPositionPoints' in n.properties():
             lobe_tip = []
-            TPPoints = scipy.array(n.TopPositionPoints)
+            TPPoints = array(n.TopPositionPoints)
             if local_rotation == True:
                 nBase = g.node(g.Trunk(vid, Scale=1)[0])
-                TPPoints = TPPoints - scipy.array(nBase.baseXYZ)
+                TPPoints = TPPoints - array(nBase.baseXYZ)
                 for tipPoint in TPPoints:
-                    lobe_tip.append(vector_rotation(tipPoint,v_axis,scipy.radians(theta)))
-                lobe_tip = scipy.array(lobe_tip) + scipy.array(nBase.baseXYZ)
+                    lobe_tip.append(vector_rotation(tipPoint,v_axis,radians(theta)))
+                lobe_tip = array(lobe_tip) + array(nBase.baseXYZ)
             else:
                 for i in range(len(n.TopPositionPoints)):
-                    lobe_tip.append(vector_rotation(n.TopPositionPoints[i],v_axis,scipy.radians(theta)))
-            n.TopPositionPoints = scipy.array(lobe_tip)
+                    lobe_tip.append(vector_rotation(n.TopPositionPoints[i],v_axis,radians(theta)))
+            n.TopPositionPoints = array(lobe_tip)
 
     return g
 

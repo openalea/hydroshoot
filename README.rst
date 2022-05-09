@@ -5,9 +5,9 @@ HydroShoot
 .. {
 
 
-.. image:: https://travis-ci.org/openalea/hydroshoot.svg?branch=master
-    :alt: Travis build status
-    :target: https://travis-ci.org/openalea/hydroshoot
+.. image:: https://github.com/openalea/hydroshooti/actions/workflows/conda-package-build.yml/badge.svg
+    :alt: CI status
+    :target: https://github.com/openalea/hydroshooti/actions/workflows/conda-package-build.yml
     
 .. image:: https://readthedocs.org/projects/hydroshoot/badge/?version=latest
     :target: https://hydroshoot.readthedocs.io/en/latest/?badge=latest
