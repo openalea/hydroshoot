@@ -155,7 +155,7 @@ are stored. "time_series.ouput" file should contain close values to those below:
 .. code-block:: none
 
     time;Rg;An;E;Tleaf
-    2012-08-01 11:00:00;84.8798347191;7.39720795547;183.455877322;27.0144824618
+    2012-08-01 11:00:00;69.76976785639353;7.161769532684991;170.34237507336337;26.617922939339252
 
 
 .. figure:: figs/usage_fig_3.png
