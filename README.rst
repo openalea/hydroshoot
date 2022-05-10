@@ -12,6 +12,9 @@ HydroShoot
 .. image:: https://readthedocs.org/projects/hydroshoot/badge/?version=latest
     :target: https://hydroshoot.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
+    
+.. image:: https://anaconda.org/openalea3/openalea.hydroshoot/badges/version.svg   
+    :target: https://anaconda.org/openalea3/openalea.hydroshoot
 
 .. }
 
@@ -45,3 +48,7 @@ You can follow the following steps for installation:
 You're done !
 
 
+Documentation
+-------------
+
+https://hydroshoot.readthedocs.io/
