@@ -1,6 +1,7 @@
-from test.non_regression_data import potted_syrah, meteo
-from hydroshoot.irradiance import irradiance_distribution, hsCaribu, optical_prop, e_conv_PPFD
 from numpy.testing import assert_almost_equal
+
+from hydroshoot.irradiance import irradiance_distribution, hsCaribu, optical_prop, e_conv_PPFD
+from test.non_regression_data import potted_syrah, meteo
 
 
 def test_irradiance_distribution():
@@ -11,25 +12,29 @@ def test_irradiance_distribution():
 
     # a cloudy hour
     met = meteo().iloc[[12], :]
+    rg = met.Rg.sum() * conv
+
     sources, rdrs = irradiance_distribution(met, location, e_type)
     assert rdrs == 1
     assert len(sources) == 46
     nrj, pos = zip(*sources)
-    assert_almost_equal(met.Rg.sum() * conv, sum(nrj), 2)
+    assert abs(rg - sum(nrj)) / rg < 0.001
 
     # Same our but with 16 directions
     sources, rdrs = irradiance_distribution(met, location, e_type, turtle_sectors='16')
     assert len(sources) == 16
     nrj, pos = zip(*sources)
-    assert_almost_equal(met.Rg.sum() * conv, sum(nrj), 2)
+    assert abs(rg - sum(nrj)) / rg < 0.001
 
     # a sunny hour
     met = meteo().iloc[[60], :]
+    rg = met.Rg.sum() * conv
+
     sources, rdrs = irradiance_distribution(met, location, e_type)
     assert rdrs < 0.3
     assert len(sources) == 47
     nrj, pos = zip(*sources)
-    assert_almost_equal(met.Rg.sum() * conv, sum(nrj), 2)
+    assert abs(rg - sum(nrj)) / rg < 0.001
 
     # a night hour
     met = meteo().iloc[[1], :]
@@ -40,26 +45,29 @@ def test_irradiance_distribution():
     assert_almost_equal(sum(nrj), 0)
 
     # a particularly overcast day
-    day_met = meteo().iloc[:24,:]
+    day_met = meteo().iloc[:24, :]
+    rg_total = day_met.Rg.sum() * conv
+
     sources, rdrs = irradiance_distribution(day_met, location, e_type)
     assert rdrs > 0.9
-    assert len(sources) == 48
+    assert len(sources) == 47
     nrj, pos = zip(*sources)
-    assert_almost_equal(day_met.Rg.sum() * conv, sum(nrj),2)
+    assert abs(rg_total - sum(nrj)) / rg_total < 0.001
 
     # Same day but with 16 directions
     sources, rdrs = irradiance_distribution(day_met, location, e_type, turtle_sectors='16')
-    assert len(sources) == 18
+    assert len(sources) == 17
     nrj, pos = zip(*sources)
-    assert_almost_equal(day_met.Rg.sum() * conv, sum(nrj), 2)
+    assert abs(rg_total - sum(nrj)) / rg_total < 0.001
 
     # a much clearer day
-    day_met = meteo().iloc[48:72,:]
+    day_met = meteo().iloc[48:72, :]
+    rg_total = day_met.Rg.sum() * conv
     sources, rdrs = irradiance_distribution(day_met, location, e_type)
     assert rdrs < 0.5
     assert len(sources) == 58
     nrj, pos = zip(*sources)
-    assert_almost_equal(day_met.Rg.sum() * conv,sum(nrj),0)
+    assert abs(rg_total - sum(nrj)) / rg_total < 0.001
 
 
 def test_hsCaribu():
@@ -89,7 +97,8 @@ def test_hsCaribu():
     g = optical_prop(g)
     ng = len(g.property('geometry'))
     label = g.property('label')
-    g.properties()['radiative_geometry'] = {k: v for k, v in g.property('geometry').items() if label[k].startswith(('L', 'other', 'soil'))}
+    g.properties()['radiative_geometry'] = {k: v for k, v in g.property('geometry').items() if
+                                            label[k].startswith(('L', 'other', 'soil'))}
     assert len(g.property('radiative_geometry')) < ng
     g, cs = hsCaribu(g, unit_scene_length, geometry='radiative_geometry')
     assert len(g.property('Ei')) == len(cs.scene)
