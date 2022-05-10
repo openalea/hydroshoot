@@ -309,7 +309,7 @@ def vine_mtg(file_path):
                     connect_inI = complexe    # Shoot>complex
                     label_shI = 'GI'
 
-                shoot_id2 = float(findall('\d+',str(shoot_id))[0])
+                shoot_id2 = float(findall(r'\d+',str(shoot_id))[0])
 
 
                 if order == 0:
@@ -683,7 +683,7 @@ def vine_axeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
         if fatherI.label.startswith('inI'):
             order = g.Class(vid).split('in')[1]
             if order == 'I':
-                in_order = int(fatherI.index()) if not fatherI.label[-1].isalpha() else int(findall('\d+',str(fatherI.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
+                in_order = int(fatherI.index()) if not fatherI.label[-1].isalpha() else int(findall(r'\d+',str(fatherI.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
                 NFII = vine_NFII(in_order, pruning_type,N_init,N_max,N_max_order,in_order_max,slope_nfii,phyto_type)
                 tot_len = 0.1*vine_LII(NFII, pruning_type, a_L, b_L, a_P, b_P, c_P)
                 length = vine_internode_length(NFII, tot_len)
@@ -867,7 +867,7 @@ def vine_petiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
             father = n
             grandpa = n.parent()
             grandgrandpa = grandpa.parent() if grandpa.parent() is not None else grandpa
-            in_order = int(father.index()) if not father.label[-1].isalpha() else int(findall('\d+',str(father.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
+            in_order = int(father.index()) if not father.label[-1].isalpha() else int(findall(r'\d+',str(father.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
 
             len_max = len_max_I if g.Class(vid).split('in')[1] == 'I' else len_max_II
             len_max = vine_midrib_length(in_order, len_max, len_max/10.) # TODO: insert parameters
@@ -979,7 +979,7 @@ def vine_leaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
     if vid > 0:
         n = g.node(vid)
         if n.label.startswith('Pet'):
-            in_order = int(n.index()) if not n.label[-1].isalpha() else int(findall('\d+',str(n.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
+            in_order = int(n.index()) if not n.label[-1].isalpha() else int(findall(r'\d+',str(n.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
             order = (g.Class(vid)).split('Pet')[1]
             #if order != 'I': lim_min = lim_max*0.8 # TODO: to be written more properly
 
@@ -1325,11 +1325,11 @@ def vine_diam(g, vid, D_trunk=5.06, D_arm=3.77, D_Cx=2.91, D_3y=1.75,
     if n.label.startswith('cx'):
         Diam = D_Cx
     if n.label.startswith(('inT3y','inT2y')):
-        in_order = int(n.index()) if not n.label[-1].isalpha() else int(findall('\d+',str(n.label))[-1]) # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
+        in_order = int(n.index()) if not n.label[-1].isalpha() else int(findall(r'\d+',str(n.label))[-1]) # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
         Diam = D_spur #*(1-1/(1+exp(-(in_order-Fifty_cent)/sig_slope)))
     if n.label.startswith('inI'):
         init_diam = g.node(g.Complex(vid)).InitDiam
-        in_order = int(n.index()) if not n.label[-1].isalpha() else int(findall('\d+',str(n.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
+        in_order = int(n.index()) if not n.label[-1].isalpha() else int(findall(r'\d+',str(n.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
         Diam = init_diam #*(1-1/(1+exp(-(in_order-Fifty_cent)/sig_slope)))
     if n.label.startswith('Pet'):
         Diam = D_pet #*max(0,(rand()+1)/2)
