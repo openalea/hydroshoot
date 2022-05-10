@@ -52,3 +52,8 @@ Documentation
 -------------
 
 https://hydroshoot.readthedocs.io/
+
+Citation
+--------
+
+R Albasha, C Fournier, C Pradal, M Chelle, J A Prieto, G Louarn, T Simonneau, E Lebon, HydroShoot: a functional-structural plant model for simulating hydraulic structure, gas and energy exchange dynamics of complex plant canopies under water deficit—application to grapevine (Vitis vinifera), in silico Plants, Volume 1, Issue 1, 2019, diz007, https://doi.org/10.1093/insilicoplants/diz007
