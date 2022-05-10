@@ -24,6 +24,6 @@ You can follow the following steps for installation:
 
     ``cd hydroshoot/``
 
-    ``python install develop``
+    ``python setup.py develop``
 
 You're done !
