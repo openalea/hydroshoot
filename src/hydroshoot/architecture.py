@@ -10,114 +10,115 @@ digitalization data using the `openalea.mtg` package.
 The resulting MTG incorporates geometry
 """
 
+from functools import reduce
+from itertools import product
+from os import path, mkdir
+from pickle import dump, load
+from re import search, findall
+
+import openalea.plantgl.all as pgl
 from numpy import array
 from numpy import (
     radians, asarray, dot, cos,
-    sin, subtract, cross, sign, pi,
+    sin, subtract, cross, pi,
     where, concatenate, sign, linspace,
     meshgrid
-    )
+)
 from numpy.lib.scimath import sqrt, arcsin, arccos
-from numpy.random import randn, rand
-import scipy
-#from scipy import sqrt, arccos, arcsin
-from scipy.linalg import norm
 from numpy.linalg import det
-from scipy.spatial import distance
-from pandas import read_csv
-from re import search, findall
-from itertools import product
-from pickle import dump, load
-from os import path, mkdir
-from functools import reduce
-
-
+from numpy.random import randn, rand
 from openalea.mtg import mtg, io
 from openalea.plantgl.all import Point3Array
-import openalea.plantgl.all as pgl
+from pandas import read_csv
+from scipy.linalg import norm, svd
+from scipy.spatial import distance
 
 from hydroshoot.extern.roman import toRoman
 
-#==============================================================================
+
+# ==============================================================================
 # Functions from TopVine package
-#==============================================================================
-def cart_to_pol (coordxy) :
+# ==============================================================================
+def cart_to_pol(coordxy):
     """
     Converts cartesian coordinates (x,y,z) to polar corrdinates (r,azi,incli).
     """
 
-    x,y,z = coordxy[0], coordxy[1], coordxy[2]
-    r = sqrt(x*x+y*y+z*z)
-    if r==0 :
-        incli =0
-    else :
-        incli = arcsin(z/r)
-    if (x==0 and y==0):
+    x, y, z = coordxy[0], coordxy[1], coordxy[2]
+    r = sqrt(x * x + y * y + z * z)
+    if r == 0:
+        incli = 0
+    else:
+        incli = arcsin(z / r)
+    if (x == 0 and y == 0):
         azi = 0
-    elif (y>=0) :
-        azi = arccos(x/sqrt(x*x+y*y))
-    else :
-        azi = -arccos(x/sqrt(x*x+y*y))
+    elif (y >= 0):
+        azi = arccos(x / sqrt(x * x + y * y))
+    else:
+        azi = -arccos(x / sqrt(x * x + y * y))
 
-    return array([r,azi,incli])
+    return array([r, azi, incli])
 
 
-def pol_to_cart (coordpol) :
+def pol_to_cart(coordpol):
     """
     Converts polar corrdinates (r,azi,incli) to carthesian coordinates (x,y,z).
     """
 
-    r,azi,incli = coordpol[0], coordpol[1], coordpol[2]
+    r, azi, incli = coordpol[0], coordpol[1], coordpol[2]
     z = r * sin(incli)
-    l = sqrt (r*r-z*z)
+    l = sqrt(r * r - z * z)
     x = l * cos(azi)
-    y = l * sin (azi)
+    y = l * sin(azi)
 
     return array([x, y, z])
 
 
-def transformation(obj, sx, sy, sz, rx, ry, rz, tx, ty, tz ):
+def transformation(obj, sx, sy, sz, rx, ry, rz, tx, ty, tz):
     """
     Returns a scaled, rotated and translated 3D object - Similar to 'transformation' in PovRay
     """
 
-    s_obj = pgl.Scaled (pgl.Vector3(sx,sy,sz), obj)
-    r_obj = pgl.EulerRotated (rx, ry, rz, s_obj)
-    t_obj = pgl.Translated (pgl.Vector3(tx,ty,tz), r_obj)
+    s_obj = pgl.Scaled(pgl.Vector3(sx, sy, sz), obj)
+    r_obj = pgl.EulerRotated(rx, ry, rz, s_obj)
+    t_obj = pgl.Translated(pgl.Vector3(tx, ty, tz), r_obj)
 
     return t_obj
 
 
 def leaf0(l=1.):
-    points= Point3Array([ pgl.Vector3(0,9.8,0),pgl.Vector3(3.7,6.3,0),pgl.Vector3(2.3,3.9,0),
-                          pgl.Vector3(5.4,6.2,0), pgl.Vector3(5.9,3.2,0),pgl.Vector3(4.6,0.1,0),
-                          pgl.Vector3(6.4,-1.6,0), pgl.Vector3(1,-3.7,0), pgl.Vector3(0,0,0),
-                          pgl.Vector3(-1,-3.7,0),pgl.Vector3(-6.4,-1.6,0),
-                          pgl.Vector3(-4.6,0.1,0), pgl.Vector3(-5.9,3.2,0),
-                          pgl.Vector3(-5.4,6.2,0), pgl.Vector3(-2.3,3.9,0),pgl.Vector3(-3.7,6.3,0)])
+    points = Point3Array([pgl.Vector3(0, 9.8, 0), pgl.Vector3(3.7, 6.3, 0), pgl.Vector3(2.3, 3.9, 0),
+                          pgl.Vector3(5.4, 6.2, 0), pgl.Vector3(5.9, 3.2, 0), pgl.Vector3(4.6, 0.1, 0),
+                          pgl.Vector3(6.4, -1.6, 0), pgl.Vector3(1, -3.7, 0), pgl.Vector3(0, 0, 0),
+                          pgl.Vector3(-1, -3.7, 0), pgl.Vector3(-6.4, -1.6, 0),
+                          pgl.Vector3(-4.6, 0.1, 0), pgl.Vector3(-5.9, 3.2, 0),
+                          pgl.Vector3(-5.4, 6.2, 0), pgl.Vector3(-2.3, 3.9, 0), pgl.Vector3(-3.7, 6.3, 0)])
 
-    indices= pgl.Index3Array([ pgl.Index3(0,1,8), pgl.Index3(15,0,8), pgl.Index3(8,11,14),
-                           pgl.Index3(11,12,14), pgl.Index3(12,13,14),pgl.Index3(10,11,8),
-                           pgl.Index3(8,9,10), pgl.Index3(2,3,4),pgl.Index3(2,4,5),
-                           pgl.Index3(2,5,8), pgl.Index3(8,5,6),pgl.Index3(8,6,7)])
+    indices = pgl.Index3Array([pgl.Index3(0, 1, 8), pgl.Index3(15, 0, 8), pgl.Index3(8, 11, 14),
+                               pgl.Index3(11, 12, 14), pgl.Index3(12, 13, 14), pgl.Index3(10, 11, 8),
+                               pgl.Index3(8, 9, 10), pgl.Index3(2, 3, 4), pgl.Index3(2, 4, 5),
+                               pgl.Index3(2, 5, 8), pgl.Index3(8, 5, 6), pgl.Index3(8, 6, 7)])
 
-    f= pgl.TriangleSet(points, indices)
-    return pgl.Scaled (pgl.Vector3(0.01*l,0.01*l,0.01*l), f)
+    f = pgl.TriangleSet(points, indices)
+    return pgl.Scaled(pgl.Vector3(0.01 * l, 0.01 * l, 0.01 * l), f)
 
 
 def soil0(l=1.):
-    points= Point3Array([pgl.Vector3(0.,0.,0.),pgl.Vector3(1.,0.,0.),pgl.Vector3(1.,1.,0.),pgl.Vector3(0.,1.,0.)])
-    indices= pgl.Index3Array([pgl.Index3(0,1,2), pgl.Index3(0,2,3)])
-    f= pgl.TriangleSet(points, indices)
-    return pgl.Scaled (pgl.Vector3(l,l,l), f)
+    points = Point3Array(
+        [pgl.Vector3(0., 0., 0.), pgl.Vector3(1., 0., 0.), pgl.Vector3(1., 1., 0.), pgl.Vector3(0., 1., 0.)])
+    indices = pgl.Index3Array([pgl.Index3(0, 1, 2), pgl.Index3(0, 2, 3)])
+    f = pgl.TriangleSet(points, indices)
+    return pgl.Scaled(pgl.Vector3(l, l, l), f)
 
-#==============================================================================
+
+# ==============================================================================
 # MTG topology construction
-#==============================================================================
+# ==============================================================================
 
 def VineMTG(file_path):
     raise DeprecationWarning('This function must be replaced by vine_mtg()')
     return vine_mtg(file_path)
+
 
 def vine_mtg(file_path):
     """
@@ -144,27 +145,27 @@ def vine_mtg(file_path):
     :Returns:
     - An MTG object.
     """
-#cep      -> plant
-#tronc    -> trunk
-#phyto    -> inT
-#'phyto'  -> 'inT'
-#'Cx'     -> 'cx'
-#sarement -> inT3y
-#en_s     -> inT3y
-#'enS'    -> 'inT3y'
-#en_t     -> inT2y
-#'enT'    -> 'inT2y'
-#'R'      -> 'shI'
-#en_r     -> inI
-#enR      -> 'inI'
-#enC      -> 'inII'
+    # cep      -> plant
+    # tronc    -> trunk
+    # phyto    -> inT
+    # 'phyto'  -> 'inT'
+    # 'Cx'     -> 'cx'
+    # sarement -> inT3y
+    # en_s     -> inT3y
+    # 'enS'    -> 'inT3y'
+    # en_t     -> inT2y
+    # 'enT'    -> 'inT2y'
+    # 'R'      -> 'shI'
+    # en_r     -> inI
+    # enR      -> 'inI'
+    # enC      -> 'inII'
 
-#perennial_axis -> perennial_axis
-#connect_s -> connect_inT3y
-#connect_t -> connect_inT2y
-#connect_r -> connect_inI
+    # perennial_axis -> perennial_axis
+    # connect_s -> connect_inT3y
+    # connect_t -> connect_inT2y
+    # connect_r -> connect_inI
 
-    table = read_csv(file_path,sep=';',decimal='.',header=0)
+    table = read_csv(file_path, sep=';', decimal='.', header=0)
 
     g = mtg.MTG()
 
@@ -184,8 +185,8 @@ def vine_mtg(file_path):
     B_A_S_E = map(''.join, product(*((c.upper(), c.lower()) for c in 'base')))
 
     for i in range(len(table)):
-        plant_id, trunk_id, elmnt_id, inT3y_id, shoot_id, order = [table[table.columns[j]][i] for j in range(0,6)]
-        vid_position = [round(table[table.columns[j]][i],2) for j in range(6,9)]
+        plant_id, trunk_id, elmnt_id, inT3y_id, shoot_id, order = [table[table.columns[j]][i] for j in range(0, 6)]
+        vid_position = [round(table[table.columns[j]][i], 2) for j in range(6, 9)]
         try:
             vid_diam = table[table.columns[9]][i]
         except:
@@ -198,16 +199,15 @@ def vine_mtg(file_path):
         else:
             trunk_id = int(trunk_id)
 
-
-        inT_cx = bool('.' in str(elmnt_id)) # TRUE if the element is a pruning complex
+        inT_cx = bool('.' in str(elmnt_id))  # TRUE if the element is a pruning complex
 
         if plant_id != plant_id_prev:
-            plant = g.add_component(g.root, label=('plant'+str(plant_id)), edge_type='/')
+            plant = g.add_component(g.root, label=('plant' + str(plant_id)), edge_type='/')
             if 'baseXYZ' in locals(): g.node(plant).baseXYZ = baseXYZ
             plant_ids = (plant_id_prev, plant_id)
             plant_id_prev = plant_id
 
-#       Perennial axes ********************************************************
+        #       Perennial axes ********************************************************
         trunk_lbl = str(plant_id) + '_' + str(trunk_id)
         if trunk_lbl != trunk_lbl_prev:
             if trunk_lbl.split('_')[0] != trunk_lbl_prev.split('_')[0]:
@@ -215,167 +215,181 @@ def vine_mtg(file_path):
                 perennial_axis = g.add_component(plant, label='trunk')
                 trunk = perennial_axis
             else:
-                perennial_axis = g.add_child(trunk, label=('arm'+str(trunk_id)), edge_type='+')
+                perennial_axis = g.add_child(trunk, label=('arm' + str(trunk_id)), edge_type='+')
 
             trunk_id_prev = trunk_id
             trunk_lbl_prev = trunk_lbl
 
-#       Internodes and pruning complexes of the permanent axes ****************
+        #       Internodes and pruning complexes of the permanent axes ****************
         elmnt_split = str(elmnt_id).split('.') if str(elmnt_id) not in ('0', '0.0') else []
 
-        if len(elmnt_split) == 1: # Simple internode of perennial axes
-            try: # TODO: optimize
+        if len(elmnt_split) == 1:  # Simple internode of perennial axes
+            try:  # TODO: optimize
                 inT_id = float(elmnt_id)
-                inT_lbl = str(plant_id) + '_' + str(trunk_id) +'_'+ str(elmnt_id)
+                inT_lbl = str(plant_id) + '_' + str(trunk_id) + '_' + str(elmnt_id)
             except ValueError:
                 inT_id = elmnt_id
-                inT_lbl = str(plant_id) + '_' + str(trunk_id) +'_'+ str(elmnt_id)
+                inT_lbl = str(plant_id) + '_' + str(trunk_id) + '_' + str(elmnt_id)
 
             if inT_lbl != inT_lbl_prev:
-                if inT_lbl.split('_')[0] != inT_lbl_prev.split('_')[0]: # If not the same plant=> add first internode to trunk
-                    inT = g.add_component(perennial_axis, label=('inT'+str(elmnt_id)), TopPosition=vid_position, TopDiameter=vid_diam)
+                if inT_lbl.split('_')[0] != inT_lbl_prev.split('_')[
+                    0]:  # If not the same plant=> add first internode to trunk
+                    inT = g.add_component(perennial_axis, label=('inT' + str(elmnt_id)), TopPosition=vid_position,
+                                          TopDiameter=vid_diam)
                 else:
                     if inT_lbl.split('_')[1] != inT_lbl_prev.split('_')[1]:
-                        if inT_lbl_prev.split('_')[1] == '0' : inT_t = inT
-                        inT = g.add_component(perennial_axis, label=('inT'+str(elmnt_id)), TopPosition=vid_position, TopDiameter=vid_diam)
-                        if inT_lbl.split('_')[1] != '0' : inT = g.add_child(inT_t, child=inT, edge_type='+', TopPosition=vid_position, TopDiameter=vid_diam)
+                        if inT_lbl_prev.split('_')[1] == '0': inT_t = inT
+                        inT = g.add_component(perennial_axis, label=('inT' + str(elmnt_id)), TopPosition=vid_position,
+                                              TopDiameter=vid_diam)
+                        if inT_lbl.split('_')[1] != '0': inT = g.add_child(inT_t, child=inT, edge_type='+',
+                                                                           TopPosition=vid_position,
+                                                                           TopDiameter=vid_diam)
                     else:
-                        if True in [c in str(elmnt_id) for c in ('rl','RL','Rl','rL')]:
+                        if True in [c in str(elmnt_id) for c in ('rl', 'RL', 'Rl', 'rL')]:
                             connect_p = complexe
                             edge_type_e = '+'
-                        else:#if any((c in ('rl','RL','Rl','rL')) for c in elmnt_id):
+                        else:  # if any((c in ('rl','RL','Rl','rL')) for c in elmnt_id):
                             connect_p = inT
                             edge_type_e = '<'
 
-                        inT = g.add_child(connect_p, label=('inT'+str(elmnt_id)), edge_type=edge_type_e, TopPosition=vid_position, TopDiameter=vid_diam)
+                        inT = g.add_child(connect_p, label=('inT' + str(elmnt_id)), edge_type=edge_type_e,
+                                          TopPosition=vid_position, TopDiameter=vid_diam)
                 inT_id_prev = inT_id
                 inT_lbl_prev = inT_lbl
 
-#        Pruning complex ******************************************************
+        #        Pruning complex ******************************************************
         elif len(elmnt_split) > 1:
             complexe_id = elmnt_id
-            complexe_lbl = str(plant_id) + '_' + str(trunk_id) +'_'+ str(elmnt_id)
+            complexe_lbl = str(plant_id) + '_' + str(trunk_id) + '_' + str(elmnt_id)
             if complexe_lbl != complexe_lbl_prev:
-                if complexe_lbl.split('.')[0] == complexe_lbl_prev.split('.')[0] and complexe_lbl.split('.')[1] == complexe_lbl_prev.split('.')[1]:
+                if complexe_lbl.split('.')[0] == complexe_lbl_prev.split('.')[0] and complexe_lbl.split('.')[1] == \
+                        complexe_lbl_prev.split('.')[1]:
                     connect_c = complexe
                 else:
                     connect_c = inT
-                complexe = g.add_child(connect_c, label=('cx'+str(elmnt_id)), edge_type='+', TopPosition=vid_position, TopDiameter=vid_diam)
+                complexe = g.add_child(connect_c, label=('cx' + str(elmnt_id)), edge_type='+', TopPosition=vid_position,
+                                       TopDiameter=vid_diam)
                 complexe_id_prev = complexe_id
                 complexe_lbl_prev = complexe_lbl
 
-
-#       Internodes of 3-year-old axes *****************************************
+        #       Internodes of 3-year-old axes *****************************************
         if float(inT3y_id) != 0.0:
-            inT3y_lbl = str(plant_id) + '_' + str(trunk_id) +'_'+ str(elmnt_id) +'_'+ str(inT3y_id)
+            inT3y_lbl = str(plant_id) + '_' + str(trunk_id) + '_' + str(elmnt_id) + '_' + str(inT3y_id)
             if inT3y_lbl != inT3y_lbl_prev:
                 if inT3y_lbl.split('_')[:3] == inT3y_lbl_prev.split('_')[:3]:
-                    if int(float(inT3y_lbl.split('_')[3])) == int(float(inT3y_lbl_prev.split('_')[3])): # In series
+                    if int(float(inT3y_lbl.split('_')[3])) == int(float(inT3y_lbl_prev.split('_')[3])):  # In series
                         connect_inT3y = inT3y
                         edge_type_s = '<'
-                else: # sarements in parallel
+                else:  # sarements in parallel
                     connect_inT3y = complexe if inT_cx else inT
                     edge_type_s = '+'
 
-                inT3y = g.add_child(connect_inT3y, label=('inT3y'+str(inT3y_id)), edge_type=edge_type_s, TopPosition=vid_position, TopDiameter=vid_diam)
+                inT3y = g.add_child(connect_inT3y, label=('inT3y' + str(inT3y_id)), edge_type=edge_type_s,
+                                    TopPosition=vid_position, TopDiameter=vid_diam)
                 inT3y_id_prev = inT3y_id
                 inT3y_lbl_prev = inT3y_lbl
 
-
-#       Internodes of 2- and 1-year-old axes **********************************
-        if str(shoot_id) not in ['0','0.0'] and bool(search('[pPfFlL]', str(shoot_id))) == False:
+        #       Internodes of 2- and 1-year-old axes **********************************
+        if str(shoot_id) not in ['0', '0.0'] and bool(search('[pPfFlL]', str(shoot_id))) == False:
             shoot_order = len(str(shoot_id).split('.'))
 
-            if shoot_order == 1:    # Primary shoot
+            if shoot_order == 1:  # Primary shoot
 
                 connect_inT2y = -1
                 label_shI = 'shI'
 
-                if inT_cx == False and float(inT3y_id) == 0.0 and bool(search('[gG]+',str(shoot_id))):
-                    connect_inI = inT       # Shoot>inT
+                if inT_cx == False and float(inT3y_id) == 0.0 and bool(search('[gG]+', str(shoot_id))):
+                    connect_inI = inT  # Shoot>inT
                     label_shI = 'GI'
 
-                elif inT_cx == False and float(inT3y_id) == 0.0 and bool(search('[gG]+',str(shoot_id))) == False:
-                    connect_inT2y = inT       # Shoot>spur>inT
+                elif inT_cx == False and float(inT3y_id) == 0.0 and bool(search('[gG]+', str(shoot_id))) == False:
+                    connect_inT2y = inT  # Shoot>spur>inT
 
-                elif float(inT3y_id) != 0.0 and bool(search('[gG]+',str(shoot_id))):
-                    connect_inI = inT3y        # Shoot>sarement
+                elif float(inT3y_id) != 0.0 and bool(search('[gG]+', str(shoot_id))):
+                    connect_inI = inT3y  # Shoot>sarement
                     label_shI = 'GI'
 
-                elif float(inT3y_id) != 0.0 and bool(search('[gG]+',str(shoot_id))) == False:
-                    connect_inT2y = inT3y        # Shoot>Spur>sarement
+                elif float(inT3y_id) != 0.0 and bool(search('[gG]+', str(shoot_id))) == False:
+                    connect_inT2y = inT3y  # Shoot>Spur>sarement
 
                 elif inT_cx == True and float(inT3y_id) == 0.0:
-                    connect_inI = complexe    # Shoot>complex
+                    connect_inI = complexe  # Shoot>complex
                     label_shI = 'GI'
 
-                shoot_id2 = float(findall(r'\d+',str(shoot_id))[0])
-
+                shoot_id2 = float(findall(r'\d+', str(shoot_id))[0])
 
                 if order == 0:
                     if connect_inT2y != -1:
-                        if str(shoot_id2) in('1','1.0'):
+                        if str(shoot_id2) in ('1', '1.0'):
                             edge_type_t = '+'
                         else:
                             edge_type_t = '<'
                             connect_inT2y = inT2y
-                        inT2y = g.add_child(connect_inT2y, label=('inT2y'+str(shoot_id)), edge_type=edge_type_t, TopPosition=vid_position, TopDiameter=vid_diam)
+                        inT2y = g.add_child(connect_inT2y, label=('inT2y' + str(shoot_id)), edge_type=edge_type_t,
+                                            TopPosition=vid_position, TopDiameter=vid_diam)
                         connect_inI = inT2y
                 else:
                     if order == 1:
-                        inI, shoot = g.add_child_and_complex(connect_inI, label=('inI'+str(order)), edge_type='+', TopPosition=vid_position, TopDiameter=vid_diam)
-                        g.node(shoot).label = label_shI+str(shoot_id)
+                        inI, shoot = g.add_child_and_complex(connect_inI, label=('inI' + str(order)), edge_type='+',
+                                                             TopPosition=vid_position, TopDiameter=vid_diam)
+                        g.node(shoot).label = label_shI + str(shoot_id)
                         g.node(shoot).edge_type = '+'
                     else:
-                        inI = g.add_child(inI, label=('inI'+str(order)), edge_type='<', TopPosition=vid_position, TopDiameter=vid_diam)
+                        inI = g.add_child(inI, label=('inI' + str(order)), edge_type='<', TopPosition=vid_position,
+                                          TopDiameter=vid_diam)
 
 
-            elif shoot_order >= 1:    # Secondary, tertiary, quaternary, etc. shoots
+            elif shoot_order >= 1:  # Secondary, tertiary, quaternary, etc. shoots
                 label_inode = 'in' + toRoman(shoot_order) + str(order)
                 in_connect_orders = [int(x.split('_')[0]) for x in str(shoot_id).split('.')[1:]]
 
-                if order == 1:    # A new ramification
+                if order == 1:  # A new ramification
                     in_iter = inI
                     for i2, in_order in enumerate(in_connect_orders):
-                        connect_inode = g.Axis(in_iter)[in_order-1]
-                        try :
+                        connect_inode = g.Axis(in_iter)[in_order - 1]
+                        try:
                             in_iter = g.Sons(connect_inode, EdgeType='+')[0]
                         except:
                             pass
 
-                    inode, shoot = g.add_child_and_complex(connect_inode, label=label_inode, edge_type='+', TopPosition=vid_position, TopDiameter=vid_diam)
+                    inode, shoot = g.add_child_and_complex(connect_inode, label=label_inode, edge_type='+',
+                                                           TopPosition=vid_position, TopDiameter=vid_diam)
                     g.node(shoot).edge_type = '+'
-                    g.node(shoot).label = 'sh' + toRoman(shoot_order) + str(shoot_id).split('.')[shoot_order-1].split('_')[1]
+                    g.node(shoot).label = 'sh' + toRoman(shoot_order) + \
+                                          str(shoot_id).split('.')[shoot_order - 1].split('_')[1]
                 else:
-                    inode = g.add_child(inode, label=label_inode, edge_type='<', TopPosition=vid_position, TopDiameter=vid_diam)
+                    inode = g.add_child(inode, label=label_inode, edge_type='<', TopPosition=vid_position,
+                                        TopDiameter=vid_diam)
 
-#       Petioles***************************************************************
+        #       Petioles***************************************************************
         if bool(search('[pP]', str(shoot_id))):
-            try: # implies that leaves must follow directly their holding internodes
+            try:  # implies that leaves must follow directly their holding internodes
                 pet_connect = max(inI, inode)
             except NameError:
                 pet_connect = inI
             pet_label = 'Pet' + str(g.node(pet_connect).index())
-            petiole = g.add_child(pet_connect, label=pet_label, edge_type='+', TopPosition=vid_position, TopDiameter=vid_diam)
+            petiole = g.add_child(pet_connect, label=pet_label, edge_type='+', TopPosition=vid_position,
+                                  TopDiameter=vid_diam)
 
-#       Leaves*****************************************************************
+        #       Leaves*****************************************************************
         if bool(search('[fFlL]', str(shoot_id))):
             ind_leaf_points.append(vid_position)
             if bool(search('5', str(shoot_id))):
                 leaf_label = 'LI' + str(g.node(pet_connect).index())
-                leaf = g.add_child(petiole, label=leaf_label, edge_type='+', TopPosition=ind_leaf_points[2],TopPositionPoints=array(ind_leaf_points))
-                ind_leaf_points=[]
+                leaf = g.add_child(petiole, label=leaf_label, edge_type='+', TopPosition=ind_leaf_points[2],
+                                   TopPositionPoints=array(ind_leaf_points))
+                ind_leaf_points = []
 
     return g
 
 
-def VinePhytoModular(g,v, *args):
+def VinePhytoModular(g, v, *args):
     raise DeprecationWarning("This function must be replaced by \
                              vine_phyto_modular()")
-    return vine_phyto_modular(g,v, *args)
+    return vine_phyto_modular(g, v, *args)
 
 
-def vine_phyto_modular(g,v, *args):
+def vine_phyto_modular(g, v, *args):
     """
     Identifies the type of phytometer according to Louarn et al. (2007).
     If not provided, 'P0 to P1' and 'P1 to P2' probabilites are given as:
@@ -384,10 +398,10 @@ def vine_phyto_modular(g,v, *args):
     """
 
     if 'P0toP1' not in args:
-        P0toP1 = [1,0.84,0.8,0.97]
+        P0toP1 = [1, 0.84, 0.8, 0.97]
         Pzones_nb = len(P0toP1)
     if 'P1toP2' not in args:
-        P1toP2 = [0.98,0.96,0.73,0.]
+        P1toP2 = [0.98, 0.96, 0.73, 0.]
 
     n = g.node(v)
     try:
@@ -401,15 +415,15 @@ def vine_phyto_modular(g,v, *args):
                 rand_val = rand()
                 if vid.parent().PhytoType == 0:
                     if P0_counter < Pzones_nb and rand_val > P0toP1[P0_counter]:
-                            vid.PhytoType = 0
-                            P0_counter += 1
+                        vid.PhytoType = 0
+                        P0_counter += 1
                     else:
                         vid.PhytoType = 1
                         P1_counter += 1
                 elif vid.parent().PhytoType == 1:
-                    if P1_counter < Pzones_nb and rand_val > P1toP2[(P1_counter-1)]:
-                            vid.PhytoType = 1
-                            P1_counter += 1
+                    if P1_counter < Pzones_nb and rand_val > P1toP2[(P1_counter - 1)]:
+                        vid.PhytoType = 1
+                        P1_counter += 1
                     else:
                         vid.PhytoType = 2
                 elif vid.parent().PhytoType == 2:
@@ -427,7 +441,8 @@ def VineNFII(in_order, pruning_type='avg_field_model', N_init=0.18, N_max=2.25,
                      in_order_max, sig_slope, phyto_type)
 
 
-def vine_NFII(in_order, pruning_type='avg_field_model',N_init=0.18,N_max=2.25,N_max_order=4,in_order_max=25,sig_slope=5.7,phyto_type='P0'):
+def vine_NFII(in_order, pruning_type='avg_field_model', N_init=0.18, N_max=2.25, N_max_order=4, in_order_max=25,
+              sig_slope=5.7, phyto_type='P0'):
     """
     Returns NFII, the total number of secondary phytomers per primary internode.
 
@@ -447,42 +462,61 @@ def vine_NFII(in_order, pruning_type='avg_field_model',N_init=0.18,N_max=2.25,N_
     - **'Pot'** are data collected in 2002 from well-irrigated pot-grown Syrah vines at INRA-Montpellier.
     """
 
-    GDC_1 = {1:[0,0],2:[0.1,0.2],3:[2.9,1.35],4:[3.7,2.19],5:[4.5,2.87],6:[3.5,2.05],7:[5,3.17],8:[3.8,2.2],9:[3.1,1.61],10:[0.8,0.7],11:[0.2,0.26],12:[0.1,0.2],13:[0.1,0.2],14:[0.1,0.2]}
-    Lyre = {1:[0,0],2:[0.4,0.6],3:[1.2,0.87],4:[3.4,1.94],5:[2.3,1.6],6:[3.5,1.81],7:[2.5,1.02],8:[3.4,2.27],9:[3.2,1.96],10:[2.3,1.6],11:[2.5,0.73],12:[2.8,1.82],13:[3.2,1.46],14:[2.1,1.22],15:[2.7,1.46],16:[2,1.27],17:[3,1.98],18:[1.8,1.84],19:[0.6,0.78],20:[0.6,0.67],21:[0.8,1.16],22:[0.4,0.6],23:[0.5,0.98]}
-    Rideau_simple = {1:[0.05,0.1],2:[0.5,0.44],3:[1.75,0.72],4:[3.55,1.72],5:[3.2,1.06],6:[3.85,1.57],7:[3.35,0.82],8:[2.75,0.99],9:[2.47,0.99],10:[2.13,0.5],11:[2.07,0.4],12:[2,0.65],13:[1.7,0.66],14:[2,1.39],15:[1,1.13],16:[1,0],17:[1.5,0.98],18:[2,1.96]}
-    VSP_HL = {1:[0.3,0.59],2:[0.3,0.59],3:[1.6,1.88],4:[5.2,3.5],5:[2.6,1.5],6:[2.4,1.68],7:[2.6,2.11],8:[3,2.79],9:[2.1,1.22],10:[6.8,3.9],11:[5,2.83],12:[4.7,3.32],13:[5,2.41],14:[6.4,4.08],15:[1.1,1.32],16:[0.3,0.59],17:[0.4,0.78],18:[0.3,0.59],19:[0.3,0.59],20:[0.2,0.39],21:[0,0],22:[0,0],23:[0,0]}
-    Lyre_ouverte = {1:[0.16,0.11],2:[0.63,0.17],3:[1.27,0.26],4:[1.47,0.35],5:[1.51,0.26],6:[1.38,0.24],7:[1.67,0.37],8:[1.22,0.35],9:[1.1,0.33],10:[0.88,0.28],11:[0.73,0.28],12:[0.67,0.3],13:[0.96,0.37],14:[1.45,0.72],15:[1.61,1.29],16:[0.76,0.74],17:[1.29,1.19],18:[1.21,1.25],19:[1.1,0.9],20:[1.2,1.44],21:[6,1.96]}
-    GDC_2 = {1:[0.37,0.21],2:[1.12,0.32],3:[1.95,0.36],4:[2.03,0.36],5:[1.96,0.34],6:[1.77,0.32],7:[1.7,0.36],8:[1.34,0.27],9:[1.06,0.22],10:[1.06,0.26],11:[0.75,0.21],12:[0.52,0.19],13:[0.38,0.16],14:[0.15,0.12],15:[0.1,0.11],16:[0.13,0.19]}
+    GDC_1 = {1: [0, 0], 2: [0.1, 0.2], 3: [2.9, 1.35], 4: [3.7, 2.19], 5: [4.5, 2.87], 6: [3.5, 2.05], 7: [5, 3.17],
+             8: [3.8, 2.2], 9: [3.1, 1.61], 10: [0.8, 0.7], 11: [0.2, 0.26], 12: [0.1, 0.2], 13: [0.1, 0.2],
+             14: [0.1, 0.2]}
+    Lyre = {1: [0, 0], 2: [0.4, 0.6], 3: [1.2, 0.87], 4: [3.4, 1.94], 5: [2.3, 1.6], 6: [3.5, 1.81], 7: [2.5, 1.02],
+            8: [3.4, 2.27], 9: [3.2, 1.96], 10: [2.3, 1.6], 11: [2.5, 0.73], 12: [2.8, 1.82], 13: [3.2, 1.46],
+            14: [2.1, 1.22], 15: [2.7, 1.46], 16: [2, 1.27], 17: [3, 1.98], 18: [1.8, 1.84], 19: [0.6, 0.78],
+            20: [0.6, 0.67], 21: [0.8, 1.16], 22: [0.4, 0.6], 23: [0.5, 0.98]}
+    Rideau_simple = {1: [0.05, 0.1], 2: [0.5, 0.44], 3: [1.75, 0.72], 4: [3.55, 1.72], 5: [3.2, 1.06], 6: [3.85, 1.57],
+                     7: [3.35, 0.82], 8: [2.75, 0.99], 9: [2.47, 0.99], 10: [2.13, 0.5], 11: [2.07, 0.4], 12: [2, 0.65],
+                     13: [1.7, 0.66], 14: [2, 1.39], 15: [1, 1.13], 16: [1, 0], 17: [1.5, 0.98], 18: [2, 1.96]}
+    VSP_HL = {1: [0.3, 0.59], 2: [0.3, 0.59], 3: [1.6, 1.88], 4: [5.2, 3.5], 5: [2.6, 1.5], 6: [2.4, 1.68],
+              7: [2.6, 2.11], 8: [3, 2.79], 9: [2.1, 1.22], 10: [6.8, 3.9], 11: [5, 2.83], 12: [4.7, 3.32],
+              13: [5, 2.41], 14: [6.4, 4.08], 15: [1.1, 1.32], 16: [0.3, 0.59], 17: [0.4, 0.78], 18: [0.3, 0.59],
+              19: [0.3, 0.59], 20: [0.2, 0.39], 21: [0, 0], 22: [0, 0], 23: [0, 0]}
+    Lyre_ouverte = {1: [0.16, 0.11], 2: [0.63, 0.17], 3: [1.27, 0.26], 4: [1.47, 0.35], 5: [1.51, 0.26],
+                    6: [1.38, 0.24], 7: [1.67, 0.37], 8: [1.22, 0.35], 9: [1.1, 0.33], 10: [0.88, 0.28],
+                    11: [0.73, 0.28], 12: [0.67, 0.3], 13: [0.96, 0.37], 14: [1.45, 0.72], 15: [1.61, 1.29],
+                    16: [0.76, 0.74], 17: [1.29, 1.19], 18: [1.21, 1.25], 19: [1.1, 0.9], 20: [1.2, 1.44],
+                    21: [6, 1.96]}
+    GDC_2 = {1: [0.37, 0.21], 2: [1.12, 0.32], 3: [1.95, 0.36], 4: [2.03, 0.36], 5: [1.96, 0.34], 6: [1.77, 0.32],
+             7: [1.7, 0.36], 8: [1.34, 0.27], 9: [1.06, 0.22], 10: [1.06, 0.26], 11: [0.75, 0.21], 12: [0.52, 0.19],
+             13: [0.38, 0.16], 14: [0.15, 0.12], 15: [0.1, 0.11], 16: [0.13, 0.19]}
 
-    NFII_dict = {'GDC_1':GDC_1, 'Lyre':Lyre, 'Rideau_simple':Rideau_simple, 'VSP_HL':VSP_HL, 'Lyre_ouverte':Lyre_ouverte, 'GDC_2':GDC_2}
-    Phyto_type_dict = {'P0':1.,'P1':0.63,'P2':0.63}
+    NFII_dict = {'GDC_1': GDC_1, 'Lyre': Lyre, 'Rideau_simple': Rideau_simple, 'VSP_HL': VSP_HL,
+                 'Lyre_ouverte': Lyre_ouverte, 'GDC_2': GDC_2}
+    Phyto_type_dict = {'P0': 1., 'P1': 0.63, 'P2': 0.63}
 
-    N_init,N_max,N_max_order,in_order_max = map(float,(N_init,N_max,N_max_order,in_order_max))
-    a1 = (N_max - N_init)/(N_max_order - 1)
+    N_init, N_max, N_max_order, in_order_max = map(float, (N_init, N_max, N_max_order, in_order_max))
+    a1 = (N_max - N_init) / (N_max_order - 1)
     b1 = N_init
-    a2 = -N_max/(in_order_max - N_max_order)
-    b2 = N_max*(1+N_max_order/(in_order_max - N_max_order))
+    a2 = -N_max / (in_order_max - N_max_order)
+    b2 = N_max * (1 + N_max_order / (in_order_max - N_max_order))
 
-    CI_1 = 0.42 # Average confidence interval for NFII observed in field (procedure to be improved)
-    CI_2_coef = 0.007*in_order+0.193 # Average confidence interval for NFII observed in pots (procedure to be improved)
+    CI_1 = 0.42  # Average confidence interval for NFII observed in field (procedure to be improved)
+    CI_2_coef = 0.007 * in_order + 0.193  # Average confidence interval for NFII observed in pots (procedure to be improved)
 
     if pruning_type in NFII_dict.keys():
         try:
-            NFII = NFII_dict[pruning_type][in_order][0] + NFII_dict[pruning_type][in_order][1]*(min(1,max(-1,randn()/2.96)))
+            NFII = NFII_dict[pruning_type][in_order][0] + NFII_dict[pruning_type][in_order][1] * (
+                min(1, max(-1, randn() / 2.96)))
         except:
             NFII = 0
     elif pruning_type == 'Pot':
         N_reduction_slope = 0.0055 if phyto_type == 'P2' else 0.
-        NFII_init = a1*in_order + b1 if in_order <= N_max_order else 2*N_max*(1-1/(1+exp(-(in_order-(N_max_order-1))/sig_slope)))
-        NFII_init = NFII_init*(1+CI_2_coef*(min(1,max(-1,randn()/2.96))))
-        reduction_coeff = N_reduction_slope*in_order+Phyto_type_dict[phyto_type]
-        NFII=reduction_coeff*NFII_init
-    else : # default_pruning_type = 'avg_field_model'
-        NFII_init = a1*(in_order-1) + b1 if in_order <= N_max_order else a2*in_order + b2
-        NFII_init = max(0.,NFII_init)
-        NFII = NFII_init+CI_1*(min(1,max(-1,randn()/2.96)))
+        NFII_init = a1 * in_order + b1 if in_order <= N_max_order else 2 * N_max * (
+                1 - 1 / (1 + exp(-(in_order - (N_max_order - 1)) / sig_slope)))
+        NFII_init = NFII_init * (1 + CI_2_coef * (min(1, max(-1, randn() / 2.96))))
+        reduction_coeff = N_reduction_slope * in_order + Phyto_type_dict[phyto_type]
+        NFII = reduction_coeff * NFII_init
+    else:  # default_pruning_type = 'avg_field_model'
+        NFII_init = a1 * (in_order - 1) + b1 if in_order <= N_max_order else a2 * in_order + b2
+        NFII_init = max(0., NFII_init)
+        NFII = NFII_init + CI_1 * (min(1, max(-1, randn() / 2.96)))
 
-    NFII = int(round(NFII,0))
+    NFII = int(round(NFII, 0))
 
     return NFII
 
@@ -504,10 +538,10 @@ def vine_LII(NFII, pruning_type='avg_field_model', a_L=43.718, b_L=-37.663, a_P=
     - **a_P**, **b_P**, **c_P**: floats, the coefficients of the polynomial relationship LenII=f(NFII)
     """
 
-    if pruning_type in ('avg_field_model','GDC_1', 'Lyre', 'Rideau_simple', 'VSP_HL', 'Lyre_ouverte', 'GDC_2'):
-        LII = max(0., a_L*NFII + b_L)
+    if pruning_type in ('avg_field_model', 'GDC_1', 'Lyre', 'Rideau_simple', 'VSP_HL', 'Lyre_ouverte', 'GDC_2'):
+        LII = max(0., a_L * NFII + b_L)
     elif pruning_type == 'Pot':
-        LII = a_P*NFII**2 + b_P*NFII + c_P
+        LII = a_P * NFII ** 2 + b_P * NFII + c_P
 
     return LII
 
@@ -529,7 +563,7 @@ def vine_internode_length(phyto_num, tot_len):
     """
 
     if phyto_num != 0:
-        inL = tot_len/phyto_num
+        inL = tot_len / phyto_num
     else:
         inL = 0.
 
@@ -557,15 +591,15 @@ def vine_axis_curvature(incli_init, length, Fifty_cent=400., sig_slope=70.,
     - **curv_type**: in plant exterior direction even 'convex' or 'concave'
     """
 
-    curv_max = pi/2. + incli_init
-    curv_tot = curv_max/(1.+exp(-(length-Fifty_cent)/sig_slope)) # TODO: Rule to be confirmed
+    curv_max = pi / 2. + incli_init
+    curv_tot = curv_max / (1. + exp(-(length - Fifty_cent) / sig_slope))  # TODO: Rule to be confirmed
     if curv_type == 'convexe':
         curv_tot = -curv_tot
 
     return curv_tot
 
 
-def vector_rotation(vector,axis, theta):
+def vector_rotation(vector, axis, theta):
     """
     Returns the rotation matrix associated with counterclockwise rotation about the given axis by theta radians.
 
@@ -574,30 +608,30 @@ def vector_rotation(vector,axis, theta):
     - **axis**: tuple-like, the rotation axis vector
     - **theta**: float, the rotation angle [rad]
     """
-    #cf. http://stackoverflow.com/questions/6802577/python-rotation-of-3d-vector
+    # cf. http://stackoverflow.com/questions/6802577/python-rotation-of-3d-vector
 
     axis = asarray(axis)
     theta = asarray(theta)
-    axis = axis/sqrt(dot(axis, axis))
-    a = cos(theta/2.0)
-    b, c, d = -axis*sin(theta/2.0)
-    aa, bb, cc, dd = a*a, b*b, c*c, d*d
-    bc, ad, ac, ab, bd, cd = b*c, a*d, a*c, a*b, b*d, c*d
-    rotation_matrix = array([[aa+bb-cc-dd, 2*(bc+ad), 2*(bd-ac)],
-                     [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
-                     [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
+    axis = axis / sqrt(dot(axis, axis))
+    a = cos(theta / 2.0)
+    b, c, d = -axis * sin(theta / 2.0)
+    aa, bb, cc, dd = a * a, b * b, c * c, d * d
+    bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+    rotation_matrix = array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+                             [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+                             [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
 
     return dot(rotation_matrix, vector)
 
 
-def VineAxeIIinsert(inI_vector, insert_angle=46.,insert_angle_CI=4.6,rot_range=180.):
+def VineAxeIIinsert(inI_vector, insert_angle=46., insert_angle_CI=4.6, rot_range=180.):
     raise DeprecationWarning("This function must be replaced by \
                              vine_axeII_insert()")
     return vine_axeII_insert(inI_vector, insert_angle, insert_angle_CI,
                              rot_range)
 
 
-def vine_axeII_insert(inI_vector, insert_angle=46.,insert_angle_CI=4.6,rot_range=180.):
+def vine_axeII_insert(inI_vector, insert_angle=46., insert_angle_CI=4.6, rot_range=180.):
     """
     Returns the azimut and inclination [rad] of the insertion unit vector of the first secondary internode
 
@@ -608,16 +642,16 @@ def vine_axeII_insert(inI_vector, insert_angle=46.,insert_angle_CI=4.6,rot_range
     - **rot_range**: float, the range [degrees] within which the axis is rotated
     """
 
-    len_I, azi_I, incli_I = [inI_vector[i] for i in [0,1,2]]
+    len_I, azi_I, incli_I = [inI_vector[i] for i in [0, 1, 2]]
 
-    a_insert = insert_angle + insert_angle_CI*(min(1,max(-1,randn()/2.96)))
-    a_insert = a_insert*pi/180.
-    rot_range = rot_range*pi/180.
-    rand_rotate = rot_range*rand()
-#    azi_init = azi_I + a_insert*sin(rand_rotate)
-#    incli_init = incli_I + a_insert*cos(rand_rotate)
+    a_insert = insert_angle + insert_angle_CI * (min(1, max(-1, randn() / 2.96)))
+    a_insert = a_insert * pi / 180.
+    rot_range = rot_range * pi / 180.
+    rand_rotate = rot_range * rand()
+    #    azi_init = azi_I + a_insert*sin(rand_rotate)
+    #    incli_init = incli_I + a_insert*cos(rand_rotate)
     dx, dy, dz = pol_to_cart((len_I, azi_I, incli_I))
-    rot_axis_1 = cross((dx, dy, dz),(0.,0.,1.))
+    rot_axis_1 = cross((dx, dy, dz), (0., 0., 1.))
     vec_2 = vector_rotation((dx, dy, dz), rot_axis_1, a_insert)
     vec_2 = vector_rotation(vec_2, (dx, dy, dz), rand_rotate)
     len_init, azi_init, incli_init = cart_to_pol(vec_2)
@@ -629,8 +663,7 @@ def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
               insert_angle_CI=4.6, pruning_type='avg_field_model', N_init=0.18,
               N_max=2.25, N_max_order=4, in_order_max=25, slope_nfii=5.7,
               phyto_type='P0', a_L=43.718, b_L=-37.663, a_P=1.722, b_P=10.136,
-              c_P=-5.435, Fifty_cent=400., slope_curv=70.,curv_type='convexe'):
-
+              c_P=-5.435, Fifty_cent=400., slope_curv=70., curv_type='convexe'):
     raise DeprecationWarning("This function must be replaced by vine_axeII()")
 
     return vine_axeII(g, vid, phyllo_angle, PT_init, insert_angle,
@@ -646,7 +679,6 @@ def vine_axeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
                slope_nfii=5.7, phyto_type='P0', a_L=43.718, b_L=-37.663,
                a_P=1.722, b_P=10.136, c_P=-5.435, Fifty_cent=400.,
                slope_curv=70., curv_type='convexe'):
-
     """
     Adds secondary phytomers to an existing MTG.
 
@@ -671,60 +703,63 @@ def vine_axeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
     - **curv_type**: in plant exterior direction even 'convex' or 'concave'
     """
 
-    phyllo_angle = phyllo_angle*pi/180.
+    phyllo_angle = phyllo_angle * pi / 180.
 
-    if not 0. <= PT_init <= 1.0 : PT_init = max(0., min(PT_init,1.))
-    #insert_angle=insert_angle*pi/180.
-    #insert_angle_CI=insert_angle_CI*pi/180.
+    if not 0. <= PT_init <= 1.0: PT_init = max(0., min(PT_init, 1.))
+    # insert_angle=insert_angle*pi/180.
+    # insert_angle_CI=insert_angle_CI*pi/180.
 
-# Generation of axis elements
-    if vid>0:
+    # Generation of axis elements
+    if vid > 0:
         fatherI = g.node(vid)
         if fatherI.label.startswith('inI'):
             order = g.Class(vid).split('in')[1]
             if order == 'I':
-                in_order = int(fatherI.index()) if not fatherI.label[-1].isalpha() else int(findall(r'\d+',str(fatherI.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
-                NFII = vine_NFII(in_order, pruning_type,N_init,N_max,N_max_order,in_order_max,slope_nfii,phyto_type)
-                tot_len = 0.1*vine_LII(NFII, pruning_type, a_L, b_L, a_P, b_P, c_P)
+                in_order = int(fatherI.index()) if not fatherI.label[-1].isalpha() else int(
+                    findall(r'\d+', str(fatherI.label))[
+                        -1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
+                NFII = vine_NFII(in_order, pruning_type, N_init, N_max, N_max_order, in_order_max, slope_nfii,
+                                 phyto_type)
+                tot_len = 0.1 * vine_LII(NFII, pruning_type, a_L, b_L, a_P, b_P, c_P)
                 length = vine_internode_length(NFII, tot_len)
 
-#               Generation of secondary internodes
+                #               Generation of secondary internodes
                 for vtx_id in range(NFII):
                     if vtx_id == 0:
-                        en_c, axeII = g.add_child_and_complex(vid, label='inII1',edge_type='+')
-                        g.node(axeII).label = 'shII'+str(fatherI.index())
+                        en_c, axeII = g.add_child_and_complex(vid, label='inII1', edge_type='+')
+                        g.node(axeII).label = 'shII' + str(fatherI.index())
                         g.node(axeII).edge_type = '+'
                     else:
-                        en_c = g.add_child(en_c, label=('inII'+str(vtx_id+1)),edge_type='<')
+                        en_c = g.add_child(en_c, label=('inII' + str(vtx_id + 1)), edge_type='<')
 
-#                   Determination of the secondary internodes TopPosition
+                    #                   Determination of the secondary internodes TopPosition
                     if vtx_id == 0:
                         grandpa = fatherI.parent()
-                        counter=0
+                        counter = 0
                         for vtx in grandpa.children():
                             if vtx.label == 'inII1':
                                 counter += 1
 
-#                               Getting vector of the previous axisII insertion internode
+                                #                               Getting vector of the previous axisII insertion internode
                                 sibling = vtx
                                 BotPos_sg = grandpa.TopPosition
                                 TopPos_sg = sibling.TopPosition
-                                dx_sg, dy_sg, dz_sg = [round(float(i),2) for i in subtract(TopPos_sg,BotPos_sg)]
-                                len_sg,azi_sg,incli_sg = cart_to_pol((dx_sg,dy_sg,dz_sg))
+                                dx_sg, dy_sg, dz_sg = [round(float(i), 2) for i in subtract(TopPos_sg, BotPos_sg)]
+                                len_sg, azi_sg, incli_sg = cart_to_pol((dx_sg, dy_sg, dz_sg))
 
-#                               Getting the vector of the primary internode holding the previous axisII
+                                #                               Getting the vector of the primary internode holding the previous axisII
                                 TopPos_gp = grandpa.TopPosition
                                 BotPos_gp = grandpa.parent().TopPosition
-                                dx_gp, dy_gp, dz_gp = [round(float(i),2) for i in subtract(TopPos_gp,BotPos_gp)]
-                                len_gp,azi_gp,incli_gp = cart_to_pol((dx_gp,dy_gp,dz_gp))
+                                dx_gp, dy_gp, dz_gp = [round(float(i), 2) for i in subtract(TopPos_gp, BotPos_gp)]
+                                len_gp, azi_gp, incli_gp = cart_to_pol((dx_gp, dy_gp, dz_gp))
 
                                 # Getting the vector of the primary internode holding the actual axisII
                                 TopPos_f = fatherI.TopPosition
                                 BotPos_f = grandpa.TopPosition
-                                dx_f, dy_f, dz_f = [round(float(i),2) for i in subtract(TopPos_f,BotPos_f)]
-                                len_f,azi_f,incli_f = cart_to_pol((dx_f,dy_f,dz_f))
+                                dx_f, dy_f, dz_f = [round(float(i), 2) for i in subtract(TopPos_f, BotPos_f)]
+                                len_f, azi_f, incli_f = cart_to_pol((dx_f, dy_f, dz_f))
 
-#                               First correction azi and incli follow the dirction of the holding primary internode.
+                                #                               First correction azi and incli follow the dirction of the holding primary internode.
                                 dazi = azi_f - azi_gp
                                 dincli = incli_f - incli_gp
 
@@ -732,83 +767,85 @@ def vine_axeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
                                 incli_tempo1 = incli_sg + dincli
 
                                 if abs(azi_tempo1) >= abs(azi_f):
-                                    phyllo_angle = -phyllo_angle*sign(incli_f)
+                                    phyllo_angle = -phyllo_angle * sign(incli_f)
                                 else:
-                                    phyllo_angle = phyllo_angle*sign(incli_f)
+                                    phyllo_angle = phyllo_angle * sign(incli_f)
 
-                                vector = pol_to_cart((length,azi_tempo1,incli_tempo1))
+                                vector = pol_to_cart((length, azi_tempo1, incli_tempo1))
                                 axis_I = (dx_f, dy_f, dz_f)
-                                phyllotaxis = phyllo_angle*(1.+0.1*min(1,max(-1,randn()/2.96))) # the confidence interval 0.1 is to be confirmed.
+                                phyllotaxis = phyllo_angle * (1. + 0.1 * min(1, max(-1,
+                                                                                    randn() / 2.96)))  # the confidence interval 0.1 is to be confirmed.
 
-#                               Second correction: the axisII insertion internode must adhere to phyllotaxis rule.
-                                dx, dy, dz = vector_rotation(vector,axis_I,phyllotaxis)
-                                #len_init,azi_init,incli_init = cart_to_pol((dx,dy,dz))
+                                #                               Second correction: the axisII insertion internode must adhere to phyllotaxis rule.
+                                dx, dy, dz = vector_rotation(vector, axis_I, phyllotaxis)
+                                # len_init,azi_init,incli_init = cart_to_pol((dx,dy,dz))
 
-#                               Third correction: Considering the uncertainty in the insertion angle
+                                #                               Third correction: Considering the uncertainty in the insertion angle
                                 ins_min = insert_angle - insert_angle_CI
                                 ins_max = insert_angle + insert_angle_CI
-                                a_insert = arccos(min(max(-1,dot((dx, dy, dz),(axis_I))),1))
-                                sup_range = max(0.,ins_max - a_insert)
+                                a_insert = arccos(min(max(-1, dot((dx, dy, dz), (axis_I))), 1))
+                                sup_range = max(0., ins_max - a_insert)
                                 inf_range = -max(0., a_insert - ins_min)
-                                rot_range = rand()*(sup_range - inf_range) + inf_range
-                                normal_vec = cross((dx, dy, dz),(axis_I)) # the normal vector to the plane defined by the primary internode and the insertion secondary internode
-                                dx, dy, dz = vector_rotation((dx, dy, dz),normal_vec,rot_range)
-                                len_init,azi_init,incli_init = cart_to_pol((dx,dy,dz))
+                                rot_range = rand() * (sup_range - inf_range) + inf_range
+                                normal_vec = cross((dx, dy, dz), (
+                                    axis_I))  # the normal vector to the plane defined by the primary internode and the insertion secondary internode
+                                dx, dy, dz = vector_rotation((dx, dy, dz), normal_vec, rot_range)
+                                len_init, azi_init, incli_init = cart_to_pol((dx, dy, dz))
 
-                        if counter ==0:
+                        if counter == 0:
                             TopPos_f = fatherI.TopPosition
                             BotPos_f = grandpa.TopPosition
-                            dx_f, dy_f, dz_f = [round(float(i),2) for i in subtract(TopPos_f,BotPos_f)]
-                            len_f,azi_f,incli_f = cart_to_pol((dx_f,dy_f,dz_f))
+                            dx_f, dy_f, dz_f = [round(float(i), 2) for i in subtract(TopPos_f, BotPos_f)]
+                            len_f, azi_f, incli_f = cart_to_pol((dx_f, dy_f, dz_f))
 
-                            father_vec = (len_f,azi_f,incli_f)
-                            azi_init, incli_init = vine_axeII_insert(father_vec)#,insert_angle,insert_angle_CI)
-                            dx, dy, dz = pol_to_cart((length,azi_init, incli_init))
+                            father_vec = (len_f, azi_f, incli_f)
+                            azi_init, incli_init = vine_axeII_insert(father_vec)  # ,insert_angle,insert_angle_CI)
+                            dx, dy, dz = pol_to_cart((length, azi_init, incli_init))
 
                     else:
                         vidII = g.node(en_c)
                         fatherII = vidII.parent()
                         grandpaII = fatherII.parent()
-                        dx_prec,dy_prec,dz_prec = [round(float(i),2) for i in subtract(fatherII.TopPosition,grandpaII.TopPosition)]
-                        vector_prec = (dx_prec,dy_prec,dz_prec)
-                        len_prec,azi_prec,incli_prec = cart_to_pol(vector_prec)
+                        dx_prec, dy_prec, dz_prec = [round(float(i), 2) for i in
+                                                     subtract(fatherII.TopPosition, grandpaII.TopPosition)]
+                        vector_prec = (dx_prec, dy_prec, dz_prec)
+                        len_prec, azi_prec, incli_prec = cart_to_pol(vector_prec)
 
-                        curv_tot = vine_axis_curvature(incli_init, tot_len*10., Fifty_cent, slope_curv,curv_type)
+                        curv_tot = vine_axis_curvature(incli_init, tot_len * 10., Fifty_cent, slope_curv, curv_type)
 
-                        PT = PT_init #+ ((pi - curv_tot)/pi)*(1-PT_init)
+                        PT = PT_init  # + ((pi - curv_tot)/pi)*(1-PT_init)
 
-                        n1 = int(round(PT*NFII,0))
+                        n1 = int(round(PT * NFII, 0))
                         n2 = NFII - n1
 
-                        dcurv = curv_tot/2./n1/2. if vtx_id+1 <= n1 else curv_tot/2./n2/2.
-                        incli = incli_prec + dcurv if vtx_id == 0 else incli_prec + 2*dcurv
+                        dcurv = curv_tot / 2. / n1 / 2. if vtx_id + 1 <= n1 else curv_tot / 2. / n2 / 2.
+                        incli = incli_prec + dcurv if vtx_id == 0 else incli_prec + 2 * dcurv
 
                         TopPos_f = fatherII.TopPosition
 
-#                       In order to avoid that all vertical ramifications goes in the direction of x axis.
-                        if incli_prec == pi/2.: azi_prec = rand()*pi*2.
+                        #                       In order to avoid that all vertical ramifications goes in the direction of x axis.
+                        if incli_prec == pi / 2.: azi_prec = rand() * pi * 2.
 
-                        dx = length*cos(incli)*cos(azi_prec)
-                        dy = length*cos(incli)*sin(azi_prec)
-                        dz = length*sin(incli)
+                        dx = length * cos(incli) * cos(azi_prec)
+                        dy = length * cos(incli) * sin(azi_prec)
+                        dz = length * sin(incli)
 
-                    x_bot, y_bot,z_bot = [TopPos_f[i] for i in [0,1,2]]
-                    x_n, y_n, z_n = round(x_bot + dx, 2), round(y_bot + dy,2), round(z_bot + dz,2)
+                    x_bot, y_bot, z_bot = [TopPos_f[i] for i in [0, 1, 2]]
+                    x_n, y_n, z_n = round(x_bot + dx, 2), round(y_bot + dy, 2), round(z_bot + dz, 2)
 
                     g.node(en_c).TopPosition = [x_n, y_n, z_n]
 
     return g
 
 
-def VinePetLen(in_order, len_max=8.,Fifty_cent=30.,sig_slope=4.2):
-
+def VinePetLen(in_order, len_max=8., Fifty_cent=30., sig_slope=4.2):
     raise DeprecationWarning("This function must be replaced by \
                              vine_petiole_length()")
 
     return vine_petiole_length(in_order, len_max, Fifty_cent, sig_slope)
 
 
-def vine_petiole_length(in_order, len_max=8.,Fifty_cent=30.,sig_slope=4.2):
+def vine_petiole_length(in_order, len_max=8., Fifty_cent=30., sig_slope=4.2):
     """
     Returns petiole length (def in cm) of an internode or a pruning complex.
 
@@ -819,7 +856,7 @@ def vine_petiole_length(in_order, len_max=8.,Fifty_cent=30.,sig_slope=4.2):
     - **sig_slope**: float, the slope (b) of the sigmoidal curve Diam=f(range)
     """
 
-    petiol_len = len_max*(1-1/(1+exp(-(in_order-Fifty_cent)/sig_slope)))
+    petiol_len = len_max * (1 - 1 / (1 + exp(-(in_order - Fifty_cent) / sig_slope)))
     # TODO: The confidence intervals may be added
 
     return petiol_len
@@ -828,7 +865,6 @@ def vine_petiole_length(in_order, len_max=8.,Fifty_cent=30.,sig_slope=4.2):
 def VinePetiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
                 phyllo_angle_cv=10., len_max_I=8., len_max_II=4.,
                 Fifty_cent=30., sig_slope=4.2):
-
     raise DeprecationWarning("This function must be replaced by \
                              vine_petiole()")
 
@@ -840,9 +876,8 @@ def VinePetiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
 def vine_petiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
                  phyllo_angle_cv=10., len_max_I=8., len_max_II=4.,
                  Fifty_cent=30., sig_slope=4.2):
-
-    #vine_petiole(in_order, len_max=80.,Fifty_cent=30.,sig_slope=4.2):
-    #vine_axeII_insert(vec_f,insert_angle,insert_angle_CI))
+    # vine_petiole(in_order, len_max=80.,Fifty_cent=30.,sig_slope=4.2):
+    # vine_axeII_insert(vec_f,insert_angle,insert_angle_CI))
     """
     Adds petiols to an existing MTG.
 
@@ -867,48 +902,50 @@ def vine_petiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
             father = n
             grandpa = n.parent()
             grandgrandpa = grandpa.parent() if grandpa.parent() is not None else grandpa
-            in_order = int(father.index()) if not father.label[-1].isalpha() else int(findall(r'\d+',str(father.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
+            in_order = int(father.index()) if not father.label[-1].isalpha() else int(
+                findall(r'\d+', str(father.label))[
+                    -1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
 
             len_max = len_max_I if g.Class(vid).split('in')[1] == 'I' else len_max_II
-            len_max = vine_midrib_length(in_order, len_max, len_max/10.) # TODO: insert parameters
-            len_petI = vine_petiole_length(in_order, len_max, Fifty_cent,sig_slope)
+            len_max = vine_midrib_length(in_order, len_max, len_max / 10.)  # TODO: insert parameters
+            len_petI = vine_petiole_length(in_order, len_max, Fifty_cent, sig_slope)
 
-            vec_f = subtract(father.TopPosition,grandpa.TopPosition)
-            len_f,azi_f,incli_f = cart_to_pol(vec_f)
+            vec_f = subtract(father.TopPosition, grandpa.TopPosition)
+            len_f, azi_f, incli_f = cart_to_pol(vec_f)
 
-            vec_gp = subtract(grandpa.TopPosition,grandgrandpa.TopPosition)
-            len_gp,azi_gp,incli_gp = cart_to_pol(vec_gp)
+            vec_gp = subtract(grandpa.TopPosition, grandgrandpa.TopPosition)
+            len_gp, azi_gp, incli_gp = cart_to_pol(vec_gp)
 
             if in_order == 1:
                 # Generating first petiole
-                normal_vec = cross(vec_gp,vec_f)
-                rotation_axis1 = cross(vec_f,normal_vec)
-                arb = 1. #rand()
+                normal_vec = cross(vec_gp, vec_f)
+                rotation_axis1 = cross(vec_f, normal_vec)
+                arb = 1.  # rand()
             else:
                 # Determining the actual petiolar vector as a function of the previous petiolar vector (phyllotaxis)
                 for sibling in grandpa.children():
                     if sibling.label.startswith('PetI'):
                         BotPos_sg = grandpa.TopPosition
                         TopPos_sg = sibling.TopPosition
-                        vec_sg = subtract(TopPos_sg,BotPos_sg)
-                        len_sg,azi_sg,incli_sg = cart_to_pol(vec_sg)
+                        vec_sg = subtract(TopPos_sg, BotPos_sg)
+                        len_sg, azi_sg, incli_sg = cart_to_pol(vec_sg)
                 rotation_axis1 = cross(vec_f, vec_sg)
                 arb = 1.
 
-#           Initiating the petiole
-            pet_vec = vec_f/norm(vec_f)*len_petI
+            #           Initiating the petiole
+            pet_vec = vec_f / norm(vec_f) * len_petI
 
-#           Insertion angle
-            pet_ins = pet_ins*(1.+(pet_ins_cv/100.)*min(1,max(-1,randn()/2.96)))
-            pet_vec = vector_rotation(pet_vec,rotation_axis1, pet_ins)
+            #           Insertion angle
+            pet_ins = pet_ins * (1. + (pet_ins_cv / 100.) * min(1, max(-1, randn() / 2.96)))
+            pet_vec = vector_rotation(pet_vec, rotation_axis1, pet_ins)
 
-#           Phyllotaxis
-            phyllotaxis = phyllo_angle*(1.+(phyllo_angle_cv/100.)*min(1,max(-1,randn()/2.96)))*arb
+            #           Phyllotaxis
+            phyllotaxis = phyllo_angle * (1. + (phyllo_angle_cv / 100.) * min(1, max(-1, randn() / 2.96))) * arb
             dx_pet, dy_pet, dz_pet = vector_rotation(pet_vec, vec_f, phyllotaxis)
 
             # Setting the TopPosition coordinates of the primary petiole
-            x_bot, y_bot, z_bot = [father.TopPosition[i] for i in [0,1,2]]
-            x_pet, y_pet, z_pet = round(x_bot + dx_pet, 2), round(y_bot + dy_pet,2), round(z_bot + dz_pet,2)
+            x_bot, y_bot, z_bot = [father.TopPosition[i] for i in [0, 1, 2]]
+            x_pet, y_pet, z_pet = round(x_bot + dx_pet, 2), round(y_bot + dy_pet, 2), round(z_bot + dz_pet, 2)
 
             label_pet = 'Pet' + (g.Class(vid)).split('in')[1] + str(in_order)
 
@@ -920,7 +957,6 @@ def vine_petiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
 
 def VineLeafLen(in_order, lim_max=15., lim_min=5.1, order_lim_max=7,
                 max_order=40):
-
     raise DeprecationWarning("This function must be replaced by \
                              vine_midrib_length()")
 
@@ -940,9 +976,9 @@ def vine_midrib_length(in_order, lim_max=15., lim_min=5.1, order_lim_max=7, max_
     """
 
     if in_order <= order_lim_max:
-        LimbeLen = lim_min + (in_order-1)*(lim_max-lim_min)/(order_lim_max-1)
+        LimbeLen = lim_min + (in_order - 1) * (lim_max - lim_min) / (order_lim_max - 1)
     else:
-        LimbeLen = lim_max - (in_order-order_lim_max)*lim_max/(max_order-order_lim_max)
+        LimbeLen = lim_max - (in_order - order_lim_max) * lim_max / (max_order - order_lim_max)
 
     return LimbeLen
 
@@ -950,7 +986,6 @@ def vine_midrib_length(in_order, lim_max=15., lim_min=5.1, order_lim_max=7, max_
 def VineLeaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
              lim_max=15., lim_min=5.1, order_lim_max=7, max_order=40,
              cordon_vector=None):
-
     raise DeprecationWarning("This function must be replaced by \
                              vine_leaf()")
 
@@ -959,8 +994,8 @@ def VineLeaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
 
 
 def vine_leaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
-             lim_max=15., lim_min=5.1, order_lim_max=7, max_order=40,
-             cordon_vector=None):
+              lim_max=15., lim_min=5.1, order_lim_max=7, max_order=40,
+              cordon_vector=None):
     """
     Determines both the length and 3D orientation of a leaf based on the order of its holding internode.
 
@@ -979,35 +1014,36 @@ def vine_leaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
     if vid > 0:
         n = g.node(vid)
         if n.label.startswith('Pet'):
-            in_order = int(n.index()) if not n.label[-1].isalpha() else int(findall(r'\d+',str(n.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
+            in_order = int(n.index()) if not n.label[-1].isalpha() else int(findall(r'\d+', str(n.label))[
+                                                                                -1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
             order = (g.Class(vid)).split('Pet')[1]
-            #if order != 'I': lim_min = lim_max*0.8 # TODO: to be written more properly
+            # if order != 'I': lim_min = lim_max*0.8 # TODO: to be written more properly
 
             leaf_label = 'L' + order + '_' + str(in_order)
             leaf = g.add_child(vid, label=leaf_label, edge_type='+')
 
             limbe_len = vine_midrib_length(in_order, lim_max, lim_min, order_lim_max, max_order)
-            limbe_vec = array([0.,0.,1.])*limbe_len
+            limbe_vec = array([0., 0., 1.]) * limbe_len
 
             if cordon_vector is None:
                 vec_pet = subtract(n.TopPosition, n.parent().TopPosition)
-                rotation_axis = cross([0.,0.,1.],vec_pet)
+                rotation_axis = cross([0., 0., 1.], vec_pet)
             else:
-                rotation_axis = leaf_rotation_axis(n.TopPosition,cordon_vector)
-            rotation_angle = pi/2. - leaf_inc *(1.+(leaf_inc_cv/100.)*min(1,max(-1,randn()/2.96)))
-            dx_limbe, dy_limbe, dz_limbe = vector_rotation(limbe_vec,rotation_axis,rotation_angle)
+                rotation_axis = leaf_rotation_axis(n.TopPosition, cordon_vector)
+            rotation_angle = pi / 2. - leaf_inc * (1. + (leaf_inc_cv / 100.) * min(1, max(-1, randn() / 2.96)))
+            dx_limbe, dy_limbe, dz_limbe = vector_rotation(limbe_vec, rotation_axis, rotation_angle)
 
-            rotation_angle = rand_rot_angle * min(1,max(-1,randn()/2.96))
-            dx_limbe, dy_limbe, dz_limbe = vector_rotation((dx_limbe, dy_limbe, dz_limbe),(0.,0.,1.),rotation_angle)
+            rotation_angle = rand_rot_angle * min(1, max(-1, randn() / 2.96))
+            dx_limbe, dy_limbe, dz_limbe = vector_rotation((dx_limbe, dy_limbe, dz_limbe), (0., 0., 1.), rotation_angle)
 
-            x_bot, y_bot, z_bot = [n.TopPosition[i] for i in [0,1,2]]
-            g.node(leaf).TopPosition = [round(x_bot + dx_limbe,2), round(y_bot + dy_limbe,2), round(z_bot + dz_limbe,2)]
+            x_bot, y_bot, z_bot = [n.TopPosition[i] for i in [0, 1, 2]]
+            g.node(leaf).TopPosition = [round(x_bot + dx_limbe, 2), round(y_bot + dy_limbe, 2),
+                                        round(z_bot + dz_limbe, 2)]
 
     return g
 
 
 def VineLobesTips(pPet, lobes_tips):
-
     raise DeprecationWarning("This function must be replaced by \
                              vine_lobes_tips()")
 
@@ -1023,50 +1059,50 @@ def vine_lobes_tips(pPet, lobes_tips):
     - **lobes_tips**: a list containing the cartesian coordinates of the five lobes tips `p1`, `p2`, `p3`, `p4` and `p5`, respectively in the clockwise direction of a vertically schematized grapevine leaf (petiole downwards)
     """
 
-#    points= Point3Array([ pgl.Vector3(0,9.8,0),pgl.Vector3(3.7,6.3,0),pgl.Vector3(2.3,3.9,0),
-#                          pgl.Vector3(5.4,6.2,0), pgl.Vector3(5.9,3.2,0),pgl.Vector3(4.6,0.1,0),
-#                          pgl.Vector3(6.4,-1.6,0), pgl.Vector3(1,-3.7,0), pgl.Vector3(0,0,0),
-#                          pgl.Vector3(-1,-3.7,0),pgl.Vector3(-6.4,-1.6,0),
-#                          pgl.Vector3(-4.6,0.1,0), pgl.Vector3(-5.9,3.2,0),
-#                          pgl.Vector3(-5.4,6.2,0), pgl.Vector3(-2.3,3.9,0),pgl.Vector3(-3.7,6.3,0)])
+    #    points= Point3Array([ pgl.Vector3(0,9.8,0),pgl.Vector3(3.7,6.3,0),pgl.Vector3(2.3,3.9,0),
+    #                          pgl.Vector3(5.4,6.2,0), pgl.Vector3(5.9,3.2,0),pgl.Vector3(4.6,0.1,0),
+    #                          pgl.Vector3(6.4,-1.6,0), pgl.Vector3(1,-3.7,0), pgl.Vector3(0,0,0),
+    #                          pgl.Vector3(-1,-3.7,0),pgl.Vector3(-6.4,-1.6,0),
+    #                          pgl.Vector3(-4.6,0.1,0), pgl.Vector3(-5.9,3.2,0),
+    #                          pgl.Vector3(-5.4,6.2,0), pgl.Vector3(-2.3,3.9,0),pgl.Vector3(-3.7,6.3,0)])
 
-    #p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15 = [points[i] for i in range(16)]
+    # p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15 = [points[i] for i in range(16)]
 
-    theta_1 = 1.06185394004232810 #arccos(dot(p9,p10)/norm(p9)/norm(p10))
-    theta_2 = 0.26671436996865744 #arccos(dot(p11,p10)/norm(p11)/norm(p10))
-    theta_3 = 0.74194726800591759 #arccos(dot(p12,p10)/norm(p12)/norm(p10))
-    theta_4 = 0.18369778647701493 #arccos(dot(p14,p13)/norm(p14)/norm(p13))
-    theta_5 = 0.18551156925222045 #arccos(dot(p15,p13)/norm(p15)/norm(p13))
+    theta_1 = 1.06185394004232810  # arccos(dot(p9,p10)/norm(p9)/norm(p10))
+    theta_2 = 0.26671436996865744  # arccos(dot(p11,p10)/norm(p11)/norm(p10))
+    theta_3 = 0.74194726800591759  # arccos(dot(p12,p10)/norm(p12)/norm(p10))
+    theta_4 = 0.18369778647701493  # arccos(dot(p14,p13)/norm(p14)/norm(p13))
+    theta_5 = 0.18551156925222045  # arccos(dot(p15,p13)/norm(p15)/norm(p13))
 
-    ratio_1 = 0.58098705311078391 #norm(p9)/norm(p10)
-    ratio_2 = 0.69745466856698446 #norm(p11)/norm(p10)
-    ratio_3 = 1.01742628725623140 #norm(p12)/norm(p10)
-    ratio_4 = 0.55068542551062905 #norm(p14)/norm(p13)
-    ratio_5 = 0.88861969954204889 #norm(p15)/norm(p13)
+    ratio_1 = 0.58098705311078391  # norm(p9)/norm(p10)
+    ratio_2 = 0.69745466856698446  # norm(p11)/norm(p10)
+    ratio_3 = 1.01742628725623140  # norm(p12)/norm(p10)
+    ratio_4 = 0.55068542551062905  # norm(p14)/norm(p13)
+    ratio_5 = 0.88861969954204889  # norm(p15)/norm(p13)
 
     p10, p13, p0, p3, p6 = [lobes_tips[i] for i in range(5)]
 
-    p10_pPet = p10-pPet
-    p13_pPet = p13-pPet
-    p0_pPet = p0-pPet
-    p3_pPet = p3-pPet
-    p6_pPet = p6-pPet
+    p10_pPet = p10 - pPet
+    p13_pPet = p13 - pPet
+    p0_pPet = p0 - pPet
+    p3_pPet = p3 - pPet
+    p6_pPet = p6 - pPet
 
-    norm_Pet_10_13 = cross(p10_pPet,p13_pPet)
-    norm_Pet_13_0 = cross(p13_pPet,p0_pPet)
-    norm_pet_0_3 = cross(p0_pPet,p3_pPet)
-    norm_pet_3_6 = cross(p3_pPet,p6_pPet)
+    norm_Pet_10_13 = cross(p10_pPet, p13_pPet)
+    norm_Pet_13_0 = cross(p13_pPet, p0_pPet)
+    norm_pet_0_3 = cross(p0_pPet, p3_pPet)
+    norm_pet_3_6 = cross(p3_pPet, p6_pPet)
 
-    p9  = vector_rotation(p10_pPet * ratio_1, norm_Pet_10_13, -theta_1) + pPet
+    p9 = vector_rotation(p10_pPet * ratio_1, norm_Pet_10_13, -theta_1) + pPet
     p11 = vector_rotation(p10_pPet * ratio_2, norm_Pet_10_13, theta_2) + pPet
     p12 = vector_rotation(p10_pPet * ratio_3, norm_Pet_10_13, theta_3) + pPet
     p14 = vector_rotation(p13_pPet * ratio_4, norm_Pet_13_0, theta_4) + pPet
     p15 = vector_rotation(p13_pPet * ratio_5, norm_Pet_13_0, theta_5) + pPet
-    p1  = vector_rotation(p3_pPet * ratio_5, norm_pet_0_3, -theta_5) + pPet
-    p2  = vector_rotation(p3_pPet * ratio_4, norm_pet_0_3, -theta_4) + pPet
-    p4  = vector_rotation(p6_pPet * ratio_3, norm_pet_3_6, -theta_3) + pPet
-    p5  = vector_rotation(p6_pPet * ratio_2, norm_pet_3_6, -theta_2) + pPet
-    p7  = vector_rotation(p6_pPet * ratio_1, norm_pet_3_6, theta_1) + pPet
+    p1 = vector_rotation(p3_pPet * ratio_5, norm_pet_0_3, -theta_5) + pPet
+    p2 = vector_rotation(p3_pPet * ratio_4, norm_pet_0_3, -theta_4) + pPet
+    p4 = vector_rotation(p6_pPet * ratio_3, norm_pet_3_6, -theta_3) + pPet
+    p5 = vector_rotation(p6_pPet * ratio_2, norm_pet_3_6, -theta_2) + pPet
+    p7 = vector_rotation(p6_pPet * ratio_1, norm_pet_3_6, theta_1) + pPet
 
     points = Point3Array([p0, p1, p2, p3, p4, p5, p6, p7, pPet, p9, p10, p11, p12, p13, p14, p15])
 
@@ -1105,24 +1141,24 @@ def cordon_vector(g):
         if n.label.startswith('inT') and n.complex().label != 'trunk':
             ls.append(vid)
 
-    pos_data = {vid:g.property('TopPosition')[vid] for vid in ls}
+    pos_data = {vid: g.property('TopPosition')[vid] for vid in ls}
     data = array(pos_data.values())
     datamean = data.mean(axis=0)
-#   Do a singular value decomposition on the mean-centered data.
-    uu, dd, vv = scipy.linalg.svd(data - datamean)
+    #   Do a singular value decomposition on the mean-centered data.
+    uu, dd, vv = svd(data - datamean)
 
-    data_dist = distance.cdist(data,data,'euclidean')
+    data_dist = distance.cdist(data, data, 'euclidean')
     extr_pair0 = where(data_dist == data_dist.max())
-    extr_pair = extr_pair0[0] if len(extr_pair0[0])==2 else concatenate((extr_pair0[0],extr_pair0[1]), axis=0)
+    extr_pair = extr_pair0[0] if len(extr_pair0[0]) == 2 else concatenate((extr_pair0[0], extr_pair0[1]), axis=0)
 
     extr_pos = array([data[index_] for index_ in extr_pair])
     linepts = vv[0] * extr_pos
     # shift by the mean to get the line in the right place
 
-    return linepts, array([linepts[0][i]-linepts[1][i] for i in range(2)] + [0.])
+    return linepts, array([linepts[0][i] - linepts[1][i] for i in range(2)] + [0.])
 
 
-def leaf_rotation_axis(petiole_tip,rotation_axis):
+def leaf_rotation_axis(petiole_tip, rotation_axis):
     """
     Returns the signed rotation axis of petiole around a given axis.
 
@@ -1134,7 +1170,7 @@ def leaf_rotation_axis(petiole_tip,rotation_axis):
     v1 = array(petiole_tip[:2])
     v2 = array(rotation_axis[:2])
 
-    return sign(det((v1,v2))) * rotation_axis
+    return sign(det((v1, v2))) * rotation_axis
 
 
 def add_soil(g, side_length=10.):
@@ -1147,19 +1183,19 @@ def add_soil(g, side_length=10.):
     xls, yls = [[g.node(vid).TopPosition[i] for vid in g.property('geometry').keys()] for i in (0, 1)]
     x_min, x_max = min(xls), max(xls)
     y_min, y_max = min(yls), max(yls)
-    nbX = int((x_max - x_min)/side_length) + 1
-    nbY = int((y_max - y_min)/side_length) + 1
-    x = linspace(x_min, x_min+nbX*side_length,num=nbX)
-    y = linspace(y_min, y_min+nbY*side_length,num=nbY)
-    xu, yu = meshgrid(x,y)
-    xu, yu = [reduce(lambda ix, iy: list(ix) +list(iy), ls) for ls in (xu,yu)]
+    nbX = int((x_max - x_min) / side_length) + 1
+    nbY = int((y_max - y_min) / side_length) + 1
+    x = linspace(x_min, x_min + nbX * side_length, num=nbX)
+    y = linspace(y_min, y_min + nbY * side_length, num=nbY)
+    xu, yu = meshgrid(x, y)
+    xu, yu = [reduce(lambda ix, iy: list(ix) + list(iy), ls) for ls in (xu, yu)]
     pos = zip(xu, yu)
     Soil = g.add_component(g.root, label='Soil', edge_type='/')
 
     for i, ipos in enumerate(pos):
-        isoil = g.add_component(Soil, label=('other'+str(i)), TopPosition=list(ipos) + [0])
+        isoil = g.add_component(Soil, label=('other' + str(i)), TopPosition=list(ipos) + [0])
         g.node(isoil).geometry = transformation(soil0(side_length),
-                 1., 1., 1., 0., 0.,0.,-side_length/2.,-side_length/2.,0.)
+                                                1., 1., 1., 0., 0., 0., -side_length / 2., -side_length / 2., 0.)
 
     return
 
@@ -1177,35 +1213,37 @@ def add_soil_components(g, cylinders_number, cylinders_radii, soil_dimensions,
     - **soil_class**: string, the soil class name according to Carsel and Parrish (1988) WRR 24,755–769 DOI: 10.1029/WR024i005p00755
     - **vtx_label**: string, the label prefix of the basal highest-scale stem vertex
     """
-    max_radius = 0.5 * min(soil_dimensions[:2])*100 #[cm]
-    assert (max(cylinders_radii) <= max_radius), 'Maximum soil radius must not exceed %d cm'%max_radius
-    assert (len(cylinders_radii) == cylinders_number), 'Soil cylinders number (%d) and radii elements (%d) do not match.'%(len(cylinders_radii),cylinders_number)
+    max_radius = 0.5 * min(soil_dimensions[:2]) * 100  # [cm]
+    assert (max(cylinders_radii) <= max_radius), 'Maximum soil radius must not exceed %d cm' % max_radius
+    assert (
+            len(cylinders_radii) == cylinders_number), 'Soil cylinders number (%d) and radii elements (%d) do not match.' % (
+        len(cylinders_radii), cylinders_number)
 
-    depth = soil_dimensions[2]*100. #[m]
-    child = g.node(mtg_base(g,vtx_label=vtx_label))
+    depth = soil_dimensions[2] * 100.  # [m]
+    child = g.node(mtg_base(g, vtx_label=vtx_label))
     Length = 0.
     radius_prev = 0.
 
     for ivid in range(cylinders_number):
         radius = cylinders_radii[ivid]
         Length = radius - radius_prev
-        label = 'rhyzo%d'%ivid
-#        print(radius, Length, label)
+        label = 'rhyzo%d' % ivid
+        #        print(radius, Length, label)
         child = g.node(child._vid).insert_parent(label=label, depth=depth, Length=Length,
-                       TopDiameter = radius*2., BotDiameter = radius*2.,
-                       TopPosition = 3*[0], BotPosition = 3*[0],
-                       soil_class = soil_class)
+                                                 TopDiameter=radius * 2., BotDiameter=radius * 2.,
+                                                 TopPosition=3 * [0], BotPosition=3 * [0],
+                                                 soil_class=soil_class)
         radius_prev = radius
 
     return child._vid
 
 
-#==============================================================================
-#==============================================================================
+# ==============================================================================
+# ==============================================================================
 # MTG geometry construction
-#==============================================================================
+# ==============================================================================
 
-def _distance(coord1,coord2):
+def _distance(coord1, coord2):
     """
     Calculates the distance between two points.
     coord1 and coord2 are array-like cartesian coordinates [x,y,z].
@@ -1214,12 +1252,12 @@ def _distance(coord1,coord2):
     """
 
     try:
-#        deltaZ=coord2[2]-coord1[2]
-        distance = sqrt((coord2[0]-coord1[0])**2+(coord2[1]-coord1[1])**2+(coord2[2]-coord1[2])**2)
+        #        deltaZ=coord2[2]-coord1[2]
+        distance = sqrt((coord2[0] - coord1[0]) ** 2 + (coord2[1] - coord1[1]) ** 2 + (coord2[2] - coord1[2]) ** 2)
     except ValueError:
-        distance = sqrt((coord2[0]-coord1[0])**2+(coord2[1]-coord1[1])**2)
+        distance = sqrt((coord2[0] - coord1[0]) ** 2 + (coord2[1] - coord1[1]) ** 2)
 
-    return round(distance,2)
+    return round(distance, 2)
 
 
 def slim_cylinder(length, radius_base, radius_top):
@@ -1228,22 +1266,22 @@ def slim_cylinder(length, radius_base, radius_top):
     """
 
     rb, rt = radius_base, radius_top
-    a1, a2, a3 = 0, 2*pi/3., 4*pi/3.
+    a1, a2, a3 = 0, 2 * pi / 3., 4 * pi / 3.
     r = rb
-    p1 = (r*cos(a1), r*sin(a1),0)
-    p2 = (r*cos(a2), r*sin(a2),0)
-    p3 = (r*cos(a3), r*sin(a3),0)
+    p1 = (r * cos(a1), r * sin(a1), 0)
+    p2 = (r * cos(a2), r * sin(a2), 0)
+    p3 = (r * cos(a3), r * sin(a3), 0)
     r = rt
-    q1 = (r*cos(a1+pi), r*sin(a1+pi),length)
-    q2 = (r*cos(a2+pi), r*sin(a2+pi),length)
-    q3 = (r*cos(a3+pi), r*sin(a3+pi),length)
+    q1 = (r * cos(a1 + pi), r * sin(a1 + pi), length)
+    q2 = (r * cos(a2 + pi), r * sin(a2 + pi), length)
+    q3 = (r * cos(a3 + pi), r * sin(a3 + pi), length)
     set = pgl.TriangleSet([p1, p2, p3, q1, q2, q3],
-                      [(2,1,0), (3,4,5), (0,5,4), (0,4,2), (2,4,3), (3,1,2), (1,3,5), (5,0,1)])
+                          [(2, 1, 0), (3, 4, 5), (0, 5, 4), (0, 4, 2), (2, 4, 3), (3, 1, 2), (1, 3, 5), (5, 0, 1)])
 
     return set
 
 
-def stem_element_mesh(length, diameter_base, diameter_top, classic = True):
+def stem_element_mesh(length, diameter_base, diameter_top, classic=True):
     """
     Computes mesh for a stem element (from Adel).
 
@@ -1257,12 +1295,12 @@ def stem_element_mesh(length, diameter_base, diameter_top, classic = True):
     if classic:
         solid = True
         slices = 6  # 6 is the minimal number of slices for a correct computation of star (percentage error lower than 5)
-        stem = pgl.Tapered(diameter_base/2., diameter_top/2., pgl.Cylinder(1., length , solid, slices))
+        stem = pgl.Tapered(diameter_base / 2., diameter_top / 2., pgl.Cylinder(1., length, solid, slices))
         tessel = pgl.Tesselator()
         stem.apply(tessel)
         mesh = tessel.triangulation
     else:
-        mesh = slim_cylinder(length, diameter_base /2., diameter_top /2.)
+        mesh = slim_cylinder(length, diameter_base / 2., diameter_top / 2.)
 
     return mesh
 
@@ -1277,18 +1315,18 @@ def leaf_obs(points):
     TODO: add this function to module `primitive`
     """
 
-    indices= pgl.Index3Array([ pgl.Index3(0,1,8), pgl.Index3(15,0,8), pgl.Index3(8,11,14),
-                           pgl.Index3(11,12,14), pgl.Index3(12,13,14),pgl.Index3(10,11,8),
-                           pgl.Index3(8,9,10), pgl.Index3(2,3,4), pgl.Index3(2,4,5),
-                           pgl.Index3(2,5,8), pgl.Index3(8,5,6), pgl.Index3(8,6,7)])
+    indices = pgl.Index3Array([pgl.Index3(0, 1, 8), pgl.Index3(15, 0, 8), pgl.Index3(8, 11, 14),
+                               pgl.Index3(11, 12, 14), pgl.Index3(12, 13, 14), pgl.Index3(10, 11, 8),
+                               pgl.Index3(8, 9, 10), pgl.Index3(2, 3, 4), pgl.Index3(2, 4, 5),
+                               pgl.Index3(2, 5, 8), pgl.Index3(8, 5, 6), pgl.Index3(8, 6, 7)])
 
-    f= pgl.TriangleSet(points, indices)
+    f = pgl.TriangleSet(points, indices)
 
     return f
 
 
 def vine_diam(g, vid, D_trunk=5.06, D_arm=3.77, D_Cx=2.91, D_3y=1.75,
-             D_spur=1.15, D_cane=0.99, Fifty_cent=5.,sig_slope=10.,D_pet=0.35):
+              D_spur=1.15, D_cane=0.99, Fifty_cent=5., sig_slope=10., D_pet=0.35):
     """
     Returns the diameter [cm] of an internode or a structural element.
 
@@ -1305,15 +1343,15 @@ def vine_diam(g, vid, D_trunk=5.06, D_arm=3.77, D_Cx=2.91, D_3y=1.75,
 
     n = g.node(vid)
 
-    if n.label.startswith(('sh','G')):
-#       Setting the axisI initial diameter randomly
+    if n.label.startswith(('sh', 'G')):
+        #       Setting the axisI initial diameter randomly
         if n.label.count('I') == 1:
-            init_diam = D_cane*(1+0.1*(min(1,max(-1,randn()/2.96))))
+            init_diam = D_cane * (1 + 0.1 * (min(1, max(-1, randn() / 2.96))))
 
-#       Setting the axisII initial diameter empirically as a function of the diameter of the holding primary internode
+        #       Setting the axisII initial diameter empirically as a function of the diameter of the holding primary internode
         elif n.label.count('I') > 1:
             init_diam = n.components()[0].parent().TopDiameter
-        init_diam = init_diam*((rand()*3+1)/4.)
+        init_diam = init_diam * ((rand() * 3 + 1) / 4.)
         n.InitDiam = init_diam
         Diam = None
 
@@ -1324,21 +1362,22 @@ def vine_diam(g, vid, D_trunk=5.06, D_arm=3.77, D_Cx=2.91, D_3y=1.75,
             Diam = D_3y
     if n.label.startswith('cx'):
         Diam = D_Cx
-    if n.label.startswith(('inT3y','inT2y')):
-        in_order = int(n.index()) if not n.label[-1].isalpha() else int(findall(r'\d+',str(n.label))[-1]) # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
-        Diam = D_spur #*(1-1/(1+exp(-(in_order-Fifty_cent)/sig_slope)))
+    if n.label.startswith(('inT3y', 'inT2y')):
+        in_order = int(n.index()) if not n.label[-1].isalpha() else int(findall(r'\d+', str(n.label))[
+                                                                            -1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
+        Diam = D_spur  # *(1-1/(1+exp(-(in_order-Fifty_cent)/sig_slope)))
     if n.label.startswith('inI'):
         init_diam = g.node(g.Complex(vid)).InitDiam
-        in_order = int(n.index()) if not n.label[-1].isalpha() else int(findall(r'\d+',str(n.label))[-1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
-        Diam = init_diam #*(1-1/(1+exp(-(in_order-Fifty_cent)/sig_slope)))
+        in_order = int(n.index()) if not n.label[-1].isalpha() else int(findall(r'\d+', str(n.label))[
+                                                                            -1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
+        Diam = init_diam  # *(1-1/(1+exp(-(in_order-Fifty_cent)/sig_slope)))
     if n.label.startswith('Pet'):
-        Diam = D_pet #*max(0,(rand()+1)/2)
+        Diam = D_pet  # *max(0,(rand()+1)/2)
 
     return Diam
 
 
 def VineMTGProp(g, vid):
-
     raise DeprecationWarning("This function must be replaced by \
                              vine_mtg_properties()")
 
@@ -1355,17 +1394,18 @@ def vine_mtg_properties(g, vid):
     """
 
     n = g.node(vid)
-    if vid>0:
-        if n.label.startswith(('sh','G')): vine_diam(g,vid) # Sets the initial diameters of the primary and secondary axes.
+    if vid > 0:
+        if n.label.startswith(('sh', 'G')): vine_diam(g,
+                                                      vid)  # Sets the initial diameters of the primary and secondary axes.
 
-#       Setting the properties of internodes, pruning complices and petioles
-        if n.label.startswith(('in','cx','Pet')):
+        #       Setting the properties of internodes, pruning complices and petioles
+        if n.label.startswith(('in', 'cx', 'Pet')):
             TopPosition = n.TopPosition
-            TopDiameter = n.TopDiameter if n.TopDiameter != None else max(0.05,vine_diam(g,vid))
+            TopDiameter = n.TopDiameter if n.TopDiameter != None else max(0.05, vine_diam(g, vid))
             p = n.parent()
             try:
-                p == None # First phytomere at the basis of the trunk
-                if hasattr(g.node(g.Trunk(vid,Scale=1)[0]), 'baseXYZ'):
+                p == None  # First phytomere at the basis of the trunk
+                if hasattr(g.node(g.Trunk(vid, Scale=1)[0]), 'baseXYZ'):
                     BotPosition = g.node(g.Trunk(vid, Scale=1)[0]).baseXYZ
                 else:
                     BotPosition = list(TopPosition[:2])
@@ -1374,18 +1414,18 @@ def vine_mtg_properties(g, vid):
                 BotDiameter = TopDiameter
             except AttributeError:
                 BotPosition = p.properties()['TopPosition']
-                BotDiameter = p.properties()['TopDiameter'] if n.label.startswith(('inT','cx')) else TopDiameter
-            Length = _distance(TopPosition,BotPosition)
+                BotDiameter = p.properties()['TopDiameter'] if n.label.startswith(('inT', 'cx')) else TopDiameter
+            Length = _distance(TopPosition, BotPosition)
             g.node(vid).BotPosition = BotPosition
             g.node(vid).Length = Length
             if not n.TopDiameter: g.node(vid).TopDiameter = TopDiameter
             g.node(vid).BotDiameter = BotDiameter
 
-#       Setting the properties of leaves
+        #       Setting the properties of leaves
         if n.label.startswith('LI'):
             TopPosition = n.TopPosition
             BotPosition = n.parent().TopPosition
-            Length = _distance(TopPosition,BotPosition)
+            Length = _distance(TopPosition, BotPosition)
             g.node(vid).BotPosition = BotPosition
             g.node(vid).Length = Length
 
@@ -1393,7 +1433,6 @@ def vine_mtg_properties(g, vid):
 
 
 def VineMTGGeom(g, vid):
-
     raise DeprecationWarning("This function must be replaced by \
                              vine_mtg_geometry()")
 
@@ -1408,34 +1447,34 @@ def vine_mtg_geometry(g, vid):
     - **g**: mtg object
     - **vid**: integer, mtg vertex ID
     """
-#    theta_1, theta_2 = [radians(x) for x in (theta_1, theta_2)]
+    #    theta_1, theta_2 = [radians(x) for x in (theta_1, theta_2)]
 
     try:
         n = g.node(vid)
 
-        if n.label.startswith(('inT','cx','inT3y','inT2y','inI','Pet')):
+        if n.label.startswith(('inT', 'cx', 'inT3y', 'inT2y', 'inI', 'Pet')):
             length = n.properties()['Length']
             diameter_base = n.properties()['BotDiameter']
             diameter_top = n.properties()['TopDiameter']
-            #mesh = pgl.Cylinder(diameter_base,length,True,6)
-            mesh = stem_element_mesh(length, diameter_base, diameter_top, classic = True)
+            # mesh = pgl.Cylinder(diameter_base,length,True,6)
+            mesh = stem_element_mesh(length, diameter_base, diameter_top, classic=True)
             g.node(vid).geometry = mesh
 
         elif n.label.startswith('LI'):
-            if hasattr(n, 'TopPositionPoints'): # If leaf tips are digitized
+            if hasattr(n, 'TopPositionPoints'):  # If leaf tips are digitized
                 pPet = n.parent().TopPosition
                 points = vine_lobes_tips(pPet, n.TopPositionPoints)
                 mesh = leaf_obs(points)
             else:
-                leaf_mesh = transformation(leaf0(1), 1., 1., 1., -pi/2.,0.,0.,0.,0.,0.)
+                leaf_mesh = transformation(leaf0(1), 1., 1., 1., -pi / 2., 0., 0., 0., 0., 0.)
 
                 length = n.properties()['Length']
                 leaf_vec = subtract(n.TopPosition, n.parent().TopPosition)
                 leaf_len, leaf_azi, leaf_incli = cart_to_pol(leaf_vec)
-#                theta_1 = -pi/2.
-#                theta_2 = 0. #pi*(1.+(theta_2_cv/100.)*min(1,max(-1,randn()/2.96)))
-                mesh = transformation(leaf_mesh, length, length, 1., 0., 0.,0.,0.,0.,0.)
-                #mesh = leaf0(length)
+                #                theta_1 = -pi/2.
+                #                theta_2 = 0. #pi*(1.+(theta_2_cv/100.)*min(1,max(-1,randn()/2.96)))
+                mesh = transformation(leaf_mesh, length, length, 1., 0., 0., 0., 0., 0., 0.)
+                # mesh = leaf0(length)
             g.node(vid).geometry = mesh
 
     except AttributeError:
@@ -1445,7 +1484,6 @@ def vine_mtg_geometry(g, vid):
 
 
 def VineTransform(g, vid):
-
     raise DeprecationWarning("This function must be replaced by \
                              vine_transform()")
 
@@ -1457,52 +1495,52 @@ def vine_transform(g, vid):
     Transforms all elements of an MTG to their real position.
     """
 
-    n=g.node(vid)
+    n = g.node(vid)
 
-    if vid>0:
-#       Internodes, pruning complices and petioles
-        if n.label.startswith(('inT','cx','inT3y','inT2y','inI','inII','Pet')):
+    if vid > 0:
+        #       Internodes, pruning complices and petioles
+        if n.label.startswith(('inT', 'cx', 'inT3y', 'inT2y', 'inI', 'inII', 'Pet')):
             Length = n.properties()['Length']
-            x,y,z = [round(float(i),2) for i in subtract(n.properties()['TopPosition'],n.properties()['BotPosition'])]
+            x, y, z = [round(float(i), 2) for i in
+                       subtract(n.properties()['TopPosition'], n.properties()['BotPosition'])]
 
-            if Length==0:
-                incli =0
+            if Length == 0:
+                incli = 0
             else:
-                incli = float(arcsin(z/Length))
-            if (x==0 and y==0):
+                incli = float(arcsin(z / Length))
+            if (x == 0 and y == 0):
                 azi = 0
-            elif (y>=0) :
-                azi = arccos(min(max(-1,x/sqrt(x**2+y**2)),1))
-            else :
-                azi = -arccos(min(max(-1,x/sqrt(x**2+y**2)),1))
+            elif (y >= 0):
+                azi = arccos(min(max(-1, x / sqrt(x ** 2 + y ** 2)), 1))
+            else:
+                azi = -arccos(min(max(-1, x / sqrt(x ** 2 + y ** 2)), 1))
 
             mesh = n.geometry
-            mesh = pgl.EulerRotated (azi, 3.14/2.-incli, 0, mesh)
-            mesh = pgl.Translated (pgl.Vector3(n.properties()['BotPosition']), mesh)
+            mesh = pgl.EulerRotated(azi, 3.14 / 2. - incli, 0, mesh)
+            mesh = pgl.Translated(pgl.Vector3(n.properties()['BotPosition']), mesh)
             g.node(vid).geometry = mesh
 
-#       Leaves
+        #       Leaves
         elif n.label.startswith('LI'):
             if not hasattr(n, 'TopPositionPoints'):
-                x_bot,y_bot,z_bot = [n.BotPosition[i] for i in [0,1,2]]
+                x_bot, y_bot, z_bot = [n.BotPosition[i] for i in [0, 1, 2]]
                 mesh = n.geometry
                 vec_lim = subtract(n.TopPosition, n.BotPosition)
                 len_lim, azi_lim, incli_lim = cart_to_pol(vec_lim)
-                mesh = transformation(mesh, len_lim, len_lim, 1., azi_lim, -1*incli_lim,0.,x_bot,y_bot,z_bot)
+                mesh = transformation(mesh, len_lim, len_lim, 1., azi_lim, -1 * incli_lim, 0., x_bot, y_bot, z_bot)
                 g.node(vid).geometry = mesh
 
     return g
 
 
-def VineOrient(g, vid, theta, v_axis=[0.,0.,1.], local_rotation=False):
-
+def VineOrient(g, vid, theta, v_axis=[0., 0., 1.], local_rotation=False):
     raise DeprecationWarning("This function must be replaced by \
                              vine_orientation()")
 
     return vine_orientation(g, vid, theta, v_axis, local_rotation)
 
 
-def vine_orientation(g, vid, theta, v_axis=[0.,0.,1.], local_rotation=False):
+def vine_orientation(g, vid, theta, v_axis=[0., 0., 1.], local_rotation=False):
     """
     Rotates an MTG around an axis by a given angle.
 
@@ -1522,10 +1560,10 @@ def vine_orientation(g, vid, theta, v_axis=[0.,0.,1.], local_rotation=False):
             if local_rotation:
                 nBase = g.node(g.Trunk(vid, Scale=1)[0])
                 TopPosition = array(TopPosition) - array(nBase.baseXYZ)
-                TopPosition = vector_rotation(TopPosition,v_axis,radians(theta))
+                TopPosition = vector_rotation(TopPosition, v_axis, radians(theta))
                 TopPosition = TopPosition + array(nBase.baseXYZ)
             else:
-                TopPosition = vector_rotation(TopPosition,v_axis,radians(theta))
+                TopPosition = vector_rotation(TopPosition, v_axis, radians(theta))
             n.TopPosition = TopPosition
         except:
             pass
@@ -1533,7 +1571,7 @@ def vine_orientation(g, vid, theta, v_axis=[0.,0.,1.], local_rotation=False):
         if 'baseXYZ' in n.properties():
             if local_rotation == False:
                 baseXYZ = n.baseXYZ
-                baseXYZ = vector_rotation(baseXYZ,v_axis,radians(theta))
+                baseXYZ = vector_rotation(baseXYZ, v_axis, radians(theta))
                 n.baseXYZ = baseXYZ
 
         if 'TopPositionPoints' in n.properties():
@@ -1543,20 +1581,20 @@ def vine_orientation(g, vid, theta, v_axis=[0.,0.,1.], local_rotation=False):
                 nBase = g.node(g.Trunk(vid, Scale=1)[0])
                 TPPoints = TPPoints - array(nBase.baseXYZ)
                 for tipPoint in TPPoints:
-                    lobe_tip.append(vector_rotation(tipPoint,v_axis,radians(theta)))
+                    lobe_tip.append(vector_rotation(tipPoint, v_axis, radians(theta)))
                 lobe_tip = array(lobe_tip) + array(nBase.baseXYZ)
             else:
                 for i in range(len(n.TopPositionPoints)):
-                    lobe_tip.append(vector_rotation(n.TopPositionPoints[i],v_axis,radians(theta)))
+                    lobe_tip.append(vector_rotation(n.TopPositionPoints[i], v_axis, radians(theta)))
             n.TopPositionPoints = array(lobe_tip)
 
     return g
 
 
-#==============================================================================
-#==============================================================================
+# ==============================================================================
+# ==============================================================================
 # Write output
-#==============================================================================
+# ==============================================================================
 
 def mtg_output(g, wd):
     """
@@ -1564,40 +1602,40 @@ def mtg_output(g, wd):
     """
     properties = [(p, 'REAL') for p in g.property_names() if p not in ['edge_type', 'index', 'label']]
     mtg_lines = io.write_mtg(g, properties)
-    if not path.exists(wd+'mtg/'):
-        mkdir(wd+'mtg/')
-    mtg_file_path = wd + 'mtg/%s.mtg'%g.date
+    if not path.exists(wd + 'mtg/'):
+        mkdir(wd + 'mtg/')
+    mtg_file_path = wd + 'mtg/%s.mtg' % g.date
     f = open(mtg_file_path, 'w')
     f.write(mtg_lines)
     f.close()
     return
 
-def mtg_save(g, scene, file_path):
 
+def mtg_save(g, scene, file_path):
     if not path.exists(file_path):
         mkdir(file_path)
 
-    geom = {vid:g.node(vid).geometry for vid in g.property('geometry')}
+    geom = {vid: g.node(vid).geometry for vid in g.property('geometry')}
     g.remove_property('geometry')
 
     fg = file_path + 'mtg' + g.date + '.pckl'
 
     f = open(fg, 'wb')
-    dump([g,scene], f)
+    dump([g, scene], f)
     f.close()
-    #restore geometry
+    # restore geometry
     g.add_property('geometry')
     g.property('geometry').update(geom)
     return
 
-def mtg_load(wd, index):
 
-    fgeom = wd + 'geometry%s.bgeom'%index
-    fg = wd + '%s.pckl'%(index)
+def mtg_load(wd, index):
+    fgeom = wd + 'geometry%s.bgeom' % index
+    fg = wd + '%s.pckl' % (index)
 
     scene = pgl.Scene()
     scene.read(fgeom, 'BGEOM')
-    geom = {sh.id:sh.geometry for sh in scene}
+    geom = {sh.id: sh.geometry for sh in scene}
 
     f = open(fg)
     g2, TT = load(f)
@@ -1607,6 +1645,7 @@ def mtg_load(wd, index):
     g2.property('geometry').update(geom)
 
     return g2, scene
+
 
 def mtg_save_geometry(scene, file_path, index=''):
     """
