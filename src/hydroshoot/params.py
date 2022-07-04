@@ -137,8 +137,8 @@ class Exchange:
                 "dHd_inhib_max": 180,
                 "psi_inhib_beg": -0.75,
                 "psi_inhib_max": -2,
-                "temp_inhib_beg": 35,
-                "temp_inhib_max": 40}}
+                "temp_inhib_beg": 32,
+                "temp_inhib_max": 33}}
         self.par_photo.update(exchange_dict['par_photo'])
         self.par_photo_N = exchange_dict['par_photo_N']
 
