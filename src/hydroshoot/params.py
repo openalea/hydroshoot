@@ -131,7 +131,15 @@ class Exchange:
         self.ca = exchange_dict['ca']
         self.Na_dict = exchange_dict['Na_dict']
         self.par_gs = exchange_dict['par_gs']
-        self.par_photo = exchange_dict['par_photo']
+        self.par_photo = {
+            "photo_inhibition": {
+                "dhd_inhib_beg": 195,
+                "dHd_inhib_max": 180,
+                "psi_inhib_beg": -0.75,
+                "psi_inhib_max": -2,
+                "temp_inhib_beg": 35,
+                "temp_inhib_max": 40}}
+        self.par_photo.update(exchange_dict['par_photo'])
         self.par_photo_N = exchange_dict['par_photo_N']
 
 

@@ -314,7 +314,10 @@
           ]
         },
         "icosphere_level": {
-          "type": ["null", "integer"],
+          "type": [
+            "null",
+            "integer"
+          ],
           "description": "The level of refinement of the dual icosphere."
         }
       },
@@ -696,6 +699,35 @@
                 "c",
                 "deltaHa"
               ]
+            },
+            "photo_inhibition": {
+              "type": "object",
+              "properties": {
+                "dhd_inhib_beg": {
+                  "type": "number",
+                  "description": "[KJ mol-1] value of enthalpy of deactivation at the begining of photoinhibition"
+                },
+                "dhd_inhib_max": {
+                  "type": "number",
+                  "description": "[KJ mol-1] value of enthalpy of deactivation under maximum photoinhibition"
+                },
+                "psi_inhib_beg": {
+                  "type": "number",
+                  "description": "[MPa] leaf water potential at which photoinhibition begins"
+                },
+                "psi_inhib_max": {
+                  "type": "number",
+                  "description": "[MPa] leaf water potential at which photoinhibition is maximum"
+                },
+                "temp_inhib_beg": {
+                  "type": "number",
+                  "description": "[°C] leaf temperature at which photoinhibition begins"
+                },
+                "temp_inhib_max": {
+                  "type": "number",
+                  "description": "[°C] leaf temperature at which photoinhibition is maximum"
+                }
+              }
             }
           },
           "required": [
