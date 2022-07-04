@@ -569,8 +569,14 @@ def gas_exchange_rates(g, photo_params, photo_n_params, gs_params, meteo, E_type
                 leaf_par_photo['TPU25'] = photo_n_params['TPU25_N'][0] * node.Na + photo_n_params['TPU25_N'][1]
                 leaf_par_photo['Rd'] = photo_n_params['Rd_N'][0] * node.Na + photo_n_params['Rd_N'][1]
                 dhd_max = leaf_par_photo['dHd']
-                dhd = dHd_sensibility(psi, t_leaf, dhd_max=dhd_max, dhd_inhib_beg=195., dHd_inhib_max=180.,
-                                      psi_inhib_beg=-.75, psi_inhib_max=-2., temp_inhib_beg=32, temp_inhib_max=33)
+                dhd = dHd_sensibility(psi, t_leaf,
+                                      dhd_max=dhd_max,
+                                      dhd_inhib_beg=leaf_par_photo['photo_inhibition']['dhd_inhib_beg'],
+                                      dHd_inhib_max=leaf_par_photo['photo_inhibition']['dHd_inhib_max'],
+                                      psi_inhib_beg=leaf_par_photo['photo_inhibition']['psi_inhib_beg'],
+                                      psi_inhib_max=leaf_par_photo['photo_inhibition']['psi_inhib_max'],
+                                      temp_inhib_beg=leaf_par_photo['photo_inhibition']['temp_inhib_beg'],
+                                      temp_inhib_max=leaf_par_photo['photo_inhibition']['temp_inhib_max'])
 
                 leaf_par_photo['dHd'] = dhd
                 node.par_photo = leaf_par_photo
