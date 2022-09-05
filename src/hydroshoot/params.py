@@ -8,8 +8,11 @@ Created on Thu Oct 25 20:10:00 2018
 
 import os
 from copy import deepcopy
+from datetime import datetime
 from json import load
+
 from jsonschema import validate
+from pandas import date_range
 
 
 class Params:
@@ -56,8 +59,8 @@ class Params:
 class Simulation:
 
     def __init__(self, simulation_dict):
-        self.sdate = simulation_dict['sdate']
-        self.edate = simulation_dict['edate']
+        self.date_beg = datetime.strptime(simulation_dict['sdate'], "%Y-%m-%d %H:%M:%S")
+        self.date_end = datetime.strptime(simulation_dict['edate'], "%Y-%m-%d %H:%M:%S")
         self.latitude = simulation_dict['latitude']
         self.longitude = simulation_dict['longitude']
         self.elevation = simulation_dict['elevation']
@@ -69,6 +72,9 @@ class Simulation:
         self.energy_budget = simulation_dict['energy_budget']
         self.soil_water_deficit = simulation_dict['soil_water_deficit']
         self.meteo = simulation_dict['meteo']
+
+        self.date_range = date_range(start=self.date_beg, end=self.date_end, freq='H')
+        self.time_conv = {'D': 86.4e3, 'H': 3600., 'T': 60., 'S': 1.}[self.date_range.freqstr]
 
 
 class Phenology:

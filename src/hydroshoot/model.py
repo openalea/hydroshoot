@@ -11,8 +11,7 @@ import openalea.mtg.traversal as traversal
 from openalea.plantgl.all import Scene, surface
 from pandas import read_csv, DataFrame, date_range, DatetimeIndex
 
-from hydroshoot import (architecture, irradiance, exchange, hydraulic, energy,
-                        display, solver, utilities)
+from hydroshoot import (initialisation, architecture, irradiance, exchange, hydraulic, energy, display, solver, utilities)
 from hydroshoot.params import Params
 
 
@@ -36,32 +35,18 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
     time_on = datetime.now()
 
     # Read user parameters
-    params_path = wd + 'params.json'
-    params = Params(params_path)
-
-    output_index = params.simulation.output_index
+    params = Params(f'{wd}params.json')
 
     # ==============================================================================
     # Initialisation
     # ==============================================================================
-    #   Climate data
-    meteo_path = wd + params.simulation.meteo
-    meteo_tab = read_csv(meteo_path, sep=';', decimal='.', header=0)
-    meteo_tab.time = DatetimeIndex(meteo_tab.time)
-    meteo_tab = meteo_tab.set_index(meteo_tab.time)
-
-    #   Adding missing data
-    if 'Ca' not in meteo_tab.columns:
-        meteo_tab['Ca'] = [400.] * len(meteo_tab)  # ppm [CO2]
-    if 'Pa' not in meteo_tab.columns:
-        meteo_tab['Pa'] = [101.3] * len(meteo_tab)  # atmospheric pressure
+    #   Weather data
+    meteo_tab = initialisation.init_weather(path_project=wd, params=params)
+    meteo = meteo_tab.loc[params.simulation.date_range, :]
 
     #   Determination of the simulation period
-    sdate = datetime.strptime(params.simulation.sdate, "%Y-%m-%d %H:%M:%S")
-    edate = datetime.strptime(params.simulation.edate, "%Y-%m-%d %H:%M:%S")
-    datet = date_range(sdate, edate, freq='H')
-    meteo = meteo_tab.loc[datet, :]
-    time_conv = {'D': 86.4e3, 'H': 3600., 'T': 60., 'S': 1.}[datet.freqstr]
+    sdate = params.simulation.date_beg
+    time_conv = params.simulation.time_conv
 
     # Reading available pre-dawn soil water potential data
     if 'psi_soil' in kwargs:
@@ -259,7 +244,7 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
                                                   Na_dict['bM'])
 
     # Define path to folder
-    output_path = wd + 'output' + output_index + '/'
+    output_path = f'{wd}output{params.simulation.output_index}/'
 
     # Save geometry in an external file
     # HSArc.mtg_save_geometry(scene, output_path)
