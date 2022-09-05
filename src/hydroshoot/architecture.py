@@ -17,13 +17,8 @@ from pickle import dump, load
 from re import search, findall
 
 import openalea.plantgl.all as pgl
-from numpy import array
-from numpy import (
-    radians, asarray, dot, cos,
-    sin, subtract, cross, pi,
-    where, concatenate, sign, linspace,
-    meshgrid
-)
+from numpy import (array, radians, asarray, dot, cos, sin, subtract, cross, pi, where, concatenate, sign, linspace,
+                   meshgrid, exp)
 from numpy.lib.scimath import sqrt, arcsin, arccos
 from numpy.linalg import det
 from numpy.random import randn, rand
