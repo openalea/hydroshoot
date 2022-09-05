@@ -75,6 +75,7 @@ class Simulation:
 
         self.date_range = date_range(start=self.date_beg, end=self.date_end, freq='H')
         self.time_conv = {'D': 86.4e3, 'H': 3600., 'T': 60., 'S': 1.}[self.date_range.freqstr]
+        self.length_conv = {'mm': 1.e-3, 'cm': 1.e-2, 'm': 1.}[self.unit_scene_length]
 
 
 class Phenology:

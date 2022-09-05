@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pandas import DataFrame, read_csv, DatetimeIndex
 
 from hydroshoot.params import Params
@@ -15,3 +17,14 @@ def init_weather(path_project: str, params: Params) -> DataFrame:
         meteo_tab['Pa'] = [101.3] * len(meteo_tab)  # atmospheric pressure
 
     return meteo_tab
+
+
+def init_soil_predawn_water_potential(path_project: str, params: Params, **kwargs) -> DataFrame:
+    if 'psi_soil' in kwargs:
+        psi_pd = DataFrame({'psi': [kwargs['psi_soil']] * len(params.simulation.date_range)},
+                           index=params.simulation.date_range)
+    else:
+        psi_pd = read_csv(f'{path_project}psi_soil.input', sep=';', decimal='.').set_index('time')
+        psi_pd.index = [datetime.strptime(str(s), "%Y-%m-%d") for s in psi_pd.index]
+
+    return psi_pd

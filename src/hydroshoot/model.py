@@ -4,12 +4,11 @@ energy-exchange, and soil water depletion, for each given time step.
 """
 from copy import deepcopy
 from datetime import datetime, timedelta
-from os.path import isfile
 
 import numpy as np
 import openalea.mtg.traversal as traversal
 from openalea.plantgl.all import Scene, surface
-from pandas import read_csv, DataFrame, date_range, DatetimeIndex
+from pandas import DataFrame, date_range, DatetimeIndex
 
 from hydroshoot import (initialisation, architecture, irradiance, exchange, hydraulic, energy, display, solver, utilities)
 from hydroshoot.params import Params
@@ -46,20 +45,16 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
 
     #   Determination of the simulation period
     sdate = params.simulation.date_beg
-    time_conv = params.simulation.time_conv
 
-    # Reading available pre-dawn soil water potential data
-    if 'psi_soil' in kwargs:
-        psi_pd = DataFrame([kwargs['psi_soil']] * len(meteo.time),
-                           index=meteo.time, columns=['psi'])
-    else:
-        assert (isfile(wd + 'psi_soil.input')), "The 'psi_soil.input' file is missing."
-        psi_pd = read_csv(wd + 'psi_soil.input', sep=';', decimal='.').set_index('time')
-        psi_pd.index = [datetime.strptime(s, "%Y-%m-%d") for s in psi_pd.index]
+    # Time conversion
+    time_conv = params.simulation.time_conv
 
     # Unit length conversion (from scene unit to the standard [m]) unit)
     unit_scene_length = params.simulation.unit_scene_length
-    length_conv = {'mm': 1.e-3, 'cm': 1.e-2, 'm': 1.}[unit_scene_length]
+    length_conv = params.simulation.length_conv
+
+    # Reading available pre-dawn soil water potential data
+    psi_pd = initialisation.init_soil_predawn_water_potential(path_project=wd, params=params, **kwargs)
 
     # Determination of cumulative degree-days parameter
     t_base = params.phenology.t_base
