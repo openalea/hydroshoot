@@ -12,7 +12,7 @@ from openalea.plantgl.all import Scene, surface
 from pandas import read_csv, DataFrame, date_range, DatetimeIndex
 
 from hydroshoot import (architecture, irradiance, exchange, hydraulic, energy,
-                        display, solver)
+                        display, solver, utilities)
 from hydroshoot.params import Params
 
 
@@ -92,7 +92,9 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
         # df_tt.columns = ('max', 'min')
         # df_tt['gdd'] = df_tt.apply(lambda x: 0.5 * (x['max'] + x['min']) - t_base)
         # gdd_since_budbreak = df_tt['gdd'].cumsum()[-1]
-        df_tt = 0.5 * (df_min + df_max) - t_base
+        df_tt = 0.5 * (df_min + df_max)
+        df_tt = df_tt.apply(lambda x: utilities.calc_effective_daily_temperature(
+            temperature_air=x, temperature_base=t_base))
         gdd_since_budbreak = df_tt.cumsum()[-1]
     else:
         raise ValueError('Cumulative degree-days temperature is not provided.')
