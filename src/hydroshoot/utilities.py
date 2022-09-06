@@ -106,17 +106,3 @@ def cpa2cmol(temp, partial_pressure):
     conc = partial_pressure * volume / (ideal_gas_cst * celsius_to_kelvin(temp))  # CO2 partial pressure [kPa]
 
     return conc * 1.e-4
-
-
-def calc_effective_daily_temperature(temperature_air: float, temperature_base: float) -> float:
-    """Calculates the effective temperature above base temperature.
-
-    Args:
-        temperature_air: [°C] mean daily air temperature
-        temperature_base: [°C] base temperature
-
-    Returns:
-        [°C] effective daily temperature
-
-    """
-    return temperature_air - temperature_base if temperature_air > temperature_base else 0
