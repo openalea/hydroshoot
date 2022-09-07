@@ -1,5 +1,5 @@
 from test.non_regression_data import potted_syrah, meteo
-from hydroshoot.energy import form_factors_simplified, leaf_temperature, forced_soil_temperature
+from hydroshoot.energy import set_form_factors_simplified, leaf_temperature, forced_soil_temperature
 from numpy.testing import assert_almost_equal
 import openalea.plantgl.all as pgl
 import hydroshoot.energy as energy
@@ -12,13 +12,13 @@ def test_pgl_scene():
     s = energy.pgl_scene(g)
     bc.process(s)
     bbox = bc.boundingbox
-    zmin, zmax = bbox.getZMin(),bbox.getZMax()
+    zmin, zmax = bbox.getZMin(), bbox.getZMax()
     assert zmax > zmin > 0
 
     s = energy.pgl_scene(g, flip=True)
     bc.process(s)
     bbox = bc.boundingbox
-    zmin, zmax = bbox.getZMin(),bbox.getZMax()
+    zmin, zmax = bbox.getZMin(), bbox.getZMax()
     assert 0 > zmax > zmin
 
     # check that original scene is still z >0
@@ -37,18 +37,9 @@ def test_get_leaves():
 
 def test_form_factors_simplified():
     g = potted_syrah()
-    k_soil, k_sky, k_leaves = form_factors_simplified(g, icosphere_level=0)
+    set_form_factors_simplified(g, icosphere_level=0)
     # non regression test
-    assert_almost_equal(sum(k_leaves.values()), 147.7, 1)
-
-
-def test_heat_boundary_layer_conductance():
-    g = potted_syrah()
-    met = meteo().iloc[[12], :]
-    l = energy.get_leaves_length(g)
-    gbH = energy.heat_boundary_layer_conductance(l, met.u[0])
-    assert len(gbH) == 46
-    assert_almost_equal(sum(gbH.values()) / len(gbH), 47, 0)
+    assert_almost_equal(sum(g.property('ff_leaves').values()), 147.7, 1)
 
 
 def test_forced_soil_temperature():
@@ -63,20 +54,19 @@ def test_leaf_temperature():
     tsoil = 20
     tsky = 2
 
+    for vid in g.properties()['geometry'].keys():
+        node = g.node(vid)
+        node.Ei = 0
+        node.ff_sky = 0.3
+        node.ff_leaves = 0.3
+        node.ff_soil = 0.4
+        node.gbH = 1
+        node.E = 0.
+        node.Tlc = met.Tac.values[0]
+
     tleaf, it = leaf_temperature(g, met, tsoil, tsky)
     assert len(tleaf) == 46
     first = list(tleaf.keys())[0]
     for vid in tleaf:
         assert tleaf[vid] == tleaf[first]
         assert tleaf[vid] != met.Tac[0]
-
-    l = energy.get_leaves_length(g)
-    u = energy.leaf_wind_as_air_wind(g, met)
-    gbH = energy.heat_boundary_layer_conductance(l, u)
-    tleaf, it = leaf_temperature(g, met, tsoil, tsky, gbh=gbH)
-    first = list(tleaf.keys())[0]
-    assert len(tleaf) == 46
-    for vid in tleaf:
-        assert tleaf[vid] != met.Tac[0]
-        if vid != first:
-            assert tleaf[vid] != tleaf[first]

@@ -158,10 +158,9 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
     Na_dict = params.exchange.Na_dict
 
     # Computation of the form factor matrix
-    form_factors = None
     if energy_budget:
         print('Computing form factors...')
-        form_factors = energy.form_factors_simplified(
+        g = energy.set_form_factors_simplified(
             g, pattern=pattern, infinite=True, leaf_lbl_prefix=leaf_lbl_prefix, turtle_sectors=turtle_sectors,
             icosphere_level=icosphere_level, unit_scene_length=unit_scene_length)
 
@@ -293,6 +292,9 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
         # Select of meteo data
         imeteo = meteo[meteo.time == date]
 
+        # initiate wind speed
+        g.properties()['u'] = energy.set_wind_speed(g=g, meteo=imeteo, leaf_lbl_prefix=leaf_lbl_prefix)
+
         # Add a date index to g
         g.date = datetime.strftime(date, "%Y%m%d%H%M%S")
 
@@ -344,7 +346,7 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
 
         solver.solve_interactions(g, imeteo, psi_soil, t_soil, t_sky_eff,
                                   vid_collar, vid_base, length_conv, time_conv,
-                                  rhyzo_total_volume, params, form_factors)
+                                  rhyzo_total_volume, params)
 
         # Write mtg to an external file
         if scene is not None:
