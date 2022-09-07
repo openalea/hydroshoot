@@ -550,11 +550,8 @@ def gas_exchange_rates(g, photo_params, photo_n_params, gs_params, meteo, E_type
             if node.label.startswith(leaf_lbl_prefix):
                 t_air = meteo_leaf.Tac
                 hs = meteo_leaf.hs
-                u = meteo_leaf.u
                 c_a = meteo_leaf.Ca
                 atm_press = meteo_leaf.Pa
-
-                node.u = u  # TODO replace the meso-wind speed (u) by a micro-wind speed at the level of each leaf
 
                 psi = node.properties()['psi_head']
                 t_leaf = node.properties()['Tlc']
@@ -586,7 +583,7 @@ def gas_exchange_rates(g, photo_params, photo_n_params, gs_params, meteo, E_type
                 a_n, c_c, c_i, gs = an_gs_ci(node.par_photo, meteo_leaf, psi, t_leaf,
                                              model, g0, rbt, c_a, m0, psi0, D0, n)
 
-                gb = boundary_layer_conductance(node.Length, u, atm_press, t_air, r)
+                gb = boundary_layer_conductance(node.Length, node.u, atm_press, t_air, r)
 
                 # Transpiration
                 es_a = utils.saturated_air_vapor_pressure(t_air)

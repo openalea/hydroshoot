@@ -293,6 +293,9 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
         # Select of meteo data
         imeteo = meteo[meteo.time == date]
 
+        # initiate wind speed
+        g.properties()['u'] = energy.set_wind_speed(g=g, meteo=imeteo, leaf_lbl_prefix=leaf_lbl_prefix)
+
         # Add a date index to g
         g.date = datetime.strftime(date, "%Y%m%d%H%M%S")
 
