@@ -1195,36 +1195,33 @@ def add_soil(g, side_length=10.):
     return
 
 
-def add_soil_components(g, cylinders_number, cylinders_radii, soil_dimensions,
-                        soil_class, vtx_label):
+def add_soil_components(g, cylinders_radii, soil_dimensions, soil_class, vtx_label, length_conv):
+    """Adds concentric soil cylinders to the mtg.
+
+    Args:
+        g (MTG): a multiscale tree graph object
+        cylinders_radii (list of float): [m] the radii of cylinders to be used
+        soil_dimensions (list of float): [m] (length, width, depth) of the soil compartment
+        soil_class (str): Soil class name according to Carsel and Parrish (1988) WRR 24,755–769 DOI: 10.1029/WR024i005p00755
+        vtx_label (str): Label prefix of the basal highest-scale stem vertex
+        length_conv (float): [-] conversion coefficient from [m] to the unit of the mtg
+
+    Returns:
+        (int): vertix id of the basal node of the mtg
+
     """
-    Adds concentric soil cylinders to the mtg.
-    
-    :Parameters:
-    - **g**: a multiscale tree graphe object
-    - **cylinders_number**: integer, the number of cylinders to be added
-    - **cylinders_radii**: list of floats, the radii of cylinders to be used
-    - **soil_dimensions**: list of floats (length, width, depth) of the soil [m]
-    - **soil_class**: string, the soil class name according to Carsel and Parrish (1988) WRR 24,755–769 DOI: 10.1029/WR024i005p00755
-    - **vtx_label**: string, the label prefix of the basal highest-scale stem vertex
-    """
-    max_radius = 0.5 * min(soil_dimensions[:2]) * 100  # [cm]
+    max_radius = 0.5 * min(soil_dimensions[:2])
     assert (max(cylinders_radii) <= max_radius), 'Maximum soil radius must not exceed %d cm' % max_radius
-    assert (
-            len(cylinders_radii) == cylinders_number), 'Soil cylinders number (%d) and radii elements (%d) do not match.' % (
-        len(cylinders_radii), cylinders_number)
 
-    depth = soil_dimensions[2] * 100.  # [m]
+    depth = soil_dimensions[2] * length_conv
     child = g.node(mtg_base(g, vtx_label=vtx_label))
-    Length = 0.
-    radius_prev = 0.
 
-    for ivid in range(cylinders_number):
-        radius = cylinders_radii[ivid]
-        Length = radius - radius_prev
-        label = 'rhyzo%d' % ivid
-        #        print(radius, Length, label)
-        child = g.node(child._vid).insert_parent(label=label, depth=depth, Length=Length,
+    radius_prev = 0.
+    for i, cylinder_radius in enumerate(cylinders_radii):
+        radius = cylinder_radius * length_conv
+        length = (radius - radius_prev) * length_conv
+        label = 'rhyzo%d' % i
+        child = g.node(child._vid).insert_parent(label=label, depth=depth, Length=length,
                                                  TopDiameter=radius * 2., BotDiameter=radius * 2.,
                                                  TopPosition=3 * [0], BotPosition=3 * [0],
                                                  soil_class=soil_class)

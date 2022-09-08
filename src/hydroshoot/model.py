@@ -170,7 +170,6 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
 
     # Rhyzosphere concentric radii determination
     rhyzo_radii = params.soil.rhyzo_radii
-    rhyzo_number = len(rhyzo_radii)
 
     # Add rhyzosphere elements to mtg
     rhyzo_solution = params.soil.rhyzo_solution
@@ -179,8 +178,7 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
     if rhyzo_solution:
         if not any(item.startswith('rhyzo') for item in g.property('label').values()):
             vid_collar = architecture.mtg_base(g, vtx_label=vtx_label)
-            vid_base = architecture.add_soil_components(g, rhyzo_number, rhyzo_radii,
-                                                        soil_dimensions, soil_class, vtx_label)
+            vid_base = architecture.add_soil_components(g, rhyzo_radii, soil_dimensions, soil_class, vtx_label, 1. / length_conv)
         else:
             vid_collar = g.node(g.root).vid_collar
             vid_base = g.node(g.root).vid_base
@@ -188,9 +186,9 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
             radius_prev = 0.
 
             for ivid, vid in enumerate(g.Ancestors(vid_collar)[1:]):
-                radius = rhyzo_radii[ivid]
+                radius = rhyzo_radii[ivid] / length_conv
                 g.node(vid).Length = radius - radius_prev
-                g.node(vid).depth = soil_dimensions[2] / length_conv  # [m]
+                g.node(vid).depth = soil_dimensions[2] / length_conv
                 g.node(vid).TopDiameter = radius * 2.
                 g.node(vid).BotDiameter = radius * 2.
                 g.node(vid).soil_class = soil_class
