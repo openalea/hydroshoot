@@ -36,7 +36,7 @@
   },
   "irradiance": {
     "E_type": "Rg_Watt/m2",
-    "E_type2": "Ei",
+    "E_type2": "Eabs",
     "opt_prop": {
       "SW": {
         "leaf": [
@@ -142,6 +142,14 @@
       "RespT_Tx": {
         "c": 19.02,
         "deltaHa": 37.83
+      },
+      "photo_inhibition": {
+        "dhd_inhib_beg":195,
+        "dHd_inhib_max":190,
+        "psi_inhib_beg":-1.5,
+        "psi_inhib_max":-3,
+        "temp_inhib_beg": 35,
+        "temp_inhib_max": 40
       }
     },
     "par_photo_N": {
@@ -170,15 +178,7 @@
       1.0,
       1.2
     ],
-    "rhyzo_solution": true,
-    "rhyzo_radii": [
-      0.167,
-      0.333,
-      0.5
-    ],
-    "rhyzo_coeff": 0.5,
-    "avg_root_spacing": 0.013,
-    "avg_root_radius":  0.0001
+    "rhyzo_coeff": 0.5
   }
 }
 
