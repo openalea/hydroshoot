@@ -5,7 +5,7 @@ import openalea.mtg.traversal as traversal
 from hydroshoot import hydraulic, exchange, energy
 
 
-def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_base,
+def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff,
                        length_conv, time_conv, rhyzo_total_volume, params):
     """Computes gas-exchange, energy and hydraulic structure of plant's shoot jointly.
 
@@ -15,8 +15,6 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
         psi_soil (float): [MPa] soil (root zone) water potential
         t_soil (float): [degreeC] soil surface temperature
         t_sky_eff (float): [degreeC] effective sky temperature
-        vid_collar (int): id of the collar node of the mtg
-        vid_base (int): id of the basal node of the mtg
         length_conv (float): [-] conversion factor from the `unit_scene_length` to 1 m
         time_conv (float): [-] conversion factor from meteo data time step to seconds
         rhyzo_total_volume (float): [m3] volume of the soil occupied with roots
@@ -67,7 +65,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
 
     # Initializations ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     # Initialize all xylem potential values to soil water potential
-    for vtx_id in traversal.pre_order2(g, vid_base):
+    for vtx_id in traversal.pre_order2(g, g.node(g.root).vid_base):
         g.node(vtx_id).psi_head = psi_soil
 
     # If leaf temperature to be calculated, calculate the boundary layer conductance to heat transfer
@@ -102,25 +100,25 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, vid_collar, vid_ba
                                          a=xylem_k_max['a'], b=xylem_k_max['b'], min_kmax=xylem_k_max['min_kmax'])
 
                 # Update soil water status
-                psi_collar = hydraulic.soil_water_potential(psi_soil, g.node(vid_collar).Flux * time_conv,
-                                                            soil_class, rhyzo_total_volume, psi_min)
+                psi_base = hydraulic.soil_water_potential(
+                    psi_soil_init=psi_soil, water_withdrawal=g.node(g.node(g.root).vid_collar).Flux * time_conv,
+                    soil_class=soil_class, soil_total_volume=rhyzo_total_volume, psi_min=psi_min)
 
                 if soil_water_deficit:
-                    psi_collar = max(-1.3, psi_collar)
+                    psi_base = max(-1.3, psi_base)
                 else:
-                    psi_collar = max(-0.7, psi_collar)
-
-                    for vid in g.Ancestors(vid_collar):
-                        g.node(vid).psi_head = psi_collar
+                    psi_base = max(-0.7, psi_base)
 
                 # Compute xylem water potential
-                n_iter_psi = hydraulic.xylem_water_potential(g, psi_soil=psi_collar, model=modelx, psi_min=psi_min,
+                n_iter_psi = hydraulic.xylem_water_potential(g, psi_soil=psi_base, model=modelx, psi_min=psi_min,
                                                              psi_error_crit=psi_error_threshold, max_iter=max_iter,
                                                              length_conv=length_conv, fifty_cent=psi_critx,
-                                                             sig_slope=slopex, root_spacing=params.soil.avg_root_spacing,
+                                                             sig_slope=slopex,
+                                                             root_spacing=params.soil.avg_root_spacing,
                                                              root_radius=params.soil.avg_root_radius,
                                                              negligible_shoot_resistance=negligible_shoot_resistance,
-                                                             start_vid=vid_collar, stop_vid=None, psi_step=psi_step)
+                                                             start_vid=g.node(g.root).vid_base, stop_vid=None,
+                                                             psi_step=psi_step)
 
                 psi_new = g.property('psi_head')
 
