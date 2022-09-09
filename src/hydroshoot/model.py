@@ -168,10 +168,6 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
     soil_class = params.soil.soil_class
     print('Soil class: %s' % soil_class)
 
-    # Rhyzosphere concentric radii determination
-    rhyzo_radii = params.soil.rhyzo_radii
-    rhyzo_number = len(rhyzo_radii)
-
     # Add rhyzosphere elements to mtg
     rhyzo_solution = params.soil.rhyzo_solution
     print('rhyzo_solution: %s' % rhyzo_solution)
@@ -179,8 +175,7 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
     if rhyzo_solution:
         if not any(item.startswith('rhyzo') for item in g.property('label').values()):
             vid_collar = architecture.mtg_base(g, vtx_label=vtx_label)
-            vid_base = architecture.add_soil_components(g, rhyzo_number, rhyzo_radii,
-                                                        soil_dimensions, soil_class, vtx_label)
+            vid_base = architecture.add_soil_components(g, params.soil.rhyzo_radii, soil_dimensions, soil_class, vtx_label, 1. / length_conv)
         else:
             vid_collar = g.node(g.root).vid_collar
             vid_base = g.node(g.root).vid_base
@@ -188,9 +183,9 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
             radius_prev = 0.
 
             for ivid, vid in enumerate(g.Ancestors(vid_collar)[1:]):
-                radius = rhyzo_radii[ivid]
+                radius = params.soil.rhyzo_radii[ivid] / length_conv
                 g.node(vid).Length = radius - radius_prev
-                g.node(vid).depth = soil_dimensions[2] / length_conv  # [m]
+                g.node(vid).depth = soil_dimensions[2] / length_conv
                 g.node(vid).TopDiameter = radius * 2.
                 g.node(vid).BotDiameter = radius * 2.
                 g.node(vid).soil_class = soil_class
@@ -205,7 +200,7 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
     g.node(g.root).vid_collar = vid_collar
 
     # Initializing sapflow to 0
-    for vtx_id in traversal.pre_order2(g, vid_base):
+    for vtx_id in traversal.pre_order2(g, g.node(g.root).vid_base):
         g.node(vtx_id).Flux = 0.
 
     # Addition of a soil element
@@ -344,9 +339,9 @@ def run(g, wd, scene=None, write_result=True, **kwargs):
         # TODO: Change the t_sky_eff formula (cf. Gliah et al., 2011, Heat and Mass Transfer, DOI: 10.1007/s00231-011-0780-1)
         t_sky_eff = RdRsH_ratio * t_cloud + (1 - RdRsH_ratio) * t_sky
 
-        solver.solve_interactions(g, imeteo, psi_soil, t_soil, t_sky_eff,
-                                  vid_collar, vid_base, length_conv, time_conv,
-                                  rhyzo_total_volume, params)
+        solver.solve_interactions(g=g, meteo=imeteo, psi_soil=psi_soil, t_soil=t_soil, t_sky_eff=t_sky_eff,
+                                  length_conv=length_conv, time_conv=time_conv,
+                                  rhyzo_total_volume=rhyzo_total_volume, params=params)
 
         # Write mtg to an external file
         if scene is not None:

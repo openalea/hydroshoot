@@ -170,15 +170,7 @@
       1.0,
       1.2
     ],
-    "rhyzo_solution": false,
-    "rhyzo_radii": [
-      0.167,
-      0.333,
-      0.5
-    ],
-    "rhyzo_coeff": 0.25,
-    "avg_root_spacing": 0.013,
-    "avg_root_radius":  0.0001
+    "rhyzo_coeff": 0.25
   }
 }
 

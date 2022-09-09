@@ -148,11 +148,21 @@ class Soil:
     def __init__(self, soil_dict):
         self.soil_class = soil_dict['soil_class']
         self.soil_dimensions = soil_dict['soil_dimensions']
-        self.rhyzo_solution = soil_dict['rhyzo_solution']
-        self.rhyzo_radii = soil_dict['rhyzo_radii']
         self.rhyzo_coeff = soil_dict['rhyzo_coeff']
-        self.avg_root_spacing = soil_dict['avg_root_spacing']
-        self.avg_root_radius = soil_dict['avg_root_radius']
+
+        if all([s in soil_dict for s in ('rhyzo_radii', 'avg_root_spacing', 'avg_root_radius')]):
+            self.rhyzo_solution = True
+            self.rhyzo_radii = soil_dict['rhyzo_radii']
+            self.avg_root_spacing = soil_dict['avg_root_spacing']
+            self.avg_root_radius = soil_dict['avg_root_radius']
+        else:
+            self.rhyzo_solution = False
+            self.rhyzo_radii = None
+            self.avg_root_spacing = None
+            self.avg_root_radius = None
+
+        if 'rhyzo_solution' in soil_dict:
+            DeprecationWarning('"rhyzo_solution" parameter is ignored. It will raise an error in future versions')
 
 
 def _list2tuple(dct):
