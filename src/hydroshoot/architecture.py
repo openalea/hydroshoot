@@ -12,7 +12,6 @@ The resulting MTG incorporates geometry
 
 from functools import reduce
 from itertools import product
-from os import path, mkdir
 from pickle import dump, load
 from re import search, findall
 
@@ -1592,9 +1591,10 @@ def mtg_output(g, wd):
     """
     properties = [(p, 'REAL') for p in g.property_names() if p not in ['edge_type', 'index', 'label']]
     mtg_lines = io.write_mtg(g, properties)
-    if not path.exists(wd + 'mtg/'):
-        mkdir(wd + 'mtg/')
-    mtg_file_path = wd + 'mtg/%s.mtg' % g.date
+    path_mtg = wd / 'mtg'
+    if not path_mtg.exists():
+        path_mtg.mkdir()
+    mtg_file_path = path_mtg / f'{g.date}.mtg'
     f = open(mtg_file_path, 'w')
     f.write(mtg_lines)
     f.close()
@@ -1602,13 +1602,13 @@ def mtg_output(g, wd):
 
 
 def mtg_save(g, scene, file_path):
-    if not path.exists(file_path):
-        mkdir(file_path)
+    if not file_path.exists():
+        file_path.mkdir()
 
     geom = {vid: g.node(vid).geometry for vid in g.property('geometry')}
     g.remove_property('geometry')
 
-    fg = file_path + 'mtg' + g.date + '.pckl'
+    fg = file_path / f'mtg{g.date}.pckl'
 
     f = open(fg, 'wb')
     dump([g, scene], f)
@@ -1620,8 +1620,8 @@ def mtg_save(g, scene, file_path):
 
 
 def mtg_load(wd, index):
-    fgeom = wd + 'geometry%s.bgeom' % index
-    fg = wd + '%s.pckl' % (index)
+    fgeom = wd / f'geometry{index}.bgeom'
+    fg = wd / f'%{index}.pckl'
 
     scene = pgl.Scene()
     scene.read(fgeom, 'BGEOM')
@@ -1646,10 +1646,10 @@ def mtg_save_geometry(scene, file_path, index=''):
     - **file_path**: path string for saving the scene object
     """
 
-    if not path.exists(file_path):
-        mkdir(file_path)
+    if not file_path.exists():
+        file_path.mkdir()
 
-    fgeom = file_path + 'geometry%s.bgeom' % index
+    fgeom = file_path / f'geometry{index}.bgeom'
 
     scene.save(str(fgeom), 'BGEOM')
 

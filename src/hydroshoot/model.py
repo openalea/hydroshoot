@@ -4,6 +4,7 @@ energy-exchange, and soil water depletion, for each given time step.
 """
 from copy import deepcopy
 from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 from openalea.mtg.mtg import MTG
@@ -15,7 +16,7 @@ from hydroshoot.energy import calc_effective_sky_temperature
 from hydroshoot.initialisation import init_model, init_hourly
 
 
-def run(g: MTG, wd: str, scene: Scene, write_result: bool = True, **kwargs) -> DataFrame:
+def run(g: MTG, wd: Path, scene: Scene, write_result: bool = True, **kwargs) -> DataFrame:
     """Calculates leaf gas and energy exchange in addition to the hydraulic structure of an individual plant.
 
     Args:
@@ -65,7 +66,7 @@ def run(g: MTG, wd: str, scene: Scene, write_result: bool = True, **kwargs) -> D
     g = init_model(g=g, inputs=inputs)
 
     # Define path to folder
-    output_path = f'{wd}output{params.simulation.output_index}/'
+    output_path = wd / f'output{params.simulation.output_index}'
 
     # Save geometry in an external file
     # HSArc.mtg_save_geometry(scene, output_path)
@@ -106,7 +107,7 @@ def run(g: MTG, wd: str, scene: Scene, write_result: bool = True, **kwargs) -> D
 
         # Write mtg to an external file
         if scene is not None:
-            architecture.mtg_save(g, scene, output_path)
+            architecture.mtg_save(g=g, scene=scene, file_path=output_path)
 
         # Plot stuff..
         sapflow.append(g.node(g.node(g.root).vid_collar).Flux)
@@ -161,7 +162,7 @@ def run(g: MTG, wd: str, scene: Scene, write_result: bool = True, **kwargs) -> D
 
     # Write
     if write_result:
-        results_df.to_csv(output_path + 'time_series.output', sep=';', decimal='.')
+        results_df.to_csv(output_path / 'time_series.output', sep=';', decimal='.')
 
     time_off = datetime.now()
 

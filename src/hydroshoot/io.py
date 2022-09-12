@@ -1,5 +1,5 @@
 from datetime import datetime
-from os.path import isfile
+from pathlib import Path
 
 from openalea.mtg.mtg import MTG
 from openalea.plantgl.all import Scene
@@ -13,7 +13,7 @@ from hydroshoot.params import Params
 
 
 class HydroShootInputs(object):
-    def __init__(self, g: MTG, path_project: str, scene: Scene, is_write_result=True, **kwargs):
+    def __init__(self, g: MTG, path_project: Path, scene: Scene, is_write_result=True, **kwargs):
         self.path_project = path_project
         self.scene = scene
         self.is_write_result = is_write_result
@@ -30,12 +30,12 @@ class HydroShootInputs(object):
         self.weather = None
         self.psi_pd = None
 
-        self.params = Params(f'{self.path_project}params.json')
+        self.params = Params(self.path_project / 'params.json')
         self.set_weather()
         self.set_soil_predawn_water_potential()
 
     def set_weather(self):
-        df = read_csv(f'{self.path_project}{self.params.simulation.meteo}', sep=';', decimal='.', header=0)
+        df = read_csv(self.path_project / self.params.simulation.meteo, sep=';', decimal='.', header=0)
         df.time = DatetimeIndex(df.time)
         df = df.set_index(df.time)
         if 'Ca' not in df.columns:
@@ -47,7 +47,7 @@ class HydroShootInputs(object):
 
     def set_soil_predawn_water_potential(self):
         if self.psi_soil_forced is None:
-            psi_pd = read_csv(f'{self.path_project}psi_soil.input', sep=';', decimal='.').set_index('time')
+            psi_pd = read_csv(self.path_project / 'psi_soil.input', sep=';', decimal='.').set_index('time')
             psi_pd.index = [datetime.strptime(str(s), "%Y-%m-%d") for s in psi_pd.index]
             self.psi_pd = psi_pd
         pass
@@ -95,7 +95,7 @@ def verify_inputs(g: MTG, inputs: HydroShootInputs):
     params = inputs.params
 
     if inputs.psi_soil_forced is None:
-        assert isfile(f'{inputs.path_project}psi_soil.input'), "The 'psi_soil.input' file is missing."
+        assert (inputs.path_project / 'psi_soil.input').is_file(), "The 'psi_soil.input' file is missing."
 
     assert params.irradiance.E_type in ('Rg_Watt/m2', 'RgPAR_Watt/m2' 'PPFD_umol/m2/s'), (
         "'irradiance_unit' must be one of the following 'Rg_Watt/m2', 'RgPAR_Watt/m2' or'PPFD_umol/m2/s'.")

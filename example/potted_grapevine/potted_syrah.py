@@ -2,7 +2,7 @@
 simple shoot architecture.
 """
 
-from os import getcwd
+from pathlib import Path
 
 from openalea.mtg import traversal, mtg
 from openalea.plantgl.all import Scene
@@ -10,8 +10,8 @@ from openalea.plantgl.all import Scene
 from hydroshoot import architecture, display, model
 
 
-def build_mtg(file_name: str) -> (mtg.MTG, Scene):
-    grapevine_mtg = architecture.vine_mtg(file_path=file_name)
+def build_mtg(path_file: Path) -> (mtg.MTG, Scene):
+    grapevine_mtg = architecture.vine_mtg(file_path=path_file)
 
     for v in traversal.iter_mtg2(grapevine_mtg, grapevine_mtg.root):
         architecture.vine_phyto_modular(grapevine_mtg, v)
@@ -25,5 +25,6 @@ def build_mtg(file_name: str) -> (mtg.MTG, Scene):
 
 
 if __name__ == '__main__':
-    g, scene = build_mtg(file_name='grapevine_pot.csv')
-    summary_results = model.run(g, str(getcwd()) + '/', scene, psi_soil=-0.5, gdd_since_budbreak=1000.)
+    path_project = Path(__file__).parent
+    g, scene = build_mtg(path_file=path_project / 'grapevine_pot.csv')
+    summary_results = model.run(g=g, wd=path_project, scene=scene, psi_soil=-0.5, gdd_since_budbreak=1000.)

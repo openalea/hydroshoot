@@ -81,7 +81,7 @@ def plot_figure_7():
     for i, training in enumerate(('vsp', 'gdc', 'lyre')):
         pth = example_pth / 'virtual_canopies' / training
 
-        g, _ = mtg_load(str(pth) + '/output/', 'mtg%s' % obs_date.strftime('%Y%m%d%H%M%S'))
+        g, _ = mtg_load(pth / 'output' / f"mtg{obs_date.strftime('%Y%m%d%H%M%S')}")
 
         axs[i, 0] = display.property_map(g, 'psi_head', color=training_color[training],
                                          ax=axs[i, 0])
@@ -120,7 +120,7 @@ def plot_figure_8():
     for i, training in enumerate(('vsp', 'gdc', 'lyre')):
         pth = example_pth / 'virtual_canopies' / training
 
-        g, _ = mtg_load(str(pth) + '/output/', 'mtg%s' % obs_date.strftime('%Y%m%d%H%M%S'))
+        g, _ = mtg_load(pth / 'output' / f"mtg{obs_date.strftime('%Y%m%d%H%M%S')}")
 
         axs[i, 0] = display.property_map(g, 'Tlc', color=training_color[training],
                                          ax=axs[i, 0])
@@ -162,7 +162,7 @@ def plot_figure_9():
         for i_day, date in enumerate(datet):
             ax = axs[it, i_day]
             obs_date = date + pd.Timedelta(hours=13)
-            g, _ = mtg_load(str(pth) + '/output/', 'mtg%s' % obs_date.strftime('%Y%m%d%H%M%S'))
+            g, _ = mtg_load(pth / 'output' / f"mtg{obs_date.strftime('%Y%m%d%H%M%S')}")
             ax = display.property_map(g, 'psi_head', ax=ax, prop2='Eabs', color='grey',
                                       colormap='autumn', add_color_bar=False)
 
@@ -218,7 +218,7 @@ def plot_figure_10():
         for i_day, date in enumerate(datet):
             ax = axs[it, i_day]
             obs_date = date + pd.Timedelta(hours=13)
-            g, _ = mtg_load(str(pth) + '/output/', 'mtg%s' % obs_date.strftime('%Y%m%d%H%M%S'))
+            g, _ = mtg_load(pth / 'output' / f"mtg{obs_date.strftime('%Y%m%d%H%M%S')}")
             ax = display.property_map(g, 'gs', ax=ax, prop2='Eabs', color='grey',
                                       colormap='autumn', add_color_bar=False)
 
@@ -290,7 +290,7 @@ def plot_figure_11():
         q1_sim = np.array([])
         q3_sim = np.array([])
         for date in datet:
-            g, _ = mtg_load(str(pth) + '/output/', 'mtg%s' % date.strftime('%Y%m%d%H%M%S'))
+            g, _ = mtg_load(pth / 'output' / f"mtg{date.strftime('%Y%m%d%H%M%S')}")
             leaf_temp_sim = g.property('Tlc').values()
             q1_sim = np.append(q1_sim, min(leaf_temp_sim))
             q3_sim = np.append(q3_sim, max(leaf_temp_sim))
@@ -387,7 +387,7 @@ def plot_figure_12():
         q_1_sim = np.array([])
         q_3_sim = np.array([])
         for date in datet:
-            g, _ = mtg_load(str(pth) + '/output/', 'mtg%s' % date.strftime('%Y%m%d%H%M%S'))
+            g, _ = mtg_load(pth / 'output' / f"mtg{date.strftime('%Y%m%d%H%M%S')}")
             leaf_temp_sim = g.property('Tlc').values()
             q_1_sim = np.append(q_1_sim, min(leaf_temp_sim))
             q_3_sim = np.append(q_3_sim, max(leaf_temp_sim))
