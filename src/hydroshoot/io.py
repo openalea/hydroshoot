@@ -16,11 +16,12 @@ class HydroShootInputs(object):
     def __init__(self, g: MTG, path_project: Path, scene: Scene, is_write_result: bool = True,
                  path_output_file: Path = None, **kwargs):
         self.path_project = path_project
+        self.path_output_file = None
+        self.path_output_dir = None
         self.scene = scene
         self.is_write_result = is_write_result
         self.is_nitrogen_calculated = 'Na' in g.property_names()
 
-        self.leaf_absorbed_ppfd = kwargs['leaf_absorbed_ppfd'] if 'leaf_absorbed_ppfd' in kwargs else None
         if 'form_factors' in kwargs:
             self.set_form_factors(user_form_factors=kwargs['form_factors'])
         else:
@@ -30,6 +31,11 @@ class HydroShootInputs(object):
             self.leaf_nitrogen = self._parse_keys(user_input=kwargs['leaf_nitrogen'])
         else:
             self.leaf_nitrogen = None
+
+        if 'leaf_ppfd' in kwargs:
+            self.leaf_ppfd = self.set_ppfd(dicto=kwargs['leaf_ppfd'])
+        else:
+            self.leaf_ppfd = None
 
         self.psi_soil_forced = kwargs['psi_soil'] if 'psi_soil' in kwargs else None
         self.gdd_since_budbreak = kwargs['gdd_since_budbreak'] if 'gdd_since_budbreak' in kwargs else None
@@ -71,11 +77,22 @@ class HydroShootInputs(object):
             self.path_output_file = user_path
             self.path_output_dir = self.path_output_file.parent
 
+    def set_ppfd(self, dicto: dict) -> dict:
+        res = {}
+        for k1, v1 in dicto.items():
+            res[k1] = {}
+            for k, v in v1.items():
+                if isinstance(v, dict):
+                    res[k1][k] = self._parse_keys(user_input=v)
+                else:
+                    res[k1][k] = v
+        return res
+
     def set_form_factors(self, user_form_factors: dict):
         self.form_factors = {k: self._parse_keys(user_input=v) for k, v in user_form_factors.items()}
 
     @staticmethod
-    def _parse_keys(user_input: dict):
+    def _parse_keys(user_input: dict) -> dict:
         return {int(k): v for k, v in user_input.items()}
 
 
@@ -147,12 +164,13 @@ def verify_inputs(g: MTG, inputs: HydroShootInputs):
         assert all([vid in inputs.leaf_nitrogen
                     for vid in get_leaves(g=g, leaf_lbl_prefix=inputs.params.mtg_api.leaf_lbl_prefix)])
 
-    if inputs.leaf_absorbed_ppfd is not None:
+    if inputs.leaf_ppfd is not None:
         for sim_datetime in inputs.params.simulation.date_range:
-            assert sim_datetime in inputs.leaf_absorbed_ppfd, f'Absorbed PPFD on {sim_datetime} is not provided'
-            assert all([s in inputs.leaf_absorbed_ppfd[sim_datetime]
-                        for s in ('diffuse_to_total_irradiance_ratio', 'absorbed_ppfd')])
-            assert all([vid in inputs.leaf_absorbed_ppfd[sim_datetime]['absorbed_ppfd']
+            d = sim_datetime.strftime("%Y%m%d%H%M%S")
+            assert d in inputs.leaf_ppfd, f'Absorbed PPFD on {sim_datetime} is not provided'
+            assert all([s in inputs.leaf_ppfd[d] for s in ('diffuse_to_total_irradiance_ratio', 'Ei', 'Eabs')])
+            assert all([s in inputs.leaf_ppfd[d]['Ei'] for s in inputs.leaf_ppfd[d]['Eabs']])
+            assert all([vid in inputs.leaf_ppfd[d]['Eabs']
                         for vid in get_leaves(g=g, leaf_lbl_prefix=inputs.params.mtg_api.leaf_lbl_prefix)])
 
     if inputs.form_factors is not None:
@@ -176,6 +194,8 @@ def print_sim_infos(inputs: HydroShootInputs):
     print(f'Calculate Hydraulic structure: {params.simulation.hydraulic_structure}')
     print(f'Force well-watered conditions: {params.simulation.soil_water_deficit}')
     print(f'Add Rhyzoshpere cylinders: {params.soil.rhyzo_solution}')
-    print(f'User form factors: {inputs.form_factors is not None}')
+    print(f'Use user form factors: {inputs.form_factors is not None}')
+    print(f'Use user irradiance data: {inputs.leaf_ppfd is not None}')
+    print(f'Use user nitrogen data: {inputs.leaf_nitrogen is not None}')
     print("-" * 72)
     pass

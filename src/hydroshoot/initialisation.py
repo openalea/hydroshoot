@@ -141,7 +141,7 @@ def init_model(g: MTG, inputs: HydroShootInputs) -> MTG:
     return g
 
 
-def init_hourly(g: MTG, inputs_hourly: HydroShootHourlyInputs, leaf_absorbed_ppfd: dict,
+def init_hourly(g: MTG, inputs_hourly: HydroShootHourlyInputs, leaf_ppfd: dict,
                 params: Params) -> (MTG, float):
     # Add a date index to g
     g.date = datetime.strftime(inputs_hourly.date, "%Y%m%d%H%M%S")
@@ -150,8 +150,10 @@ def init_hourly(g: MTG, inputs_hourly: HydroShootHourlyInputs, leaf_absorbed_ppf
     g.properties()['u'] = set_wind_speed(
         g=g, meteo=inputs_hourly.weather, leaf_lbl_prefix=params.mtg_api.leaf_lbl_prefix)
 
-    if leaf_absorbed_ppfd is not None:
-        g.properties()['Ei'], diffuse_to_total_irradiance_ratio = leaf_absorbed_ppfd[inputs_hourly.date]
+    if leaf_ppfd is not None:
+        diffuse_to_total_irradiance_ratio = leaf_ppfd[g.date]['diffuse_to_total_irradiance_ratio']
+        g.properties()['Ei'] = leaf_ppfd[g.date]['Ei']
+        g.properties()['Eabs'] = leaf_ppfd[g.date]['Eabs']
     else:
         # Compute irradiance distribution over the scene
         caribu_source, diffuse_to_total_irradiance_ratio = irradiance_distribution(

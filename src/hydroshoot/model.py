@@ -31,10 +31,12 @@ def run(g: MTG, wd: Path, scene: Scene, write_result: bool = True, path_output: 
             sun2scene (Scene): PlantGl scene, when prodivided, a sun object (sphere) is added to it
             soil_size (float): [cm] length of squared mesh size
             leaf_nitrogen (dict): leaf nitrogen content per area (key=(int) mtg leaf vertex, value=(float) nitrogen content)
-            leaf_absorbed_ppfd (dict of dict): absorbed PPFD by each leaf per each simulated hour
-                (key=(datetime) simulated datetime, value=(key=(int) mtg leaf vertex, value=(absorbed PPFD))
+            leaf_ppfd (dict of dict): incident and absorbed PPFD by each leaf per each simulated hour
+                key:(datetime) simulated datetime, value:
+                    key:'Ei', value: (key: (int) mtg leaf vertex, value: (incident PPFD)),
+                    key:'Eabs', value: (key: (int) mtg leaf vertex, value: (absorbed PPFD))
             form_factors (dict of dict): form factors for the sky, leaves and the soil
-                (key=(str) one of ('ff_sky', 'ff_leaves', 'ff_soil'), value=(key=(int) mtg leaf vertex, value=(form factor))
+                key=(str) one of ('ff_sky', 'ff_leaves', 'ff_soil'), value=(key=(int) mtg leaf vertex, value=(form factor)
 
     Returns:
         Absorbed whole plant global irradiance (Rg), net photosynthesis (An), transpiration (E) and
@@ -57,7 +59,6 @@ def run(g: MTG, wd: Path, scene: Scene, write_result: bool = True, path_output: 
     # ==============================================================================
     # Conversions
     time_conv = params.simulation.conv_to_second
-    length_conv = params.simulation.conv_to_meter
 
     io.print_sim_infos(inputs=inputs)
 
@@ -93,7 +94,7 @@ def run(g: MTG, wd: Path, scene: Scene, write_result: bool = True, path_output: 
                              psi_pd=inputs.psi_pd, params=params)
 
         g, diffuse_to_total_irradiance_ratio = init_hourly(
-            g=g, inputs_hourly=inputs_hourly, leaf_absorbed_ppfd=inputs.leaf_absorbed_ppfd, params=params)
+            g=g, inputs_hourly=inputs_hourly, leaf_ppfd=inputs.leaf_ppfd, params=params)
 
         inputs_hourly.sky_temperature = calc_effective_sky_temperature(
             diffuse_to_total_irradiance_ratio=diffuse_to_total_irradiance_ratio,
@@ -114,8 +115,9 @@ def run(g: MTG, wd: Path, scene: Scene, write_result: bool = True, path_output: 
         # sapWest.append(g.node(arm_vid['arm2']).Flux)
 
         # Trace intercepted irradiance on each time step
-        rg_ls.append(sum([g.node(vid).Ei / (0.48 * 4.6) * surface(g.node(vid).geometry) * (length_conv ** 2)
-                          for vid in g.property('geometry') if g.node(vid).label.startswith('L')]))
+        rg_ls.append(
+            sum([g.node(vid).Ei / (0.48 * 4.6) * surface(g.node(vid).geometry) * (params.simulation.conv_to_meter ** 2)
+                 for vid in g.property('geometry') if g.node(vid).label.startswith('L')]))
 
         an_ls.append(g.node(g.node(g.root).vid_collar).FluxC)
 
