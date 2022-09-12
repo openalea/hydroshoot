@@ -101,7 +101,7 @@ def test_soil_water_potential_drops_faster_for_small_soil_reservoirs_than_bigger
 
 def test_hydraulic_prop_attributes_the_right_properties_to_the_different_organs():
     simple_shoot = potted_syrah()
-    simple_shoot.node(simple_shoot.root).vid_base = architecture.mtg_base(simple_shoot, vtx_label='inT')
+    simple_shoot.node(simple_shoot.root).vid_base = architecture.get_mtg_base(simple_shoot, vtx_label='inT')
 
     vid_base = simple_shoot.node(simple_shoot.root).vid_base
     for vtx_id in traversal.post_order2(simple_shoot, vid_base):

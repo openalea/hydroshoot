@@ -1,16 +1,13 @@
 from datetime import datetime
 
-from pandas import date_range, DatetimeIndex, DataFrame
+from pandas import date_range, DataFrame
+
+from hydroshoot.utilities import calc_effective_daily_temperature
 
 
 def calc_gdd_since_budbreak(weather: DataFrame, date_budbreak: datetime, date_beg_sim: datetime,
                             temperature_base: float) -> float:
-    tdays = date_range(date_budbreak, date_beg_sim, freq='D')
-    tmeteo = weather.loc[tdays, :].Tac.to_frame()
-    tmeteo = tmeteo.set_index(DatetimeIndex(tmeteo.index).normalize())
-    df_min = tmeteo.groupby(tmeteo.index).aggregate(min).Tac
-    df_max = tmeteo.groupby(tmeteo.index).aggregate(max).Tac
-    df_tt = 0.5 * (df_min + df_max) - temperature_base
-    df = weather.resample('D').agg({'Tac': ['max', 'min']}).mean(axis=1)
-    df.apply(lambda x: )
-    return df_tt.cumsum()[-1]
+    time_range = date_range(date_budbreak, date_beg_sim, freq='H')
+    df = weather.loc[time_range, :].resample('D').agg({'Tac': ['max', 'min']}).mean(axis=1)
+    return df.apply(lambda x:
+                    calc_effective_daily_temperature(temperature_air=x, temperature_base=temperature_base)).cumsum()[-1]

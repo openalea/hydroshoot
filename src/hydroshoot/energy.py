@@ -21,6 +21,7 @@ from sympy.solvers import nsolve
 
 import hydroshoot.constants as cst
 from hydroshoot import utilities as utils
+from hydroshoot.architecture import get_leaves
 
 
 def pgl_scene(g, flip=False):
@@ -34,12 +35,6 @@ def pgl_scene(g, flip=False):
         sh.id = id
         scene.add(sh)
     return scene
-
-
-def get_leaves(g, leaf_lbl_prefix='L'):
-    label = g.property('label')
-    return [vid for vid in g.VtxList() if
-            vid > 0 and label[vid].startswith(leaf_lbl_prefix)]
 
 
 def set_form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix='L', turtle_sectors='46',
@@ -326,7 +321,7 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True,
     return t_new, it
 
 
-def forced_soil_temperature(meteo):
+def force_soil_temperature(meteo):
     """A very simple model of soil temperature
 
     Args:
@@ -340,3 +335,10 @@ def forced_soil_temperature(meteo):
     dt_soil = [3, 3, 3, 3, 3, 3, 3, 3, 10, 15, 20, 20, 20, 20, 20, 15, 6, 5, 4, 3, 3, 3, 3, 3]
     t_soil = meteo.Tac[0] + dt_soil[meteo.index.hour[0]]
     return t_soil
+
+
+def calc_effective_sky_temperature(diffuse_to_total_irradiance_ratio: float, temperature_cloud: float,
+                                   temperature_sky: float) -> float:
+    # Change the t_sky_eff formula (cf. Gliah et al., 2011, Heat and Mass Transfer, DOI: 10.1007/s00231-011-0780-1)
+    return diffuse_to_total_irradiance_ratio * temperature_cloud + (
+                1 - diffuse_to_total_irradiance_ratio) * temperature_sky

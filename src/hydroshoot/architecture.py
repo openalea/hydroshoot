@@ -1104,7 +1104,7 @@ def vine_lobes_tips(pPet, lobes_tips):
     return points
 
 
-def mtg_base(g, vtx_label='inT'):
+def get_mtg_base(g, vtx_label='inT'):
     """
     Returns the basal vertex of a given vertex user-defined type.
 
@@ -1168,7 +1168,7 @@ def leaf_rotation_axis(petiole_tip, rotation_axis):
     return sign(det((v1, v2))) * rotation_axis
 
 
-def add_soil(g, side_length=10.):
+def add_soil_surface_mesh(g, side_length=10.):
     """
     Adds a soil element to an existing MTG.
 
@@ -1192,10 +1192,10 @@ def add_soil(g, side_length=10.):
         g.node(isoil).geometry = transformation(soil0(side_length),
                                                 1., 1., 1., 0., 0., 0., -side_length / 2., -side_length / 2., 0.)
 
-    return
+    return g
 
 
-def add_soil_components(g, cylinders_radii, soil_dimensions, soil_class, vtx_label, length_conv):
+def add_rhyzosphere_concentric_cylinders(g, cylinders_radii, soil_dimensions, soil_class, vtx_label, length_conv):
     """Adds concentric soil cylinders to the mtg.
 
     Args:
@@ -1207,14 +1207,11 @@ def add_soil_components(g, cylinders_radii, soil_dimensions, soil_class, vtx_lab
         length_conv (float): [-] conversion coefficient from [m] to the unit of the mtg
 
     Returns:
-        (int): vertix id of the basal node of the mtg
+        (MTG): mtg object
 
     """
-    max_radius = 0.5 * min(soil_dimensions[:2])
-    assert (max(cylinders_radii) <= max_radius), 'Maximum soil radius must not exceed %d cm' % max_radius
-
     depth = soil_dimensions[2] * length_conv
-    child = g.node(mtg_base(g, vtx_label=vtx_label))
+    child = g.node(get_mtg_base(g, vtx_label=vtx_label))
 
     radius_prev = 0.
     for i, cylinder_radius in enumerate(cylinders_radii):
@@ -1227,7 +1224,8 @@ def add_soil_components(g, cylinders_radii, soil_dimensions, soil_class, vtx_lab
                                                  soil_class=soil_class)
         radius_prev = radius
 
-    return child._vid
+    g.node(g.root).vid_base = child._vid
+    return g
 
 
 # ==============================================================================
@@ -1656,3 +1654,9 @@ def mtg_save_geometry(scene, file_path, index=''):
     scene.save(str(fgeom), 'BGEOM')
 
     return
+
+
+def get_leaves(g, leaf_lbl_prefix='L'):
+    label = g.property('label')
+    return [vid for vid in g.VtxList() if
+            vid > 0 and label[vid].startswith(leaf_lbl_prefix)]

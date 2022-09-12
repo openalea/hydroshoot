@@ -5,8 +5,7 @@ import openalea.mtg.traversal as traversal
 from hydroshoot import hydraulic, exchange, energy
 
 
-def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff,
-                       length_conv, time_conv, rhyzo_total_volume, params):
+def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
     """Computes gas-exchange, energy and hydraulic structure of plant's shoot jointly.
 
     Args:
@@ -15,13 +14,12 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff,
         psi_soil (float): [MPa] soil (root zone) water potential
         t_soil (float): [degreeC] soil surface temperature
         t_sky_eff (float): [degreeC] effective sky temperature
-        length_conv (float): [-] conversion factor from the `unit_scene_length` to 1 m
-        time_conv (float): [-] conversion factor from meteo data time step to seconds
-        rhyzo_total_volume (float): [m3] volume of the soil occupied with roots
         params (params): [-] :class:`hydroshoot.params.Params()` object
 
     """
-    unit_scene_length = params.simulation.unit_scene_length
+    length_conv = params.simulation.conv_to_meter
+    time_conv = params.simulation.conv_to_second
+    rhyzo_total_volume = params.soil.rhyzo_total_volume
 
     hydraulic_structure = params.simulation.hydraulic_structure
     negligible_shoot_resistance = params.simulation.negligible_shoot_resistance
@@ -42,7 +40,6 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff,
     irradiance_type2 = params.irradiance.E_type2
 
     leaf_lbl_prefix = params.mtg_api.leaf_lbl_prefix
-    collar_label = params.mtg_api.collar_label
 
     soil_class = params.soil.soil_class
 
@@ -71,7 +68,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff,
     # If leaf temperature to be calculated, calculate the boundary layer conductance to heat transfer
     if energy_budget:
         g = energy.calc_heat_boundary_layer_conductance(
-            g=g, leaf_label_prefix=leaf_lbl_prefix, unit_scene_length=unit_scene_length)
+            g=g, leaf_label_prefix=leaf_lbl_prefix, unit_scene_length=params.simulation.unit_scene_length)
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     # Temperature loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -132,7 +129,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff,
 
                 print('psi_error = ', round(psi_error, 3), ':: Nb_iter = %d' % n_iter_psi, 'ipsi_step = %f' % ipsi_step)
 
-                # Manage temperature step to ensure convergence
+                # Manage xylem water potential step to ensure convergence
                 if psi_error < psi_error_threshold:
                     break
                 else:
