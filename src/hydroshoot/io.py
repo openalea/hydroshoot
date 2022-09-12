@@ -13,14 +13,23 @@ from hydroshoot.params import Params
 
 
 class HydroShootInputs(object):
-    def __init__(self, g: MTG, path_project: Path, scene: Scene, is_write_result=True, **kwargs):
+    def __init__(self, g: MTG, path_project: Path, scene: Scene, is_write_result: bool = True,
+                 path_output_file: Path = None, **kwargs):
         self.path_project = path_project
         self.scene = scene
         self.is_write_result = is_write_result
         self.is_nitrogen_calculated = 'Na' in g.property_names()
-        self.leaf_nitrogen = kwargs['leaf_nitrogen'] if 'leaf_nitrogen' in kwargs else None
+
         self.leaf_absorbed_ppfd = kwargs['leaf_absorbed_ppfd'] if 'leaf_absorbed_ppfd' in kwargs else None
-        self.form_factors = kwargs['form_factors'] if 'form_factors' in kwargs else None
+        if 'form_factors' in kwargs:
+            self.set_form_factors(user_form_factors=kwargs['form_factors'])
+        else:
+            self.form_factors = None
+
+        if 'leaf_nitrogen' in kwargs:
+            self.leaf_nitrogen = self._parse_keys(user_input=kwargs['leaf_nitrogen'])
+        else:
+            self.leaf_nitrogen = None
 
         self.psi_soil_forced = kwargs['psi_soil'] if 'psi_soil' in kwargs else None
         self.gdd_since_budbreak = kwargs['gdd_since_budbreak'] if 'gdd_since_budbreak' in kwargs else None
@@ -33,6 +42,7 @@ class HydroShootInputs(object):
         self.params = Params(self.path_project / 'params.json')
         self.set_weather()
         self.set_soil_predawn_water_potential()
+        self.set_output_dir(user_path=path_output_file)
 
     def set_weather(self):
         df = read_csv(self.path_project / self.params.simulation.meteo, sep=';', decimal='.', header=0)
@@ -47,10 +57,26 @@ class HydroShootInputs(object):
 
     def set_soil_predawn_water_potential(self):
         if self.psi_soil_forced is None:
+            assert (self.path_project / 'psi_soil.input').is_file(), "The 'psi_soil.input' file is missing."
             psi_pd = read_csv(self.path_project / 'psi_soil.input', sep=';', decimal='.').set_index('time')
             psi_pd.index = [datetime.strptime(str(s), "%Y-%m-%d") for s in psi_pd.index]
             self.psi_pd = psi_pd
         pass
+
+    def set_output_dir(self, user_path: Path):
+        if user_path is None:
+            self.path_output_dir = self.path_project / 'output'
+            self.path_output_file = self.path_output_dir / 'time_series.csv'
+        else:
+            self.path_output_file = user_path
+            self.path_output_dir = self.path_output_file.parent
+
+    def set_form_factors(self, user_form_factors: dict):
+        self.form_factors = {k: self._parse_keys(user_input=v) for k, v in user_form_factors.items()}
+
+    @staticmethod
+    def _parse_keys(user_input: dict):
+        return {int(k): v for k, v in user_input.items()}
 
 
 class HydroShootHourlyInputs(object):
@@ -94,8 +120,8 @@ class HydroShootHourlyInputs(object):
 def verify_inputs(g: MTG, inputs: HydroShootInputs):
     params = inputs.params
 
-    if inputs.psi_soil_forced is None:
-        assert (inputs.path_project / 'psi_soil.input').is_file(), "The 'psi_soil.input' file is missing."
+    # if inputs.psi_soil_forced is None:
+    #     assert (inputs.path_project / 'psi_soil.input').is_file(), "The 'psi_soil.input' file is missing."
 
     assert params.irradiance.E_type in ('Rg_Watt/m2', 'RgPAR_Watt/m2' 'PPFD_umol/m2/s'), (
         "'irradiance_unit' must be one of the following 'Rg_Watt/m2', 'RgPAR_Watt/m2' or'PPFD_umol/m2/s'.")
@@ -133,8 +159,8 @@ def verify_inputs(g: MTG, inputs: HydroShootInputs):
         assert all([s in inputs.form_factors for s in ('ff_sky', 'ff_leaves', 'ff_soil')]), (
             "At least one form factor key is missing or misspelt, "
             "('ff_sky', 'ff_leaves' and 'ff_soil' keys should be provided)")
-        for k, (vid, ff) in inputs.form_factors.items():
-            assert all([vid in ff for vid in get_leaves(g=g, leaf_lbl_prefix=inputs.params.mtg_api.leaf_lbl_prefix)])
+        for k, v in inputs.form_factors.items():
+            assert all([vid in v for vid in get_leaves(g=g, leaf_lbl_prefix=inputs.params.mtg_api.leaf_lbl_prefix)])
 
 
 def print_sim_infos(inputs: HydroShootInputs):
@@ -150,5 +176,6 @@ def print_sim_infos(inputs: HydroShootInputs):
     print(f'Calculate Hydraulic structure: {params.simulation.hydraulic_structure}')
     print(f'Force well-watered conditions: {params.simulation.soil_water_deficit}')
     print(f'Add Rhyzoshpere cylinders: {params.soil.rhyzo_solution}')
+    print(f'User form factors: {inputs.form_factors is not None}')
     print("-" * 72)
     pass

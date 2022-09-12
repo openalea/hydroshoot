@@ -16,7 +16,7 @@ from hydroshoot.energy import calc_effective_sky_temperature
 from hydroshoot.initialisation import init_model, init_hourly
 
 
-def run(g: MTG, wd: Path, scene: Scene, write_result: bool = True, **kwargs) -> DataFrame:
+def run(g: MTG, wd: Path, scene: Scene, write_result: bool = True, path_output: Path = None, **kwargs) -> DataFrame:
     """Calculates leaf gas and energy exchange in addition to the hydraulic structure of an individual plant.
 
     Args:
@@ -24,6 +24,7 @@ def run(g: MTG, wd: Path, scene: Scene, write_result: bool = True, **kwargs) -> 
         wd: working directory
         scene: PlantGl scene
         write_result: if True then hourly plant-scale outputs are written into a CSV file
+        path_output: summary data output file path
         kwargs: can include:
             psi_soil (float): [MPa] predawn soil water potential
             gdd_since_budbreak (float): [°Cd] growing degree-day since bubreak
@@ -46,7 +47,8 @@ def run(g: MTG, wd: Path, scene: Scene, write_result: bool = True, **kwargs) -> 
     time_on = datetime.now()
 
     # Read user parameters
-    inputs = io.HydroShootInputs(g=g, path_project=wd, scene=scene, write_result=write_result, **kwargs)
+    inputs = io.HydroShootInputs(
+        g=g, path_project=wd, scene=scene, write_result=write_result, path_output_file=path_output, **kwargs)
     io.verify_inputs(g=g, inputs=inputs)
     params = inputs.params
 
@@ -64,9 +66,6 @@ def run(g: MTG, wd: Path, scene: Scene, write_result: bool = True, **kwargs) -> 
     #            g.node(vid).label.startswith('arm')}
 
     g = init_model(g=g, inputs=inputs)
-
-    # Define path to folder
-    output_path = wd / f'output{params.simulation.output_index}'
 
     # Save geometry in an external file
     # HSArc.mtg_save_geometry(scene, output_path)
@@ -107,7 +106,7 @@ def run(g: MTG, wd: Path, scene: Scene, write_result: bool = True, **kwargs) -> 
 
         # Write mtg to an external file
         if scene is not None:
-            architecture.mtg_save(g=g, scene=scene, file_path=output_path)
+            architecture.mtg_save(g=g, scene=scene, file_path=inputs.path_output_dir)
 
         # Plot stuff..
         sapflow.append(g.node(g.node(g.root).vid_collar).Flux)
@@ -162,7 +161,7 @@ def run(g: MTG, wd: Path, scene: Scene, write_result: bool = True, **kwargs) -> 
 
     # Write
     if write_result:
-        results_df.to_csv(output_path / 'time_series.output', sep=';', decimal='.')
+        results_df.to_csv(inputs.path_output_file, sep=';', decimal='.')
 
     time_off = datetime.now()
 
