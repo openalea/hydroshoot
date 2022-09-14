@@ -51,7 +51,7 @@ def set_optical_properties(g, leaf_lbl_prefix, stem_lbl_prefix, wave_band, opt_p
     Args:
         g (MTG): plant Multiscale Tree Graph
         leaf_lbl_prefix (str): the prefix of the leaf label (e.g. 'L')
-        stem_lbl_prefix (str): the prefix of the stem label (e.g. ('in', 'Pet', 'cx'))
+        stem_lbl_prefix (str or tuple of str): the prefix of the stem label (e.g. ('in', 'Pet', 'cx'))
         wave_band (str): wave band name, default values are 'SW' for *short wave band* or 'LW' for *long wave band*
         opt_prop: dictionary of the optical properties of mtg elements,
             given as a {band_name: material} dictionary of tuples
