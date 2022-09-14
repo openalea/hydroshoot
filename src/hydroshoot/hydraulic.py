@@ -11,8 +11,8 @@ from copy import deepcopy
 from math import exp, pi, log
 
 import openalea.mtg.traversal as traversal
-from openalea.plantgl.all import surface as surf
 from numpy import array
+from openalea.plantgl.all import surface as surf
 from scipy import optimize
 
 import hydroshoot.constants as cst
@@ -205,7 +205,7 @@ def soil_water_potential(psi_soil_init, water_withdrawal, soil_class, soil_total
             return 1. / (1. + abs(alpha * x) ** n) ** m - (theta - theta_r) / (theta_s - theta_r)
 
         psi_soil = optimize.fsolve(_water_retention, array(psi))[0] / (
-                    1.e6 / (cst.water_density * cst.gravitational_acceleration) * 100)
+                1.e6 / (cst.water_density * cst.gravitational_acceleration) * 100)
 
     return max(psi_min, float(psi_soil))
 
@@ -339,12 +339,12 @@ def transient_xylem_water_potential(g, model='tuzet', length_conv=1.e-2, psi_soi
                         k_soil = k_soil_soil(psi, n.soil_class)  # [cm d-1]
                         g_act = k_soil_root(k_soil, root_spacing, root_radius)  # [cm d-1 m-1]
                         psi_head = max(psi_min, psi_base - (
-                                    flux / g_act) * cst.water_density * cst.gravitational_acceleration * 1.e-6)
+                                flux / g_act) * cst.water_density * cst.gravitational_acceleration * 1.e-6)
                         k_act = None
                     else:
                         k_act = k_soil_soil(psi, n.soil_class)  # [cm d-1]
                         psi_head = max(psi_min, psi_base - (
-                                    length * flux / k_act) * cst.water_density * cst.gravitational_acceleration * 1.e-6)
+                                length * flux / k_act) * cst.water_density * cst.gravitational_acceleration * 1.e-6)
 
                 else:
                     k_max = n.properties()['Kmax']
@@ -354,11 +354,11 @@ def transient_xylem_water_potential(g, model='tuzet', length_conv=1.e-2, psi_soi
                         psi_head = max(psi_min,
                                        psi_base - length * flux / k_act - (
                                                cst.water_density * cst.gravitational_acceleration * (
-                                                   z_head - z_base)) * 1.e-6)
+                                               z_head - z_base)) * 1.e-6)
                     else:
                         k_act = None
                         psi_head = max(psi_min, psi_base - (
-                                    cst.water_density * cst.gravitational_acceleration * (z_head - z_base)) * 1.e-6)
+                                cst.water_density * cst.gravitational_acceleration * (z_head - z_base)) * 1.e-6)
 
                 n.psi_head = psi_head
                 n.KL = k_act
