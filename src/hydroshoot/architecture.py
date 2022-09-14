@@ -12,7 +12,6 @@ The resulting MTG incorporates geometry
 
 from functools import reduce
 from itertools import product
-from os import path, mkdir
 from pickle import dump, load
 from re import search, findall
 
@@ -1104,7 +1103,7 @@ def vine_lobes_tips(pPet, lobes_tips):
     return points
 
 
-def mtg_base(g, vtx_label='inT'):
+def get_mtg_base(g, vtx_label='inT'):
     """
     Returns the basal vertex of a given vertex user-defined type.
 
@@ -1168,7 +1167,7 @@ def leaf_rotation_axis(petiole_tip, rotation_axis):
     return sign(det((v1, v2))) * rotation_axis
 
 
-def add_soil(g, side_length=10.):
+def add_soil_surface_mesh(g, side_length=10.):
     """
     Adds a soil element to an existing MTG.
 
@@ -1192,10 +1191,10 @@ def add_soil(g, side_length=10.):
         g.node(isoil).geometry = transformation(soil0(side_length),
                                                 1., 1., 1., 0., 0., 0., -side_length / 2., -side_length / 2., 0.)
 
-    return
+    return g
 
 
-def add_soil_components(g, cylinders_radii, soil_dimensions, soil_class, vtx_label, length_conv):
+def add_rhyzosphere_concentric_cylinders(g, cylinders_radii, soil_dimensions, soil_class, vtx_label, length_conv):
     """Adds concentric soil cylinders to the mtg.
 
     Args:
@@ -1207,14 +1206,11 @@ def add_soil_components(g, cylinders_radii, soil_dimensions, soil_class, vtx_lab
         length_conv (float): [-] conversion coefficient from [m] to the unit of the mtg
 
     Returns:
-        (int): vertix id of the basal node of the mtg
+        (MTG): mtg object
 
     """
-    max_radius = 0.5 * min(soil_dimensions[:2])
-    assert (max(cylinders_radii) <= max_radius), 'Maximum soil radius must not exceed %d cm' % max_radius
-
     depth = soil_dimensions[2] * length_conv
-    child = g.node(mtg_base(g, vtx_label=vtx_label))
+    child = g.node(get_mtg_base(g, vtx_label=vtx_label))
 
     radius_prev = 0.
     for i, cylinder_radius in enumerate(cylinders_radii):
@@ -1227,7 +1223,8 @@ def add_soil_components(g, cylinders_radii, soil_dimensions, soil_class, vtx_lab
                                                  soil_class=soil_class)
         radius_prev = radius
 
-    return child._vid
+    g.node(g.root).vid_base = child._vid
+    return g
 
 
 # ==============================================================================
@@ -1594,9 +1591,10 @@ def mtg_output(g, wd):
     """
     properties = [(p, 'REAL') for p in g.property_names() if p not in ['edge_type', 'index', 'label']]
     mtg_lines = io.write_mtg(g, properties)
-    if not path.exists(wd + 'mtg/'):
-        mkdir(wd + 'mtg/')
-    mtg_file_path = wd + 'mtg/%s.mtg' % g.date
+    path_mtg = wd / 'mtg'
+    if not path_mtg.exists():
+        path_mtg.mkdir()
+    mtg_file_path = path_mtg / f'{g.date}.mtg'
     f = open(mtg_file_path, 'w')
     f.write(mtg_lines)
     f.close()
@@ -1604,13 +1602,13 @@ def mtg_output(g, wd):
 
 
 def mtg_save(g, scene, file_path):
-    if not path.exists(file_path):
-        mkdir(file_path)
+    if not file_path.exists():
+        file_path.mkdir()
 
     geom = {vid: g.node(vid).geometry for vid in g.property('geometry')}
     g.remove_property('geometry')
 
-    fg = file_path + 'mtg' + g.date + '.pckl'
+    fg = file_path / f'mtg{g.date}.pckl'
 
     f = open(fg, 'wb')
     dump([g, scene], f)
@@ -1622,8 +1620,8 @@ def mtg_save(g, scene, file_path):
 
 
 def mtg_load(wd, index):
-    fgeom = wd + 'geometry%s.bgeom' % index
-    fg = wd + '%s.pckl' % (index)
+    fgeom = wd / f'geometry{index}.bgeom'
+    fg = wd / f'%{index}.pckl'
 
     scene = pgl.Scene()
     scene.read(fgeom, 'BGEOM')
@@ -1648,11 +1646,17 @@ def mtg_save_geometry(scene, file_path, index=''):
     - **file_path**: path string for saving the scene object
     """
 
-    if not path.exists(file_path):
-        mkdir(file_path)
+    if not file_path.exists():
+        file_path.mkdir()
 
-    fgeom = file_path + 'geometry%s.bgeom' % index
+    fgeom = file_path / f'geometry{index}.bgeom'
 
     scene.save(str(fgeom), 'BGEOM')
 
     return
+
+
+def get_leaves(g, leaf_lbl_prefix='L'):
+    label = g.property('label')
+    return [vid for vid in g.VtxList() if
+            vid > 0 and label[vid].startswith(leaf_lbl_prefix)]

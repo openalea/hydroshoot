@@ -8,8 +8,12 @@ Created on Thu Oct 25 20:10:00 2018
 
 import os
 from copy import deepcopy
+from datetime import datetime
 from json import load
+from math import pi
+
 from jsonschema import validate
+from pandas import date_range
 
 
 class Params:
@@ -30,6 +34,8 @@ class Params:
         self.hydraulic = Hydraulic(user_params['hydraulic'])
         self.exchange = Exchange(user_params['exchange'])
         self.soil = Soil(user_params['soil'])
+
+        self._set_pattern()
 
     def _get_user_params(self):
         """
@@ -52,15 +58,19 @@ class Params:
 
         return json_file
 
+    def _set_pattern(self):
+        y_max, x_max = map(lambda dim: dim / self.simulation.conv_to_meter, self.soil.soil_dimensions[:2])
+        self.irradiance.pattern = ((-x_max / 2.0, -y_max / 2.0), (x_max / 2.0, y_max / 2.0))
+
 
 class Simulation:
 
     def __init__(self, simulation_dict):
-        self.sdate = simulation_dict['sdate']
-        self.edate = simulation_dict['edate']
-        self.latitude = simulation_dict['latitude']
-        self.longitude = simulation_dict['longitude']
-        self.elevation = simulation_dict['elevation']
+        self.date_beg = datetime.strptime(simulation_dict['sdate'], "%Y-%m-%d %H:%M:%S")
+        self.date_end = datetime.strptime(simulation_dict['edate'], "%Y-%m-%d %H:%M:%S")
+        self._latitude = simulation_dict['latitude']
+        self._longitude = simulation_dict['longitude']
+        self._elevation = simulation_dict['elevation']
         self.tzone = simulation_dict['tzone']
         self.output_index = simulation_dict['output_index']
         self.unit_scene_length = simulation_dict['unit_scene_length']
@@ -70,11 +80,16 @@ class Simulation:
         self.soil_water_deficit = simulation_dict['soil_water_deficit']
         self.meteo = simulation_dict['meteo']
 
+        self.date_range = date_range(start=self.date_beg, end=self.date_end, freq='H')
+        self.conv_to_second = {'D': 86.4e3, 'H': 3600., 'T': 60., 'S': 1.}[self.date_range.freqstr]
+        self.conv_to_meter = {'mm': 1.e-3, 'cm': 1.e-2, 'm': 1.}[self.unit_scene_length]
+        self.geo_location = (self._latitude, self._longitude, self._elevation)
+
 
 class Phenology:
 
     def __init__(self, phenology_dict):
-        self.emdate = phenology_dict['emdate']
+        self.date_budbreak = datetime.strptime(phenology_dict['emdate'], "%Y-%m-%d %H:%M:%S")
         self.t_base = phenology_dict['t_base']
 
 
@@ -106,6 +121,8 @@ class Irradiance:
         self.turtle_format = irradiance_dict['turtle_format']
         self.turtle_sectors = irradiance_dict['turtle_sectors']
         self.icosphere_level = irradiance_dict['icosphere_level']
+
+        self.pattern = None
 
 
 class Energy:
@@ -163,6 +180,10 @@ class Soil:
 
         if 'rhyzo_solution' in soil_dict:
             DeprecationWarning('"rhyzo_solution" parameter is ignored. It will raise an error in future versions')
+
+        self.soil_total_volume = self.soil_dimensions[0] * self.soil_dimensions[1] * self.soil_dimensions[2]
+        self.rhyzo_total_volume = self.rhyzo_coeff * (
+                pi * min(self.soil_dimensions[:2]) ** 2 / 4. * self.soil_dimensions[2])
 
 
 def _list2tuple(dct):

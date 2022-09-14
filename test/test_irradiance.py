@@ -1,6 +1,6 @@
 from numpy.testing import assert_almost_equal
 
-from hydroshoot.irradiance import irradiance_distribution, hsCaribu, optical_prop, e_conv_PPFD
+from hydroshoot.irradiance import irradiance_distribution, hsCaribu, set_optical_properties, e_conv_PPFD
 from test.non_regression_data import potted_syrah, meteo
 
 
@@ -71,11 +71,17 @@ def test_irradiance_distribution():
 
 
 def test_hsCaribu():
-    g = potted_syrah()
+    args = dict(
+        g=potted_syrah(),
+        wave_band='SW',
+        leaf_lbl_prefix='L',
+        stem_lbl_prefix=('in', 'Pet', 'cx'),
+        opt_prop={'SW': {'leaf': (0.06, 0.07), 'stem': (0.13,), 'other': (0.65, 0.0)},
+                  'LW': {'leaf': (0.04, 0.07), 'stem': (0.13,), 'other': (0.65, 0.0)}})
     # sample values copied from data.json_parameters
     unit_scene_length = 'cm'
     # Attaching optical properties to MTG elements
-    g = optical_prop(g)
+    g = set_optical_properties(**args)
 
     # simple run
     assert 'Ei' not in g.property_names()
@@ -92,9 +98,8 @@ def test_hsCaribu():
     assert sum(g.property('Ei').values()) == 0
 
     # reproduce scene filtering as done in model.py
-    g = potted_syrah()
-    unit_scene_length = 'cm'
-    g = optical_prop(g)
+    args.update({'g': potted_syrah()})
+    g = set_optical_properties(**args)
     ng = len(g.property('geometry'))
     label = g.property('label')
     g.properties()['radiative_geometry'] = {k: v for k, v in g.property('geometry').items() if
@@ -109,9 +114,8 @@ def test_hsCaribu():
     assert_almost_equal(ei_sum, 14.83, 2)
 
     # test consider option
-    g = potted_syrah()
-    unit_scene_length = 'cm'
-    g = optical_prop(g)
+    args.update({'g': potted_syrah()})
+    g = set_optical_properties(**args)
     ng = len(g.property('geometry'))
     label = g.property('label')
     consider = [vid for vid in g.property('geometry') if label[vid].startswith(('L', 'other', 'soil'))]

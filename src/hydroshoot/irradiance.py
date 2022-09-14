@@ -37,40 +37,39 @@ def local2solar(local_time, latitude, longitude, time_zone, temperature=25.):
 
     time_zone = timezone(time_zone)
     local_time = time_zone.localize(local_time)
-#    date_utc = local_time.astimezone(utc)
+    #    date_utc = local_time.astimezone(utc)
     datet = date_range(local_time, local_time)
     solar_time = ephemeris(datet, latitude, longitude, temperature).solar_time.values[0]
 
     return solar_time
 
 
-def optical_prop(mtg, leaf_lbl_prefix='L', stem_lbl_prefix=('in', 'Pet', 'cx'),
-                 wave_band='SW',
-                 opt_prop={'SW': {'leaf': (0.06, 0.07), 'stem': (0.13,), 'other': (0.65, 0.0)},
-                           'LW': {'leaf': (0.04, 0.07), 'stem': (0.13,), 'other': (0.65, 0.0)}}):
+def set_optical_properties(g, leaf_lbl_prefix, stem_lbl_prefix, wave_band, opt_prop):
     """Attaches optical properties to elements of an MTG. An element may be a `leaf`, a `stem`, or `other` when scene
     background elements (e.g. oculting objects) are attached to the MTG.
 
     Args:
-        mtg (MTG): plant Multiscale Tree Graph
-        leaf_lbl_prefix (str): the prefix of the leaf label
-        stem_lbl_prefix (str): the prefix of the stem label
+        g (MTG): plant Multiscale Tree Graph
+        leaf_lbl_prefix (str): the prefix of the leaf label (e.g. 'L')
+        stem_lbl_prefix (str or tuple of str): the prefix of the stem label (e.g. ('in', 'Pet', 'cx'))
         wave_band (str): wave band name, default values are 'SW' for *short wave band* or 'LW' for *long wave band*
         opt_prop: dictionary of the optical properties of mtg elements,
             given as a {band_name: material} dictionary of tuples
+            e.g. : {'SW': {'leaf': (0.06, 0.07), 'stem': (0.13,), 'other': (0.65, 0.0)},
+                    'LW': {'leaf': (0.04, 0.07), 'stem': (0.13,), 'other': (0.65, 0.0)}}
             (See :func:`CaribuScene.__init__` for more information)
 
     Returns:
-        MTG object
+        (MTG): mtg object
 
     """
     leaf_material, stem_material = [opt_prop[wave_band][ikey] for ikey in ('leaf', 'stem')]
     other_material = opt_prop[wave_band]['other']
 
-    geom = mtg.property('geometry')
+    geom = g.property('geometry')
 
     for vid in geom:
-        n = mtg.node(vid)
+        n = g.node(vid)
         if n.label.startswith(leaf_lbl_prefix):
             n.opticals = leaf_material
         elif n.label.startswith(stem_lbl_prefix):
@@ -78,7 +77,7 @@ def optical_prop(mtg, leaf_lbl_prefix='L', stem_lbl_prefix=('in', 'Pet', 'cx'),
         elif n.label.startswith('other'):
             n.opticals = other_material
 
-    return mtg
+    return g
 
 
 def e_conv_Wm2(irradiance_unit):
@@ -168,16 +167,9 @@ def irradiance_distribution(meteo, geo_location, irradiance_unit,
     """
     diffuse_ratio = []
     nrj_sum = 0
-    for idate, date in enumerate(meteo.index):
+    for date, weather in meteo.iterrows():
 
-        if irradiance_unit.split('_')[0] == 'PPFD':
-            energy = meteo.loc[date, :].PPFD
-        else:
-            try:
-                energy = meteo.loc[date, :].Rg
-            except:
-                raise TypeError(
-                    "'irradiance_unit' must be one of the following 'Rg_Watt/m2', 'RgPAR_Watt/m2' or'PPFD_umol/m2/s'.")
+        energy = meteo.loc[date, 'PPFD' if irradiance_unit.split('_')[0] == 'PPFD' else 'Rg']
 
         # First check: convert irradiance to W m-2 (Spitters method always gets energy flux as Rg Watt m-2)
         corr = e_conv_Wm2(irradiance_unit)
@@ -242,7 +234,7 @@ def irradiance_distribution(meteo, geo_location, irradiance_unit,
         source_cum = zip(v_energy, v_coord)
 
     # Add Sun to an existing pgl.scene
-    if sun2scene != None:
+    if sun2scene is not None:
         xSun, ySun, zSun = -500. * array([source_cum[-1][1][i] for i in range(3)])
         if zSun >= 0:
             ss = Translated(xSun, ySun, zSun, Sphere(20))
