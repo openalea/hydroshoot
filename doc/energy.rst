@@ -32,7 +32,7 @@ The resulting leaf-scale energy balance equation writes:
             \left(
                 k_{i, \ sky} \cdot \epsilon_{sky} \cdot T_{sky}^4
                 + k_{i, \ soil} \cdot \epsilon_{soil} \cdot T_{soil}^4
-                + \left[1 - \left(k_{sky} + k_{soil} \right) \right]
+                + \left[1 - \left(k_{sky} + k_{soil} \right) \right] \cdot T_i^4
             \right) \\
         & - 2 \cdot \epsilon_{i, \ leaf} \cdot \sigma \cdot T_i^4 \\
         & - \lambda \cdot E_i \\
