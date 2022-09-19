@@ -235,7 +235,7 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True,
 
             for vid in leaves:
                 mtg_node = g.node(vid)
-                shortwave_inc = mtg_node.properties()['Ei'] / (0.48 * 4.6)  # Ei not Eabs
+                shortwave_inc = mtg_node.properties()['Rg']
                 ff_sky = mtg_node.properties()['ff_sky']
                 ff_leaves = mtg_node.properties()['ff_leaves']
                 ff_soil = mtg_node.properties()['ff_soil']
@@ -283,7 +283,7 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True,
         t_leaf_lst = []
         for vid in leaves:
             mtg_node = g.node(vid)
-            shortwave_inc = mtg_node.properties()['Ei'] / (0.48 * 4.6)  # Ei not Eabs
+            shortwave_inc = mtg_node.properties()['Rg']
 
             ff_sky = mtg_node.properties()['ff_sky']
             ff_leaves = mtg_node.properties()['ff_leaves']

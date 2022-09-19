@@ -188,4 +188,6 @@ def init_hourly(g: MTG, inputs_hourly: HydroShootHourlyInputs, leaf_ppfd: dict,
             infinite=True, nz=50, ds=0.5,
             pattern=params.irradiance.pattern)
 
+    g.properties()['Rg'] = {k: v / (0.48 * 4.6) for k, v in g.properties()['Ei'].items()}
+
     return g, diffuse_to_total_irradiance_ratio

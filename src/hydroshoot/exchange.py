@@ -555,10 +555,8 @@ def gas_exchange_rates(g, photo_params, gs_params, meteo, E_type2,
 
                 psi = node.properties()['psi_head']
                 t_leaf = node.properties()['Tlc']
-                ppfd_leaf = node.properties()[E_type2]
 
-                meteo_leaf['PPFD'] = ppfd_leaf
-                meteo_leaf['Rg'] = ppfd_leaf / (0.48 * 4.6)
+                meteo_leaf['PPFD'] = node.properties()[E_type2]
 
                 leaf_par_photo = deepcopy(photo_params)
                 leaf_par_photo['Vcm25'] = node.properties()['Vcm25']
@@ -578,15 +576,13 @@ def gas_exchange_rates(g, photo_params, gs_params, meteo, E_type2,
 
                 node.par_photo = leaf_par_photo
 
-                g0 = g0max  # *g0_sensibility(psi, psi_crit=-1, n=4)
-
                 a_n, c_c, c_i, gs = an_gs_ci(
                     photo_params=node.par_photo,
                     meteo_leaf=meteo_leaf,
                     psi=psi,
                     leaf_temperature=t_leaf,
                     model=model,
-                    g0=g0,
+                    g0=g0max,  # *g0_sensibility(psi, psi_crit=-1, n=4)
                     rbt=rbt,
                     ca=c_a,
                     m0=m0,
@@ -594,7 +590,12 @@ def gas_exchange_rates(g, photo_params, gs_params, meteo, E_type2,
                     d0_leuning=D0,
                     steepness_tuzet=n)
 
-                gb = boundary_layer_conductance(node.Length, node.u, atm_press, t_air, r)
+                gb = boundary_layer_conductance(
+                    leaf_length=node.Length,
+                    wind_speed=node.u,
+                    atm_pressure=atm_press,
+                    air_temp=t_air,
+                    ideal_gas_cst=r)
 
                 # Transpiration
                 es_a = utils.saturated_air_vapor_pressure(t_air)
