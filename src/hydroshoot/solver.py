@@ -89,8 +89,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
                 psi_prev = deepcopy(g.property('psi_head'))
 
                 # Compute gas-exchange fluxes. Leaf T and Psi are from prev calc loop
-                exchange.gas_exchange_rates(g, par_photo, par_photo_n, par_gs,
-                                            meteo, irradiance_type2, leaf_lbl_prefix, rbt)
+                exchange.gas_exchange_rates(g, par_photo, par_gs, meteo, irradiance_type2, leaf_lbl_prefix, rbt)
 
                 # Compute sap flow and hydraulic properties
                 hydraulic.hydraulic_prop(g, length_conv=length_conv,
@@ -148,8 +147,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
 
         else:
             # Compute gas-exchange fluxes. Leaf T and Psi are from prev calc loop
-            exchange.gas_exchange_rates(g, par_photo, par_photo_n, par_gs,
-                                        meteo, irradiance_type2, leaf_lbl_prefix, rbt)
+            exchange.gas_exchange_rates(g, par_photo, par_gs, meteo, irradiance_type2, leaf_lbl_prefix, rbt)
 
             # Compute sap flow and hydraulic properties
             hydraulic.hydraulic_prop(g, length_conv=length_conv,

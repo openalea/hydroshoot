@@ -509,7 +509,7 @@ def transpiration_rate(leaf_temperature, ea, gs, gb, atm_pressure=101.3):
     return transpiration
 
 
-def gas_exchange_rates(g, photo_params, photo_n_params, gs_params, meteo, E_type2,
+def gas_exchange_rates(g, photo_params, gs_params, meteo, E_type2,
                        leaf_lbl_prefix='L', rbt=2. / 3.):
     """Computes gas exchange fluxes at the leaf scale analytically.
 
@@ -561,27 +561,38 @@ def gas_exchange_rates(g, photo_params, photo_n_params, gs_params, meteo, E_type
                 meteo_leaf['Rg'] = ppfd_leaf / (0.48 * 4.6)
 
                 leaf_par_photo = deepcopy(photo_params)
-                leaf_par_photo['Vcm25'] = photo_n_params['Vcm25_N'][0] * node.Na + photo_n_params['Vcm25_N'][1]
-                leaf_par_photo['Jm25'] = photo_n_params['Jm25_N'][0] * node.Na + photo_n_params['Jm25_N'][1]
-                leaf_par_photo['TPU25'] = photo_n_params['TPU25_N'][0] * node.Na + photo_n_params['TPU25_N'][1]
-                leaf_par_photo['Rd'] = photo_n_params['Rd_N'][0] * node.Na + photo_n_params['Rd_N'][1]
-                dhd_max = leaf_par_photo['dHd']
-                dhd = dHd_sensibility(psi, t_leaf,
-                                      dhd_max=dhd_max,
-                                      dhd_inhib_beg=leaf_par_photo['photo_inhibition']['dhd_inhib_beg'],
-                                      dHd_inhib_max=leaf_par_photo['photo_inhibition']['dHd_inhib_max'],
-                                      psi_inhib_beg=leaf_par_photo['photo_inhibition']['psi_inhib_beg'],
-                                      psi_inhib_max=leaf_par_photo['photo_inhibition']['psi_inhib_max'],
-                                      temp_inhib_beg=leaf_par_photo['photo_inhibition']['temp_inhib_beg'],
-                                      temp_inhib_max=leaf_par_photo['photo_inhibition']['temp_inhib_max'])
+                leaf_par_photo['Vcm25'] = node.properties()['Vcm25']
+                leaf_par_photo['Jm25'] = node.properties()['Jm25']
+                leaf_par_photo['TPU25'] = node.properties()['TPU25']
+                leaf_par_photo['Rd'] = node.properties()['Rd']
+                leaf_par_photo['dHd'] = dHd_sensibility(
+                    psi=psi,
+                    temp=t_leaf,
+                    dhd_max=leaf_par_photo['dHd'],
+                    dhd_inhib_beg=leaf_par_photo['photo_inhibition']['dhd_inhib_beg'],
+                    dHd_inhib_max=leaf_par_photo['photo_inhibition']['dHd_inhib_max'],
+                    psi_inhib_beg=leaf_par_photo['photo_inhibition']['psi_inhib_beg'],
+                    psi_inhib_max=leaf_par_photo['photo_inhibition']['psi_inhib_max'],
+                    temp_inhib_beg=leaf_par_photo['photo_inhibition']['temp_inhib_beg'],
+                    temp_inhib_max=leaf_par_photo['photo_inhibition']['temp_inhib_max'])
 
-                leaf_par_photo['dHd'] = dhd
                 node.par_photo = leaf_par_photo
 
                 g0 = g0max  # *g0_sensibility(psi, psi_crit=-1, n=4)
 
-                a_n, c_c, c_i, gs = an_gs_ci(node.par_photo, meteo_leaf, psi, t_leaf,
-                                             model, g0, rbt, c_a, m0, psi0, D0, n)
+                a_n, c_c, c_i, gs = an_gs_ci(
+                    photo_params=node.par_photo,
+                    meteo_leaf=meteo_leaf,
+                    psi=psi,
+                    leaf_temperature=t_leaf,
+                    model=model,
+                    g0=g0,
+                    rbt=rbt,
+                    ca=c_a,
+                    m0=m0,
+                    psi0=psi0,
+                    d0_leuning=D0,
+                    steepness_tuzet=n)
 
                 gb = boundary_layer_conductance(node.Length, node.u, atm_press, t_air, r)
 
