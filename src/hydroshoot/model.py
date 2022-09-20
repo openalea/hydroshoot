@@ -108,7 +108,7 @@ def run(g: MTG, wd: Path, scene: Scene = None, write_result: bool = True, path_o
 
         # Write mtg to an external file
         if scene is not None:
-            architecture.mtg_save(g=g, scene=scene, file_path=inputs.path_output_dir)
+            architecture.save_mtg(g=g, scene=scene, file_path=inputs.path_output_dir)
 
         # Plot stuff..
         sapflow.append(g.node(g.node(g.root).vid_collar).Flux)
