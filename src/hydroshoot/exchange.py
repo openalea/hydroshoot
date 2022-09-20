@@ -554,21 +554,23 @@ def gas_exchange_rates(g, photo_params, gs_params, air_temperature, relative_hum
         leaf_water_potential = node.properties()['psi_head']
         leaf_temperature = node.properties()['Tlc']
 
+        node.properties()['dHd'] = dHd_sensibility(
+            psi=leaf_water_potential,
+            temp=leaf_temperature,
+            dhd_max=photo_params['dHd'],
+            dhd_inhib_beg=photo_params['photo_inhibition']['dhd_inhib_beg'],
+            dHd_inhib_max=photo_params['photo_inhibition']['dHd_inhib_max'],
+            psi_inhib_beg=photo_params['photo_inhibition']['psi_inhib_beg'],
+            psi_inhib_max=photo_params['photo_inhibition']['psi_inhib_max'],
+            temp_inhib_beg=photo_params['photo_inhibition']['temp_inhib_beg'],
+            temp_inhib_max=photo_params['photo_inhibition']['temp_inhib_max'])
+
         leaf_par_photo = deepcopy(photo_params)
         leaf_par_photo['Vcm25'] = node.properties()['Vcm25']
         leaf_par_photo['Jm25'] = node.properties()['Jm25']
         leaf_par_photo['TPU25'] = node.properties()['TPU25']
         leaf_par_photo['Rd'] = node.properties()['Rd']
-        leaf_par_photo['dHd'] = dHd_sensibility(
-            psi=leaf_water_potential,
-            temp=leaf_temperature,
-            dhd_max=leaf_par_photo['dHd'],
-            dhd_inhib_beg=leaf_par_photo['photo_inhibition']['dhd_inhib_beg'],
-            dHd_inhib_max=leaf_par_photo['photo_inhibition']['dHd_inhib_max'],
-            psi_inhib_beg=leaf_par_photo['photo_inhibition']['psi_inhib_beg'],
-            psi_inhib_max=leaf_par_photo['photo_inhibition']['psi_inhib_max'],
-            temp_inhib_beg=leaf_par_photo['photo_inhibition']['temp_inhib_beg'],
-            temp_inhib_max=leaf_par_photo['photo_inhibition']['temp_inhib_max'])
+        leaf_par_photo['dHd'] = node.properties()['dHd']
 
         a_n, c_c, c_i, gs = an_gs_ci(
             air_temperature=air_temperature,

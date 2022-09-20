@@ -72,7 +72,7 @@ def remove_stem_geometry(g: MTG):
     pass
 
 
-def set_photosynthetic_capacity(g: MTG, photo_n_params: dict, leaf_lbl_prefix: str):
+def set_photosynthetic_capacity(g: MTG, photo_n_params: dict, deactivation_enthalopy: float, leaf_lbl_prefix: str):
     for vid in get_leaves(g=g, leaf_lbl_prefix=leaf_lbl_prefix):
         n = g.node(vid)
         nitrogen_content = n.properties()['Na']
@@ -80,6 +80,7 @@ def set_photosynthetic_capacity(g: MTG, photo_n_params: dict, leaf_lbl_prefix: s
         n.Jm25 = photo_n_params['Jm25_N'][0] * nitrogen_content + photo_n_params['Jm25_N'][1]
         n.TPU25 = photo_n_params['TPU25_N'][0] * nitrogen_content + photo_n_params['TPU25_N'][1]
         n.Rd = photo_n_params['Rd_N'][0] * nitrogen_content + photo_n_params['Rd_N'][1]
+        n.dHd = deactivation_enthalopy
     pass
 
 
@@ -151,6 +152,7 @@ def init_model(g: MTG, inputs: HydroShootInputs) -> MTG:
     set_photosynthetic_capacity(
         g=g,
         photo_n_params=inputs.params.exchange.par_photo_N,
+        deactivation_enthalopy=inputs.params.exchange.par_photo['dHd'],
         leaf_lbl_prefix=inputs.params.mtg_api.leaf_lbl_prefix)
     return g
 
