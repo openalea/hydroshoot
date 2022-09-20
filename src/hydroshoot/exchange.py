@@ -176,7 +176,7 @@ def compute_an_2par(params_photo, ppfd, leaf_temp):
         J/4. (float): where J [umol m-2 s-1] is electron transport
         2.*T (float): where T [umol mol-1] is CO2 compensation point in the absence of mitochondrial respiration
         3*TPU (float): where TPU [umol m-2 s-1] is the rate of triose phosphate transport
-        -T (float): [umol m-2 s-1] rate of triose phosphate transport
+        -T (float): [umol mol-1] CO2 compensation point in the absence of mitochondrial respiration
         Rd (float): [umol m-2 s-1] rate of mitochondrial respiration
 
     References:
