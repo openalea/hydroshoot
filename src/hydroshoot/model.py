@@ -103,8 +103,8 @@ def run(g: MTG, wd: Path, scene: Scene = None, write_result: bool = True, path_o
             temperature_sky=params.energy.t_sky)
 
         solver.solve_interactions(
-            g=g, meteo=inputs_hourly.weather, psi_soil=inputs_hourly.psi_soil, t_soil=inputs_hourly.soil_temperature,
-            t_sky_eff=inputs_hourly.sky_temperature, params=params)
+            g=g, meteo=inputs_hourly.weather.loc[date], psi_soil=inputs_hourly.psi_soil,
+            t_soil=inputs_hourly.soil_temperature, t_sky_eff=inputs_hourly.sky_temperature, params=params)
 
         # Write mtg to an external file
         if scene is not None:

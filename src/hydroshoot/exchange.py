@@ -440,25 +440,21 @@ def compute_an_analytic(leaf_temperature, vpd, x1c, x2c, x1j, x2j, x1t, x2t, rd,
     return a_n, utils.cpa2cmol(leaf_temperature, c_c), utils.cpa2cmol(leaf_temperature, c_i), gsw
 
 
-def an_gs_ci(photo_params, meteo_leaf, psi, leaf_temperature, model='misson', g0=0.019, rbt=2. / 3.,
-             ca=400., m0=5.278, psi0=-0.1, d0_leuning=30., steepness_tuzet=1.85):
+def an_gs_ci(air_temperature, absorbed_ppfd, relative_humidity, leaf_temperature, leaf_water_potential,
+             photo_params, gs_params, rbt=2. / 3., ca=400.):
     """Computes simultaneously the net CO2 assimilation rate (An), stomatal conductance to water vapor (gs), and
     inter-cellular CO2 concentration (Ci), by a_n analytic scheme.
 
     Args:
-        photo_params (dict): default values at 25 °C of Farquhar's model (cf. :func:`par_photo_default`)
-        meteo_leaf (pandas.Series): local (leaf-scale) meteorological data (must have the following columns: 'Tac',
-            'PPFD', and 'hs')
-        psi (float): [MPa] bulk water potential of the leaf
+        air_temperature (float): [°C] air temperature
+        absorbed_ppfd (float): [umol m-2 s-1] absorbed Photosynthetic Photon Flux Density
+        relative_humidity (float): (%) air relative humidity
         leaf_temperature (float): [°C] leaf temperature
-        model (str): stomatal conductance reduction model, one of 'misson','tuzet', 'linear' or 'vpd'
-        g0 (float): [umol m-2 s-1] residual stomatal conductance to CO2
+        leaf_water_potential (float): [MPa] bulk water potential of the leaf
+        photo_params (dict): default values at 25 °C of Farquhar's model (cf. :func:`par_photo_default`)
+        gs_params (dict): stomatal conductance params (keys must be: 'model', 'g0', 'm0', 'psi0', 'D0', 'n')
         rbt (float): [m2 s ubar umol-1] combined turbulance and boundary layer resistance to CO2
         ca (float): [ubar] CO2 partial pressure of the air
-        m0 (float): [umol mmol-1] maximum slope An/gs (absence of water deficit), see :func:`fvpd_3`
-        psi0 (float): [MPa] critical thershold for water potential, see :func:`fvpd_3`
-        d0_leuning (float): [kPa-1] shape parameter, see :func:`fvpd_3`
-        steepness_tuzet (float): [MPa-1] shape parameter, see :func:`fvpd_3`
 
     Returns: (tuple)
         (float): [umolCO2 m-2 s-1] net CO2 assimilation rate
@@ -467,19 +463,30 @@ def an_gs_ci(photo_params, meteo_leaf, psi, leaf_temperature, model='misson', g0
         (float): [mol m-2 s-1] stomatal conductance to water vapor
 
     """
-    air_temperature = meteo_leaf['Tac']
-    ppfd = meteo_leaf['PPFD']
-    hs = meteo_leaf['hs']
+    x1c, x2c, x1j, x2j, x1t, x2t, r_d = compute_an_2par(
+        params_photo=photo_params,
+        ppfd=max(1.e-6, absorbed_ppfd),  # To avoid numerical instability
+        leaf_temp=leaf_temperature)
 
-    ppfd = max(1.e-6, ppfd)  # To avoid numerical instability
-
-    vpd = utils.vapor_pressure_deficit(air_temperature, leaf_temperature, hs)
-
-    x1c, x2c, x1j, x2j, x1t, x2t, Rd = compute_an_2par(photo_params, ppfd, leaf_temperature)
-
-    a_n, c_c, c_i, gs = compute_an_analytic(leaf_temperature, vpd, x1c, x2c, x1j, x2j, x1t, x2t, Rd, psi, model, g0,
-                                            rbt,
-                                            ca, m0, psi0, d0_leuning, steepness_tuzet)
+    a_n, c_c, c_i, gs = compute_an_analytic(
+        leaf_temperature=leaf_temperature,
+        vpd=utils.vapor_pressure_deficit(temp_air=air_temperature, temp_leaf=leaf_temperature, rh=relative_humidity),
+        psi=leaf_water_potential,
+        x1c=x1c,
+        x2c=x2c,
+        x1j=x1j,
+        x2j=x2j,
+        x1t=x1t,
+        x2t=x2t,
+        rd=r_d,
+        model=gs_params['model'],
+        g0=gs_params['g0'],
+        m0=gs_params['m0'],
+        psi0=gs_params['psi0'],
+        d0_leuning=gs_params['D0'],
+        steepness_tuzet=gs_params['n'],
+        rbt=rbt,
+        ca=ca)
 
     return a_n, c_c, c_i, gs
 
@@ -509,8 +516,8 @@ def transpiration_rate(leaf_temperature, ea, gs, gb, atm_pressure=101.3):
     return transpiration
 
 
-def gas_exchange_rates(g, photo_params, gs_params, meteo, E_type2,
-                       leaf_lbl_prefix='L', rbt=2. / 3.):
+def gas_exchange_rates(g, photo_params, gs_params, air_temperature, relative_humidity, air_co2, atmospheric_pressure,
+                       E_type2, leaf_lbl_prefix='L', rbt=2. / 3.):
     """Computes gas exchange fluxes at the leaf scale analytically.
 
     Args:
@@ -519,7 +526,10 @@ def gas_exchange_rates(g, photo_params, gs_params, meteo, E_type2,
         photo_n_params (dict): the (slope, intercept) values of the linear relationship between photosynthetic capacity
             parameters (Vcmax, Jmax, TPU, Rd) and surface-based leaf Nitrogen content
         gs_params (dict): parameters of the stomatal conductance model (model, g0, m0, psi0, D0, n)
-        meteo (pandas.DataFrame): meteorological data
+        air_temperature (float): [°C] air temperature
+        relative_humidity (float): (%) air relative humidity (between 0 and 100 for dry and saturated air, respectively)
+        air_co2 (float): [ppm] air CO2 concentration
+        atmospheric_pressure (float): [kPa] atmospheric pressure
         E_type2 (str): one of 'Ei' (intercepted irradiance) or 'Eabs' (absorbed irradiance)
         leaf_lbl_prefix (str): prefix of the label of the leaves
         rbt (float): [m2 s ubar umol-1] the combined turbulance and boundary layer resistance to CO2 transport
@@ -538,25 +548,12 @@ def gas_exchange_rates(g, photo_params, gs_params, meteo, E_type2,
             E (float): [mol m-2leaf s-1] transpiration per unit leaf surface area
 
     """
-
-    model, g0max, m0, psi0, D0, n = [gs_params[ikey] for ikey in ('model', 'g0', 'm0', 'psi0', 'D0', 'n')]
-
-    meteo_leaf = deepcopy(meteo)
-    meteo_leaf = meteo_leaf.iloc[0]
-
     for vid in g:
         if vid > 0:
             node = g.node(vid)
             if node.label.startswith(leaf_lbl_prefix):
-                t_air = meteo_leaf.Tac
-                hs = meteo_leaf.hs
-                c_a = meteo_leaf.Ca
-                atm_press = meteo_leaf.Pa
-
-                psi = node.properties()['psi_head']
-                t_leaf = node.properties()['Tlc']
-
-                meteo_leaf['PPFD'] = node.properties()[E_type2]
+                leaf_water_potential = node.properties()['psi_head']
+                leaf_temperature = node.properties()['Tlc']
 
                 leaf_par_photo = deepcopy(photo_params)
                 leaf_par_photo['Vcm25'] = node.properties()['Vcm25']
@@ -564,8 +561,8 @@ def gas_exchange_rates(g, photo_params, gs_params, meteo, E_type2,
                 leaf_par_photo['TPU25'] = node.properties()['TPU25']
                 leaf_par_photo['Rd'] = node.properties()['Rd']
                 leaf_par_photo['dHd'] = dHd_sensibility(
-                    psi=psi,
-                    temp=t_leaf,
+                    psi=leaf_water_potential,
+                    temp=leaf_temperature,
                     dhd_max=leaf_par_photo['dHd'],
                     dhd_inhib_beg=leaf_par_photo['photo_inhibition']['dhd_inhib_beg'],
                     dHd_inhib_max=leaf_par_photo['photo_inhibition']['dHd_inhib_max'],
@@ -577,30 +574,30 @@ def gas_exchange_rates(g, photo_params, gs_params, meteo, E_type2,
                 node.par_photo = leaf_par_photo
 
                 a_n, c_c, c_i, gs = an_gs_ci(
+                    air_temperature=air_temperature,
+                    absorbed_ppfd=node.properties()[E_type2],
+                    relative_humidity=relative_humidity,
+                    leaf_temperature=leaf_temperature,
                     photo_params=node.par_photo,
-                    meteo_leaf=meteo_leaf,
-                    psi=psi,
-                    leaf_temperature=t_leaf,
-                    model=model,
-                    g0=g0max,  # *g0_sensibility(psi, psi_crit=-1, n=4)
+                    gs_params=gs_params,
+                    leaf_water_potential=leaf_water_potential,
                     rbt=rbt,
-                    ca=c_a,
-                    m0=m0,
-                    psi0=psi0,
-                    d0_leuning=D0,
-                    steepness_tuzet=n)
+                    ca=air_co2)
 
                 gb = boundary_layer_conductance(
                     leaf_length=node.Length,
                     wind_speed=node.u,
-                    atm_pressure=atm_press,
-                    air_temp=t_air,
+                    atm_pressure=atmospheric_pressure,
+                    air_temp=air_temperature,
                     ideal_gas_cst=r)
 
                 # Transpiration
-                es_a = utils.saturated_air_vapor_pressure(t_air)
-                ea = es_a * hs / 100.
-                e = transpiration_rate(t_leaf, ea, gs, gb, atm_press)
+                e = transpiration_rate(
+                    leaf_temperature=leaf_temperature,
+                    ea=utils.calc_air_vapor_pressure(air_temperature=air_temperature, relative_humidity=relative_humidity),
+                    gs=gs,
+                    gb=gb,
+                    atm_pressure=atmospheric_pressure)
 
                 node.An = a_n
                 node.Ci = c_i

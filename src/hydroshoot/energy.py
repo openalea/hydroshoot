@@ -126,7 +126,7 @@ def set_leaf_temperature_to_air_temperature(g, meteo, leaf_lbl_prefix='L'):
 
     """
     leaves = get_leaves(g, leaf_lbl_prefix)
-    t_air = meteo.Tac[0]
+    t_air = meteo['Tac']
     return {vid: t_air for vid in leaves}
 
 
@@ -220,7 +220,7 @@ def leaf_temperature(g, meteo, t_soil, t_sky_eff, solo=True,
 
     # macro-scale climatic data
     temp_sky = utils.celsius_to_kelvin(t_sky_eff)
-    temp_air = utils.celsius_to_kelvin(meteo.Tac[0])
+    temp_air = utils.celsius_to_kelvin(meteo['Tac'])
     temp_soil = utils.celsius_to_kelvin(t_soil)
 
     # initialisation
