@@ -1636,6 +1636,20 @@ def mtg_load(wd, index):
     return g2, scene
 
 
+def load_mtg(path_mtg: str, path_geometry: str) -> (mtg.MTG, pgl.Scene):
+    scene = pgl.Scene()
+    scene.read(str(path_geometry), 'BGEOM')
+    geom = {sh.id: sh.geometry for sh in scene}
+
+    with open(path_mtg, mode='rb') as f:
+        g, _ = load(f)
+
+    g.add_property('geometry')
+    g.property('geometry').update(geom)
+
+    return g, scene
+
+
 def mtg_save_geometry(scene, file_path, index=''):
     """
     Saves the geometry of a scene in an external file.
