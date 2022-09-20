@@ -6,12 +6,14 @@ from json import load, dump
 from pathlib import Path
 
 from openalea.mtg.mtg import MTG
+from openalea.plantgl.all import Scene
 
 from example.potted_grapevine.sim import build_mtg
 from hydroshoot import io, model, initialisation
 
 
-def preprocess_inputs(grapevine_mtg: MTG, path_project_dir: Path, psi_soil: float, gdd_since_budbreak: float):
+def preprocess_inputs(grapevine_mtg: MTG, path_project_dir: Path, psi_soil: float, gdd_since_budbreak: float,
+                      scene: Scene):
     inputs = io.HydroShootInputs(g=grapevine_mtg, path_project=path_project_dir, scene=scene, psi_soil=psi_soil,
                                  gdd_since_budbreak=gdd_since_budbreak)
     io.verify_inputs(g=grapevine_mtg, inputs=inputs)
@@ -50,7 +52,7 @@ if __name__ == '__main__':
     path_preprocessed_data = path_project / 'preprocessed_inputs'
 
     g, scene = build_mtg(path_file=path_project / 'grapevine_pot.csv', is_show_scene=False)
-    # preprocess_inputs(grapevine_mtg=g, path_project_dir=path_project, psi_soil=-0.5, gdd_since_budbreak=1000.)
+    # preprocess_inputs(grapevine_mtg=g, path_project_dir=path_project, psi_soil=-0.5, gdd_since_budbreak=1000., virtual_scene=scene)
 
     with open(path_preprocessed_data / 'static.json') as f:
         static_inputs = load(f)
