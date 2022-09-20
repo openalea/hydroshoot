@@ -11,6 +11,7 @@ from copy import deepcopy
 from math import exp, acos, sqrt, cos, log
 
 from hydroshoot import utilities as utils
+from hydroshoot.architecture import get_leaves
 from hydroshoot.constants import oxygen_partial_pressure as o, ideal_gaz_cst as r
 
 
@@ -548,61 +549,57 @@ def gas_exchange_rates(g, photo_params, gs_params, air_temperature, relative_hum
             E (float): [mol m-2leaf s-1] transpiration per unit leaf surface area
 
     """
-    for vid in g:
-        if vid > 0:
-            node = g.node(vid)
-            if node.label.startswith(leaf_lbl_prefix):
-                leaf_water_potential = node.properties()['psi_head']
-                leaf_temperature = node.properties()['Tlc']
+    for vid in get_leaves(g=g, leaf_lbl_prefix=leaf_lbl_prefix):
+        node = g.node(vid)
+        leaf_water_potential = node.properties()['psi_head']
+        leaf_temperature = node.properties()['Tlc']
 
-                leaf_par_photo = deepcopy(photo_params)
-                leaf_par_photo['Vcm25'] = node.properties()['Vcm25']
-                leaf_par_photo['Jm25'] = node.properties()['Jm25']
-                leaf_par_photo['TPU25'] = node.properties()['TPU25']
-                leaf_par_photo['Rd'] = node.properties()['Rd']
-                leaf_par_photo['dHd'] = dHd_sensibility(
-                    psi=leaf_water_potential,
-                    temp=leaf_temperature,
-                    dhd_max=leaf_par_photo['dHd'],
-                    dhd_inhib_beg=leaf_par_photo['photo_inhibition']['dhd_inhib_beg'],
-                    dHd_inhib_max=leaf_par_photo['photo_inhibition']['dHd_inhib_max'],
-                    psi_inhib_beg=leaf_par_photo['photo_inhibition']['psi_inhib_beg'],
-                    psi_inhib_max=leaf_par_photo['photo_inhibition']['psi_inhib_max'],
-                    temp_inhib_beg=leaf_par_photo['photo_inhibition']['temp_inhib_beg'],
-                    temp_inhib_max=leaf_par_photo['photo_inhibition']['temp_inhib_max'])
+        leaf_par_photo = deepcopy(photo_params)
+        leaf_par_photo['Vcm25'] = node.properties()['Vcm25']
+        leaf_par_photo['Jm25'] = node.properties()['Jm25']
+        leaf_par_photo['TPU25'] = node.properties()['TPU25']
+        leaf_par_photo['Rd'] = node.properties()['Rd']
+        leaf_par_photo['dHd'] = dHd_sensibility(
+            psi=leaf_water_potential,
+            temp=leaf_temperature,
+            dhd_max=leaf_par_photo['dHd'],
+            dhd_inhib_beg=leaf_par_photo['photo_inhibition']['dhd_inhib_beg'],
+            dHd_inhib_max=leaf_par_photo['photo_inhibition']['dHd_inhib_max'],
+            psi_inhib_beg=leaf_par_photo['photo_inhibition']['psi_inhib_beg'],
+            psi_inhib_max=leaf_par_photo['photo_inhibition']['psi_inhib_max'],
+            temp_inhib_beg=leaf_par_photo['photo_inhibition']['temp_inhib_beg'],
+            temp_inhib_max=leaf_par_photo['photo_inhibition']['temp_inhib_max'])
 
-                node.par_photo = leaf_par_photo
+        a_n, c_c, c_i, gs = an_gs_ci(
+            air_temperature=air_temperature,
+            absorbed_ppfd=node.properties()[E_type2],
+            relative_humidity=relative_humidity,
+            leaf_temperature=leaf_temperature,
+            photo_params=leaf_par_photo,
+            gs_params=gs_params,
+            leaf_water_potential=leaf_water_potential,
+            rbt=rbt,
+            ca=air_co2)
 
-                a_n, c_c, c_i, gs = an_gs_ci(
-                    air_temperature=air_temperature,
-                    absorbed_ppfd=node.properties()[E_type2],
-                    relative_humidity=relative_humidity,
-                    leaf_temperature=leaf_temperature,
-                    photo_params=node.par_photo,
-                    gs_params=gs_params,
-                    leaf_water_potential=leaf_water_potential,
-                    rbt=rbt,
-                    ca=air_co2)
+        gb = boundary_layer_conductance(
+            leaf_length=node.Length,
+            wind_speed=node.u,
+            atm_pressure=atmospheric_pressure,
+            air_temp=air_temperature,
+            ideal_gas_cst=r)
 
-                gb = boundary_layer_conductance(
-                    leaf_length=node.Length,
-                    wind_speed=node.u,
-                    atm_pressure=atmospheric_pressure,
-                    air_temp=air_temperature,
-                    ideal_gas_cst=r)
+        # Transpiration
+        e = transpiration_rate(
+            leaf_temperature=leaf_temperature,
+            ea=utils.calc_air_vapor_pressure(air_temperature=air_temperature, relative_humidity=relative_humidity),
+            gs=gs,
+            gb=gb,
+            atm_pressure=atmospheric_pressure)
 
-                # Transpiration
-                e = transpiration_rate(
-                    leaf_temperature=leaf_temperature,
-                    ea=utils.calc_air_vapor_pressure(air_temperature=air_temperature, relative_humidity=relative_humidity),
-                    gs=gs,
-                    gb=gb,
-                    atm_pressure=atmospheric_pressure)
-
-                node.An = a_n
-                node.Ci = c_i
-                node.gs = gs
-                node.gb = gb
-                node.E = max(0., e)
+        node.An = a_n
+        node.Ci = c_i
+        node.gs = gs
+        node.gb = gb
+        node.E = max(0., e)
 
     return
