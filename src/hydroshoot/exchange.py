@@ -492,7 +492,7 @@ def an_gs_ci(air_temperature, absorbed_ppfd, relative_humidity, leaf_temperature
     return a_n, c_c, c_i, gs
 
 
-def transpiration_rate(leaf_temperature, ea, gs, gb, atm_pressure=101.3):
+def calc_transpiration_rate(leaf_temperature, ea, gs, gb, atm_pressure=101.3):
     """Computes transpiration rate per unit leaf surface area.
 
     Args:
@@ -517,9 +517,113 @@ def transpiration_rate(leaf_temperature, ea, gs, gb, atm_pressure=101.3):
     return transpiration
 
 
-def gas_exchange_rates(g, photo_params, gs_params, air_temperature, relative_humidity, air_co2, atmospheric_pressure,
-                       E_type2, leaf_lbl_prefix='L', rbt=2. / 3.):
+def calc_gas_exchange_rates(all_leaf_water_potential, all_leaf_temperature, all_vcm25, all_jm25, all_tpu25, all_rd,
+                            all_dhd, all_absorbed_ppfd, all_leaf_length, all_wind_speed, photo_params, gs_params,
+                            air_temperature, relative_humidity, air_co2, atmospheric_pressure, rbt=2. / 3.,
+                            leaf_ids=None):
     """Computes gas exchange fluxes at the leaf scale analytically.
+
+    Args:
+        all_leaf_water_potential (dict): [MPa] leaf water potential
+        all_leaf_temperature (dict): [°C] leaf temperature
+        all_vcm25 (dict): [umol m-2 s-1] maximum RuBP-saturated rate of carboxylation
+        all_jm25 (dict): [umol m-2 s-1] electron transport
+        all_tpu25 (dict): [umol m-2 s-1] triose phosphate transport rate
+        all_rd (dict): [umol m-2 s-1] mitochondrial respiration rate
+        all_dhd (dict): [KJ mol-1] enthalpy of deactivation
+        all_absorbed_ppfd (dict): [umol m-2 s-1] absorbed photosynthetic photon flux density
+        all_leaf_length (dict): [m] leaf length
+        all_wind_speed (dict): [m s-1] wind speed at the leaf level
+        leaf_ids (list): leaf ids (default None)
+        photo_params (dict): values at 25 °C of Farquhar's model (cf. :func:`par_photo_default`)
+        gs_params (dict): parameters of the stomatal conductance model (model, g0, m0, psi0, D0, n)
+        air_temperature (float): [°C] air temperature
+        relative_humidity (float): (%) air relative humidity (between 0 and 100 for dry and saturated air, respectively)
+        air_co2 (float): [ppm] air CO2 concentration
+        atmospheric_pressure (float): [kPa] atmospheric pressure
+        rbt (float): [m2 s ubar umol-1] the combined turbulance and boundary layer resistance to CO2 transport
+
+    References:
+        Evers et al. 2010.
+            Simulation of wheat growth and development based on organ-level photosynthesis and assimilate allocation.
+            Journal of Experimental Botany 61, 2203 – 2216.
+
+    Returns:
+        (float): [umol m-2 s-1] the net CO2 assimilation
+        (float): [umol mol] intercellular CO2 concentration
+        (float): [mol m-2 s-1] stomatal conductance to water vapor
+        (float): [mol m-2 s-1] boundary layer conductance to water vapor
+        (float): [mol m-2leaf s-1] transpiration per unit leaf surface area
+
+    """
+    net_photosynthesis_rate = {}
+    intercellular_carbon_content = {}
+    stomatal_conductance_rate = {}
+    boundary_layer_conductance_rate = {}
+    transpiration_rate = {}
+
+    for vid in (leaf_ids if leaf_ids is not None else all_leaf_length.keys()):
+        leaf_water_potential = all_leaf_water_potential[vid]
+        leaf_temperature = all_leaf_temperature[vid]
+        all_dhd[vid] = dHd_sensibility(
+            psi=leaf_water_potential,
+            temp=leaf_temperature,
+            dhd_max=photo_params['dHd'],
+            dhd_inhib_beg=photo_params['photo_inhibition']['dhd_inhib_beg'],
+            dHd_inhib_max=photo_params['photo_inhibition']['dHd_inhib_max'],
+            psi_inhib_beg=photo_params['photo_inhibition']['psi_inhib_beg'],
+            psi_inhib_max=photo_params['photo_inhibition']['psi_inhib_max'],
+            temp_inhib_beg=photo_params['photo_inhibition']['temp_inhib_beg'],
+            temp_inhib_max=photo_params['photo_inhibition']['temp_inhib_max'])
+
+        leaf_par_photo = deepcopy(photo_params)
+        leaf_par_photo.update(dict(
+            Vcm25=all_vcm25[vid],
+            Jm25=all_jm25[vid],
+            TPU25=all_tpu25[vid],
+            Rd=all_rd[vid],
+            dHd=all_dhd[vid]
+        ))
+
+        a_n, c_c, c_i, gs = an_gs_ci(
+            air_temperature=air_temperature,
+            absorbed_ppfd=all_absorbed_ppfd[vid],
+            relative_humidity=relative_humidity,
+            leaf_temperature=leaf_temperature,
+            photo_params=leaf_par_photo,
+            gs_params=gs_params,
+            leaf_water_potential=leaf_water_potential,
+            rbt=rbt,
+            ca=air_co2)
+
+        gb = boundary_layer_conductance(
+            leaf_length=all_leaf_length[vid],
+            wind_speed=all_wind_speed[vid],
+            atm_pressure=atmospheric_pressure,
+            air_temp=air_temperature,
+            ideal_gas_cst=r)
+
+        # Transpiration
+        e = calc_transpiration_rate(
+            leaf_temperature=leaf_temperature,
+            ea=utils.calc_air_vapor_pressure(air_temperature=air_temperature, relative_humidity=relative_humidity),
+            gs=gs,
+            gb=gb,
+            atm_pressure=atmospheric_pressure)
+
+        net_photosynthesis_rate.update({vid: a_n})
+        intercellular_carbon_content.update({vid: c_i})
+        stomatal_conductance_rate.update({vid: gs})
+        boundary_layer_conductance_rate.update({vid: gb})
+        transpiration_rate.update({vid: max(0., e)})
+
+    return (net_photosynthesis_rate, intercellular_carbon_content, stomatal_conductance_rate,
+            boundary_layer_conductance_rate, transpiration_rate)
+
+
+def set_gas_exchange_rates(g, photo_params, gs_params, air_temperature, relative_humidity, air_co2,
+                           atmospheric_pressure, E_type2, leaf_lbl_prefix='L', rbt=2. / 3.):
+    """Sets gas exchange fluxes at the leaf scale analytically.
 
     Args:
         g: a multiscale tree graph object
@@ -549,59 +653,35 @@ def gas_exchange_rates(g, photo_params, gs_params, air_temperature, relative_hum
             E (float): [mol m-2leaf s-1] transpiration per unit leaf surface area
 
     """
-    for vid in get_leaves(g=g, leaf_lbl_prefix=leaf_lbl_prefix):
-        node = g.node(vid)
-        leaf_water_potential = node.properties()['psi_head']
-        leaf_temperature = node.properties()['Tlc']
+    all_leaf_water_potential = g.property('psi_head')
+    all_leaf_temperature = g.property('Tlc')
+    all_vcm25 = g.property('Vcm25')
+    all_jm25 = g.property('Jm25')
+    all_tpu25 = g.property('TPU25')
+    all_rd = g.property('Rd')
+    all_dhd = g.property('dHd')
+    all_absorbed_ppfd = g.property(E_type2)
+    all_leaf_length = g.property('Length')
+    all_wind_speed = g.property('u')
 
-        node.properties()['dHd'] = dHd_sensibility(
-            psi=leaf_water_potential,
-            temp=leaf_temperature,
-            dhd_max=photo_params['dHd'],
-            dhd_inhib_beg=photo_params['photo_inhibition']['dhd_inhib_beg'],
-            dHd_inhib_max=photo_params['photo_inhibition']['dHd_inhib_max'],
-            psi_inhib_beg=photo_params['photo_inhibition']['psi_inhib_beg'],
-            psi_inhib_max=photo_params['photo_inhibition']['psi_inhib_max'],
-            temp_inhib_beg=photo_params['photo_inhibition']['temp_inhib_beg'],
-            temp_inhib_max=photo_params['photo_inhibition']['temp_inhib_max'])
-
-        leaf_par_photo = deepcopy(photo_params)
-        leaf_par_photo['Vcm25'] = node.properties()['Vcm25']
-        leaf_par_photo['Jm25'] = node.properties()['Jm25']
-        leaf_par_photo['TPU25'] = node.properties()['TPU25']
-        leaf_par_photo['Rd'] = node.properties()['Rd']
-        leaf_par_photo['dHd'] = node.properties()['dHd']
-
-        a_n, c_c, c_i, gs = an_gs_ci(
-            air_temperature=air_temperature,
-            absorbed_ppfd=node.properties()[E_type2],
-            relative_humidity=relative_humidity,
-            leaf_temperature=leaf_temperature,
-            photo_params=leaf_par_photo,
-            gs_params=gs_params,
-            leaf_water_potential=leaf_water_potential,
-            rbt=rbt,
-            ca=air_co2)
-
-        gb = boundary_layer_conductance(
-            leaf_length=node.Length,
-            wind_speed=node.u,
-            atm_pressure=atmospheric_pressure,
-            air_temp=air_temperature,
-            ideal_gas_cst=r)
-
-        # Transpiration
-        e = transpiration_rate(
-            leaf_temperature=leaf_temperature,
-            ea=utils.calc_air_vapor_pressure(air_temperature=air_temperature, relative_humidity=relative_humidity),
-            gs=gs,
-            gb=gb,
-            atm_pressure=atmospheric_pressure)
-
-        node.An = a_n
-        node.Ci = c_i
-        node.gs = gs
-        node.gb = gb
-        node.E = max(0., e)
-
-    return
+    (g.properties()['An'], g.properties()['Ci'], g.properties()['gs'], g.properties()['gb'],
+     g.properties()['E']) = calc_gas_exchange_rates(
+        all_leaf_water_potential=all_leaf_water_potential,
+        all_leaf_temperature=all_leaf_temperature,
+        all_vcm25=all_vcm25,
+        all_jm25=all_jm25,
+        all_tpu25=all_tpu25,
+        all_rd=all_rd,
+        all_dhd=all_dhd,
+        all_absorbed_ppfd=all_absorbed_ppfd,
+        all_leaf_length=all_leaf_length,
+        all_wind_speed=all_wind_speed,
+        leaf_ids=get_leaves(g=g, leaf_lbl_prefix=leaf_lbl_prefix),
+        photo_params=photo_params,
+        gs_params=gs_params,
+        air_temperature=air_temperature,
+        relative_humidity=relative_humidity,
+        air_co2=air_co2,
+        atmospheric_pressure=atmospheric_pressure,
+        rbt=rbt)
+    pass

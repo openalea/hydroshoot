@@ -386,6 +386,6 @@ def test_transpiration_rate_incrases_as_vapor_pressure_deficit_increases(leaf_lo
                            psi=0.0, leaf_temperature=34., model='misson', g0=0.019, rbt=2. / 3.,
                            ca=400., m0=5.278, psi0=-0.1, d0_leuning=30., steepness_tuzet=1.85)[-1]
 
-    transpiration = [exchange.transpiration_rate(leaf_temp, ea, gs, gb, atmospheric_pressure)
+    transpiration = [exchange.calc_transpiration_rate(leaf_temp, ea, gs, gb, atmospheric_pressure)
                      for ea in linspace(es, 0, 10)]
     assert all(x <= y for x, y in zip(transpiration, transpiration[1:]))
