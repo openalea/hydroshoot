@@ -517,23 +517,24 @@ def calc_transpiration_rate(leaf_temperature, ea, gs, gb, atm_pressure=101.3):
     return transpiration
 
 
-def calc_gas_exchange_rates(all_leaf_water_potential, all_leaf_temperature, all_vcm25, all_jm25, all_tpu25, all_rd,
-                            all_dhd, all_absorbed_ppfd, all_leaf_length, all_wind_speed, photo_params, gs_params,
+def calc_gas_exchange_rates(leaf_water_potential, leaf_temperature, carboxylation_max, electron_transport,
+                            triose_photsphate_transport, mitochondreal_respiration,
+                            entalpy_deactivation, absorbed_ppfd, leaf_length, wind_speed, photo_params, gs_params,
                             air_temperature, relative_humidity, air_co2, atmospheric_pressure, rbt=2. / 3.,
                             leaf_ids=None):
     """Computes gas exchange fluxes at the leaf scale analytically.
 
     Args:
-        all_leaf_water_potential (dict): [MPa] leaf water potential
-        all_leaf_temperature (dict): [°C] leaf temperature
-        all_vcm25 (dict): [umol m-2 s-1] maximum RuBP-saturated rate of carboxylation
-        all_jm25 (dict): [umol m-2 s-1] electron transport
-        all_tpu25 (dict): [umol m-2 s-1] triose phosphate transport rate
-        all_rd (dict): [umol m-2 s-1] mitochondrial respiration rate
-        all_dhd (dict): [KJ mol-1] enthalpy of deactivation
-        all_absorbed_ppfd (dict): [umol m-2 s-1] absorbed photosynthetic photon flux density
-        all_leaf_length (dict): [m] leaf length
-        all_wind_speed (dict): [m s-1] wind speed at the leaf level
+        leaf_water_potential (dict): [MPa] leaf water potential
+        leaf_temperature (dict): [°C] leaf temperature
+        carboxylation_max (dict): [umol m-2 s-1] maximum RuBP-saturated rate of carboxylation
+        electron_transport (dict): [umol m-2 s-1] electron transport
+        triose_photsphate_transport (dict): [umol m-2 s-1] triose phosphate transport rate
+        mitochondreal_respiration (dict): [umol m-2 s-1] mitochondrial respiration rate
+        entalpy_deactivation (dict): [KJ mol-1] enthalpy of deactivation
+        absorbed_ppfd (dict): [umol m-2 s-1] absorbed photosynthetic photon flux density
+        leaf_length (dict): [m] leaf length
+        wind_speed (dict): [m s-1] wind speed at the leaf level
         leaf_ids (list): leaf ids (default None)
         photo_params (dict): values at 25 °C of Farquhar's model (cf. :func:`par_photo_default`)
         gs_params (dict): parameters of the stomatal conductance model (model, g0, m0, psi0, D0, n)
@@ -549,11 +550,11 @@ def calc_gas_exchange_rates(all_leaf_water_potential, all_leaf_temperature, all_
             Journal of Experimental Botany 61, 2203 – 2216.
 
     Returns:
-        (float): [umol m-2 s-1] the net CO2 assimilation
-        (float): [umol mol] intercellular CO2 concentration
-        (float): [mol m-2 s-1] stomatal conductance to water vapor
-        (float): [mol m-2 s-1] boundary layer conductance to water vapor
-        (float): [mol m-2leaf s-1] transpiration per unit leaf surface area
+        (dict): [umol m-2 s-1] the net CO2 assimilation
+        (dict): [umol mol] intercellular CO2 concentration
+        (dict): [mol m-2 s-1] stomatal conductance to water vapor
+        (dict): [mol m-2 s-1] boundary layer conductance to water vapor
+        (dict): [mol m-2leaf s-1] transpiration per unit leaf surface area
 
     """
     net_photosynthesis_rate = {}
@@ -562,12 +563,12 @@ def calc_gas_exchange_rates(all_leaf_water_potential, all_leaf_temperature, all_
     boundary_layer_conductance_rate = {}
     transpiration_rate = {}
 
-    for vid in (leaf_ids if leaf_ids is not None else all_leaf_length.keys()):
-        leaf_water_potential = all_leaf_water_potential[vid]
-        leaf_temperature = all_leaf_temperature[vid]
-        all_dhd[vid] = dHd_sensibility(
-            psi=leaf_water_potential,
-            temp=leaf_temperature,
+    for vid in (leaf_ids if leaf_ids is not None else leaf_length.keys()):
+        water_potential_leaf = leaf_water_potential[vid]
+        temperature_leaf = leaf_temperature[vid]
+        entalpy_deactivation[vid] = dHd_sensibility(
+            psi=water_potential_leaf,
+            temp=temperature_leaf,
             dhd_max=photo_params['dHd'],
             dhd_inhib_beg=photo_params['photo_inhibition']['dhd_inhib_beg'],
             dHd_inhib_max=photo_params['photo_inhibition']['dHd_inhib_max'],
@@ -578,34 +579,33 @@ def calc_gas_exchange_rates(all_leaf_water_potential, all_leaf_temperature, all_
 
         leaf_par_photo = deepcopy(photo_params)
         leaf_par_photo.update(dict(
-            Vcm25=all_vcm25[vid],
-            Jm25=all_jm25[vid],
-            TPU25=all_tpu25[vid],
-            Rd=all_rd[vid],
-            dHd=all_dhd[vid]
-        ))
+            Vcm25=carboxylation_max[vid],
+            Jm25=electron_transport[vid],
+            TPU25=triose_photsphate_transport[vid],
+            Rd=mitochondreal_respiration[vid],
+            dHd=entalpy_deactivation[vid]))
 
         a_n, c_c, c_i, gs = an_gs_ci(
             air_temperature=air_temperature,
-            absorbed_ppfd=all_absorbed_ppfd[vid],
+            absorbed_ppfd=absorbed_ppfd[vid],
             relative_humidity=relative_humidity,
-            leaf_temperature=leaf_temperature,
+            leaf_temperature=temperature_leaf,
             photo_params=leaf_par_photo,
             gs_params=gs_params,
-            leaf_water_potential=leaf_water_potential,
+            leaf_water_potential=water_potential_leaf,
             rbt=rbt,
             ca=air_co2)
 
         gb = boundary_layer_conductance(
-            leaf_length=all_leaf_length[vid],
-            wind_speed=all_wind_speed[vid],
+            leaf_length=leaf_length[vid],
+            wind_speed=wind_speed[vid],
             atm_pressure=atmospheric_pressure,
             air_temp=air_temperature,
             ideal_gas_cst=r)
 
         # Transpiration
         e = calc_transpiration_rate(
-            leaf_temperature=leaf_temperature,
+            leaf_temperature=temperature_leaf,
             ea=utils.calc_air_vapor_pressure(air_temperature=air_temperature, relative_humidity=relative_humidity),
             gs=gs,
             gb=gb,
@@ -666,16 +666,16 @@ def set_gas_exchange_rates(g, photo_params, gs_params, air_temperature, relative
 
     (g.properties()['An'], g.properties()['Ci'], g.properties()['gs'], g.properties()['gb'],
      g.properties()['E']) = calc_gas_exchange_rates(
-        all_leaf_water_potential=all_leaf_water_potential,
-        all_leaf_temperature=all_leaf_temperature,
-        all_vcm25=all_vcm25,
-        all_jm25=all_jm25,
-        all_tpu25=all_tpu25,
-        all_rd=all_rd,
-        all_dhd=all_dhd,
-        all_absorbed_ppfd=all_absorbed_ppfd,
-        all_leaf_length=all_leaf_length,
-        all_wind_speed=all_wind_speed,
+        leaf_water_potential=all_leaf_water_potential,
+        leaf_temperature=all_leaf_temperature,
+        carboxylation_max=all_vcm25,
+        electron_transport=all_jm25,
+        triose_photsphate_transport=all_tpu25,
+        mitochondreal_respiration=all_rd,
+        entalpy_deactivation=all_dhd,
+        absorbed_ppfd=all_absorbed_ppfd,
+        leaf_length=all_leaf_length,
+        wind_speed=all_wind_speed,
         leaf_ids=get_leaves(g=g, leaf_lbl_prefix=leaf_lbl_prefix),
         photo_params=photo_params,
         gs_params=gs_params,

@@ -59,6 +59,7 @@ def test_leaf_temperature():
     for vid in g.properties()['geometry'].keys():
         node = g.node(vid)
         node.Ei = 0
+        node.Rg = 0
         node.ff_sky = 0.3
         node.ff_leaves = 0.3
         node.ff_soil = 0.4

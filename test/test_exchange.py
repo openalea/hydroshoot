@@ -46,6 +46,10 @@ def setup_default_photosynthesis_params():
     return res
 
 
+def setup_default_stomatal_conductance_params():
+    return dict(model='misson', g0=0.019, m0=5.278, psi0=-0.1, D0=30., n=1.85)
+
+
 def setup_leaf_local_weather():
     return Series({'time': datetime(2012, 8, 1, 11),
                    'Tac': 26.84,
@@ -303,10 +307,17 @@ def test_boundary_layer_conductance_increases_as_air_temperature_increases():
 def test_an_gs_ci_reduces_gas_exchange_rates_as_leaf_water_potential_decreases(
         leaf_local_weather=setup_leaf_local_weather()):
     an, _, _, gs = zip(
-        *[exchange.an_gs_ci(photo_params=setup_default_photosynthesis_params(), meteo_leaf=leaf_local_weather,
-                            psi=psi, leaf_temperature=25., model='misson', g0=0.019, rbt=2. / 3.,
-                            ca=400., m0=5.278, psi0=-0.1, d0_leuning=30., steepness_tuzet=1.85)
-          for psi in arange(0, -3, -0.1)])
+        *[exchange.an_gs_ci(
+            air_temperature=leaf_local_weather['Tac'],
+            absorbed_ppfd=leaf_local_weather['PPFD'],
+            relative_humidity=leaf_local_weather['hs'],
+            leaf_temperature=25.,
+            leaf_water_potential=psi,
+            photo_params=setup_default_photosynthesis_params(),
+            gs_params=setup_default_stomatal_conductance_params(),
+            rbt=2. / 3.,
+            ca=400.)
+            for psi in arange(0, -3, -0.1)])
 
     assert all(x >= y for x, y in zip(an, an[1:]))
     assert all(x >= y for x, y in zip(gs, gs[1:]))
@@ -314,10 +325,17 @@ def test_an_gs_ci_reduces_gas_exchange_rates_as_leaf_water_potential_decreases(
 
 def test_an_gs_ci_changes_gas_exchange_rates_as_leaf_temperature_changes(leaf_local_weather=setup_leaf_local_weather()):
     an, _, _, gs = zip(
-        *[exchange.an_gs_ci(photo_params=setup_default_photosynthesis_params(), meteo_leaf=leaf_local_weather,
-                            psi=0., leaf_temperature=t, model='misson', g0=0.019, rbt=2. / 3.,
-                            ca=400., m0=5.278, psi0=-0.1, d0_leuning=30., steepness_tuzet=1.85)
-          for t in range(-10, 46)])
+        *[exchange.an_gs_ci(
+            air_temperature=leaf_local_weather['Tac'],
+            absorbed_ppfd=leaf_local_weather['PPFD'],
+            relative_humidity=leaf_local_weather['hs'],
+            leaf_temperature=t,
+            leaf_water_potential=0,
+            photo_params=setup_default_photosynthesis_params(),
+            gs_params=setup_default_stomatal_conductance_params(),
+            rbt=2. / 3.,
+            ca=400.)
+            for t in range(-10, 46)])
 
     assert all(x != y for x, y in zip(an, an[1:]))
     assert all(x != y for x, y in zip(gs, gs[1:]))
@@ -325,49 +343,89 @@ def test_an_gs_ci_changes_gas_exchange_rates_as_leaf_temperature_changes(leaf_lo
 
 def test_an_gs_ci_yields_maximum_net_photosynthesis_at_31_degrees_celsius(
         leaf_local_weather=setup_leaf_local_weather()):
-    an_max = \
-        exchange.an_gs_ci(photo_params=setup_default_photosynthesis_params(), meteo_leaf=leaf_local_weather,
-                          psi=0., leaf_temperature=31, model='misson', g0=0.019, rbt=2. / 3.,
-                          ca=400., m0=5.278, psi0=-0.1, d0_leuning=30., steepness_tuzet=1.85)[0]
+    an_max, *_ = exchange.an_gs_ci(
+        air_temperature=leaf_local_weather['Tac'],
+        absorbed_ppfd=leaf_local_weather['PPFD'],
+        relative_humidity=leaf_local_weather['hs'],
+        leaf_temperature=31,
+        leaf_water_potential=0,
+        photo_params=setup_default_photosynthesis_params(),
+        gs_params=setup_default_stomatal_conductance_params(),
+        rbt=2. / 3.,
+        ca=400.)
 
-    an, _, _, gs = zip(
-        *[exchange.an_gs_ci(photo_params=setup_default_photosynthesis_params(), meteo_leaf=leaf_local_weather,
-                            psi=0., leaf_temperature=t, model='misson', g0=0.019, rbt=2. / 3.,
-                            ca=400., m0=5.278, psi0=-0.1, d0_leuning=30., steepness_tuzet=1.85)
-          for t in range(-10, 46)])
+    an, *_ = zip(
+        *[exchange.an_gs_ci(
+            air_temperature=leaf_local_weather['Tac'],
+            absorbed_ppfd=leaf_local_weather['PPFD'],
+            relative_humidity=leaf_local_weather['hs'],
+            leaf_temperature=t,
+            leaf_water_potential=0,
+            photo_params=setup_default_photosynthesis_params(),
+            gs_params=setup_default_stomatal_conductance_params(),
+            rbt=2. / 3.,
+            ca=400.)
+            for t in range(-10, 46)])
 
     assert all(x <= an_max for x in an)
 
 
 def test_an_gs_ci_yields_maximum_stomatal_conductance_at_34_degrees_celsius(
         leaf_local_weather=setup_leaf_local_weather()):
-    gs_max = \
-        exchange.an_gs_ci(photo_params=setup_default_photosynthesis_params(), meteo_leaf=leaf_local_weather,
-                          psi=0., leaf_temperature=34, model='misson', g0=0.019, rbt=2. / 3.,
-                          ca=400., m0=5.278, psi0=-0.1, d0_leuning=30., steepness_tuzet=1.85)[-1]
+    *_, gs_max = exchange.an_gs_ci(
+        air_temperature=leaf_local_weather['Tac'],
+        absorbed_ppfd=leaf_local_weather['PPFD'],
+        relative_humidity=leaf_local_weather['hs'],
+        leaf_temperature=34,
+        leaf_water_potential=0,
+        photo_params=setup_default_photosynthesis_params(),
+        gs_params=setup_default_stomatal_conductance_params(),
+        rbt=2. / 3.,
+        ca=400.)
 
-    an, _, _, gs = zip(
-        *[exchange.an_gs_ci(photo_params=setup_default_photosynthesis_params(), meteo_leaf=leaf_local_weather,
-                            psi=0., leaf_temperature=t, model='misson', g0=0.019, rbt=2. / 3.,
-                            ca=400., m0=5.278, psi0=-0.1, d0_leuning=30., steepness_tuzet=1.85)
-          for t in range(-10, 46)])
+    *_, gs = zip(
+        *[exchange.an_gs_ci(
+            air_temperature=leaf_local_weather['Tac'],
+            absorbed_ppfd=leaf_local_weather['PPFD'],
+            relative_humidity=leaf_local_weather['hs'],
+            leaf_temperature=t,
+            leaf_water_potential=0,
+            photo_params=setup_default_photosynthesis_params(),
+            gs_params=setup_default_stomatal_conductance_params(),
+            rbt=2. / 3.,
+            ca=400.)
+            for t in range(-10, 46)])
 
     assert all(x <= gs_max for x in gs)
 
 
 def test_an_gs_ci_yields_more_severe_stress_when_temperature_and_water_stresses_are_combined_than_separated(
         leaf_local_weather=setup_leaf_local_weather()):
-    an_t, _, _, gs_t = zip(
-        *[exchange.an_gs_ci(photo_params=setup_default_photosynthesis_params(), meteo_leaf=leaf_local_weather,
-                            psi=0., leaf_temperature=t, model='misson', g0=0.019, rbt=2. / 3.,
-                            ca=400., m0=5.278, psi0=-0.1, d0_leuning=30., steepness_tuzet=1.85)
-          for t in range(-10, 46)])
+    an_t, *_, gs_t = zip(
+        *[exchange.an_gs_ci(
+            air_temperature=leaf_local_weather['Tac'],
+            absorbed_ppfd=leaf_local_weather['PPFD'],
+            relative_humidity=leaf_local_weather['hs'],
+            leaf_temperature=t,
+            leaf_water_potential=0,
+            photo_params=setup_default_photosynthesis_params(),
+            gs_params=setup_default_stomatal_conductance_params(),
+            rbt=2. / 3.,
+            ca=400.)
+            for t in range(-10, 46)])
 
-    an_t_psi, _, _, gs_t_psi = zip(*[exchange.an_gs_ci(photo_params=setup_default_photosynthesis_params(),
-                                                       meteo_leaf=leaf_local_weather, psi=-2., leaf_temperature=t,
-                                                       model='misson', g0=0.019, rbt=2. / 3., ca=400., m0=5.278,
-                                                       psi0=-0.1, d0_leuning=30., steepness_tuzet=1.85)
-                                     for t in range(-10, 46)])
+    an_t_psi, *_, gs_t_psi = zip(
+        *[exchange.an_gs_ci(
+            air_temperature=leaf_local_weather['Tac'],
+            absorbed_ppfd=leaf_local_weather['PPFD'],
+            relative_humidity=leaf_local_weather['hs'],
+            leaf_temperature=t,
+            leaf_water_potential=-2,
+            photo_params=setup_default_photosynthesis_params(),
+            gs_params=setup_default_stomatal_conductance_params(),
+            rbt=2. / 3.,
+            ca=400.)
+            for t in range(-10, 46)])
 
     assert all(x <= x_t for x, x_t in zip(an_t_psi, an_t))
     assert all(x <= x_t for x, x_t in zip(gs_t_psi, gs_t))
@@ -381,10 +439,16 @@ def test_transpiration_rate_incrases_as_vapor_pressure_deficit_increases(leaf_lo
                                              atm_pressure=leaf_local_weather['Pa'], air_temp=air_temp,
                                              ideal_gas_cst=constants.ideal_gaz_cst)
     es = utilities.saturated_air_vapor_pressure(leaf_temp)
-
-    gs = exchange.an_gs_ci(photo_params=setup_default_photosynthesis_params(), meteo_leaf=leaf_local_weather,
-                           psi=0.0, leaf_temperature=34., model='misson', g0=0.019, rbt=2. / 3.,
-                           ca=400., m0=5.278, psi0=-0.1, d0_leuning=30., steepness_tuzet=1.85)[-1]
+    *_, gs = exchange.an_gs_ci(
+        air_temperature=leaf_local_weather['Tac'],
+        absorbed_ppfd=leaf_local_weather['PPFD'],
+        relative_humidity=leaf_local_weather['hs'],
+        leaf_temperature=34,
+        leaf_water_potential=0,
+        photo_params=setup_default_photosynthesis_params(),
+        gs_params=setup_default_stomatal_conductance_params(),
+        rbt=2. / 3.,
+        ca=400.)
 
     transpiration = [exchange.calc_transpiration_rate(leaf_temp, ea, gs, gb, atmospheric_pressure)
                      for ea in linspace(es, 0, 10)]
