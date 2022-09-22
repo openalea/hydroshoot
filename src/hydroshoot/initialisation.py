@@ -101,7 +101,7 @@ def init_model(g: MTG, inputs: HydroShootInputs) -> MTG:
                 length_conv=1. / params.simulation.conv_to_meter)
 
     # Add form factors
-    if params.simulation.energy_budget:
+    if params.simulation.is_energy_budget:
         if inputs.form_factors is not None:
             for ff in ('ff_sky', 'ff_leaves', 'ff_soil'):
                 g.properties()[ff] = inputs.form_factors[ff]

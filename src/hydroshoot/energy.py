@@ -113,21 +113,18 @@ def set_form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix
     return g
 
 
-def set_leaf_temperature_to_air_temperature(g, meteo, leaf_lbl_prefix='L'):
+def set_leaf_temperature_to_air_temperature(air_temperature, leaf_ids):
     """Basic model for leaf temperature, considered equal to air temperature for all leaves
 
     Args:
-        g: a multiscale tree graph object
-        meteo (DataFrame): forcing meteorological variables
-        leaf_lbl_prefix (str): the prefix of the leaf label
+        air_temperature (float): [°C] air temperature
+        leaf_ids (list of int): leaf ids
 
     Returns:
         (dict): keys are leaves vertices ids and their values are all equal to air temperature [°C]
 
     """
-    leaves = get_leaves(g, leaf_lbl_prefix)
-    t_air = meteo['Tac']
-    return {vid: t_air for vid in leaves}
+    return {vid: air_temperature for vid in leaf_ids}
 
 
 def set_wind_speed(g, meteo, leaf_lbl_prefix='L'):
@@ -169,12 +166,12 @@ def _gbH(leaf_length, wind_speed):
     return 2. * 0.026 / d_bl  # Boundary layer conductance to heat [W m-2 K-1]
 
 
-def calc_heat_boundary_layer_conductance(g, leaf_label_prefix, unit_scene_length):
+def calc_heat_boundary_layer_conductance(g, leaf_ids, unit_scene_length):
     """Calculates boundary conductance to heat transfer for each leaf.
 
     Args:
         g: mtg object
-        leaf_label_prefix (str): the prefix of the leaf label
+        leaf_ids (list of int): leaf ids
         unit_scene_length (str): the unit of length used for scene coordinate and for pattern
             (should be one of `CaribuScene.units` default)
 
@@ -183,7 +180,7 @@ def calc_heat_boundary_layer_conductance(g, leaf_label_prefix, unit_scene_length
 
     """
     conv = {'mm': 1.e-3, 'cm': 1.e-2, 'm': 1.}[unit_scene_length]
-    for vid in get_leaves(g=g, leaf_lbl_prefix=leaf_label_prefix):
+    for vid in leaf_ids:
         g.node(vid).gbH = _gbH(
             leaf_length=g.node(vid).properties()['Length'] * conv,
             wind_speed=g.node(vid).properties()['u'])

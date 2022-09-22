@@ -622,21 +622,19 @@ def calc_gas_exchange_rates(leaf_water_potential, leaf_temperature, carboxylatio
 
 
 def set_gas_exchange_rates(g, photo_params, gs_params, air_temperature, relative_humidity, air_co2,
-                           atmospheric_pressure, E_type2, leaf_lbl_prefix='L', rbt=2. / 3.):
+                           atmospheric_pressure, E_type2, leaf_ids, rbt=2. / 3.):
     """Sets gas exchange fluxes at the leaf scale analytically.
 
     Args:
         g: a multiscale tree graph object
         photo_params (dict): values at 25 °C of Farquhar's model (cf. :func:`par_photo_default`)
-        photo_n_params (dict): the (slope, intercept) values of the linear relationship between photosynthetic capacity
-            parameters (Vcmax, Jmax, TPU, Rd) and surface-based leaf Nitrogen content
         gs_params (dict): parameters of the stomatal conductance model (model, g0, m0, psi0, D0, n)
         air_temperature (float): [°C] air temperature
         relative_humidity (float): (%) air relative humidity (between 0 and 100 for dry and saturated air, respectively)
         air_co2 (float): [ppm] air CO2 concentration
         atmospheric_pressure (float): [kPa] atmospheric pressure
         E_type2 (str): one of 'Ei' (intercepted irradiance) or 'Eabs' (absorbed irradiance)
-        leaf_lbl_prefix (str): prefix of the label of the leaves
+        leaf_ids (list of int): leaf ids
         rbt (float): [m2 s ubar umol-1] the combined turbulance and boundary layer resistance to CO2 transport
 
     References:
@@ -676,7 +674,7 @@ def set_gas_exchange_rates(g, photo_params, gs_params, air_temperature, relative
         absorbed_ppfd=all_absorbed_ppfd,
         leaf_length=all_leaf_length,
         wind_speed=all_wind_speed,
-        leaf_ids=get_leaves(g=g, leaf_lbl_prefix=leaf_lbl_prefix),
+        leaf_ids=leaf_ids,
         photo_params=photo_params,
         gs_params=gs_params,
         air_temperature=air_temperature,

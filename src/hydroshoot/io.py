@@ -51,7 +51,7 @@ class HydroShootInputs(object):
         self.set_output_dir(user_path=path_output_file)
 
     def set_weather(self):
-        df = read_csv(self.path_project / self.params.simulation.meteo, sep=';', decimal='.', header=0)
+        df = read_csv(self.path_project / self.params.simulation.weather_file_name, sep=';', decimal='.', header=0)
         df.time = DatetimeIndex(df.time)
         df = df.set_index(df.time)
         if 'Ca' not in df.columns:
@@ -180,7 +180,7 @@ def verify_inputs(g: MTG, inputs: HydroShootInputs):
         for k, v in inputs.form_factors.items():
             assert all([vid in v for vid in get_leaves(g=g, leaf_lbl_prefix=inputs.params.mtg_api.leaf_lbl_prefix)])
 
-    if params.simulation.hydraulic_structure:
+    if params.simulation.is_hydraulic_structure:
         gs_model = params.exchange.par_gs['model']
         assert gs_model != 'vpd', (
             f'The stomatal conductance model: "{gs_model}" does not require the hydraulic structure to be calculated')
@@ -194,10 +194,10 @@ def print_sim_infos(inputs: HydroShootInputs):
         print(f'GDD since budbreak: {inputs.gdd_since_budbreak} °Cd')
     print(f'Soil class: {params.soil.soil_class}')
     print(f'Site location: ({site_location[0]:.2f} N, {site_location[1]:.2f} E, {site_location[2]:.2f} m amsl)')
-    print(f'Calculate Energy budget: {params.simulation.energy_budget}')
-    print(f'Ignore shoot resistance: {params.simulation.negligible_shoot_resistance}')
-    print(f'Calculate Hydraulic structure: {params.simulation.hydraulic_structure}')
-    print(f'Force well-watered conditions: {params.simulation.soil_water_deficit}')
+    print(f'Calculate Energy budget: {params.simulation.is_energy_budget}')
+    print(f'Ignore shoot resistance: {params.simulation.is_negligible_shoot_resistance}')
+    print(f'Calculate Hydraulic structure: {params.simulation.is_hydraulic_structure}')
+    print(f'Force well-watered conditions: {params.simulation.is_soil_water_deficit}')
     print(f'Add Rhyzoshpere cylinders: {params.soil.rhyzo_solution}')
     print(f'Use user form factors: {inputs.form_factors is not None}')
     print(f'Use user irradiance data: {inputs.leaf_ppfd is not None}')
