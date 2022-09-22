@@ -3,6 +3,7 @@ from copy import deepcopy
 import openalea.mtg.traversal as traversal
 
 from hydroshoot import hydraulic, exchange, energy
+from hydroshoot.architecture import get_leaves
 
 
 def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
@@ -19,29 +20,18 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
     """
     length_conv = params.simulation.conv_to_meter
     time_conv = params.simulation.conv_to_second
-    rhyzo_total_volume = params.soil.rhyzo_total_volume
 
-    hydraulic_structure = params.simulation.hydraulic_structure
-    negligible_shoot_resistance = params.simulation.negligible_shoot_resistance
-    soil_water_deficit = params.simulation.soil_water_deficit
-    energy_budget = params.simulation.energy_budget
+    is_energy_budget = params.simulation.is_energy_budget
 
-    par_photo = params.exchange.par_photo
-    par_photo_n = params.exchange.par_photo_N
-    par_gs = params.exchange.par_gs
-    rbt = params.exchange.rbt
+    photosynthesis_params = params.exchange.par_photo
+    stomatal_conductance_params = params.exchange.par_gs
+    turbulence_resistance = params.exchange.rbt
 
     xylem_k_max = params.hydraulic.Kx_dict
     xylem_k_cavitation = params.hydraulic.par_K_vul
     psi_min = params.hydraulic.psi_min
 
-    solo = params.energy.solo
-
     irradiance_type2 = params.irradiance.E_type2
-
-    leaf_lbl_prefix = params.mtg_api.leaf_lbl_prefix
-
-    soil_class = params.soil.soil_class
 
     temp_step = params.numerical_resolution.t_step
     psi_step = params.numerical_resolution.psi_step
@@ -51,14 +41,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
 
     modelx, psi_critx, slopex = [xylem_k_cavitation[ikey] for ikey in ('model', 'fifty_cent', 'sig_slope')]
 
-    if hydraulic_structure:
-        assert (par_gs['model'] != 'vpd'), "Stomatal conductance model should be linked to the hydraulic strucutre"
-    else:
-        par_gs['model'] = 'vpd'
-        negligible_shoot_resistance = True
-
-        print("par_gs: 'model' is forced to 'vpd'")
-        print("negligible_shoot_resistance is forced to True.")
+    leaf_ids = get_leaves(g=g, leaf_lbl_prefix=params.mtg_api.leaf_lbl_prefix)
 
     # Initializations ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     # Initialize all xylem potential values to soil water potential
@@ -66,31 +49,35 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
         g.node(vtx_id).psi_head = psi_soil
 
     # If leaf temperature to be calculated, calculate the boundary layer conductance to heat transfer
-    if energy_budget:
+    if is_energy_budget:
         g = energy.calc_heat_boundary_layer_conductance(
-            g=g, leaf_label_prefix=leaf_lbl_prefix, unit_scene_length=params.simulation.unit_scene_length)
+            g=g, leaf_ids=leaf_ids, unit_scene_length=params.simulation.unit_scene_length)
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     # Temperature loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     t_error_trace = []
     it_step = temp_step
 
-    # Initialize leaf  temperature to air temperature
-    g.properties()['Tlc'] = energy.set_leaf_temperature_to_air_temperature(g, meteo, leaf_lbl_prefix)
+    # Initialize leaf temperature to air temperature
+    g.properties()['Tlc'] = energy.set_leaf_temperature_to_air_temperature(
+        air_temperature=meteo['Tac'], leaf_ids=leaf_ids)
 
     for it in range(max_iter):
         t_prev = deepcopy(g.property('Tlc'))
 
         # Hydraulic loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        if hydraulic_structure:
+        if params.simulation.is_hydraulic_structure:
             psi_error_trace = []
             ipsi_step = psi_step
             for ipsi in range(max_iter):
                 psi_prev = deepcopy(g.property('psi_head'))
 
                 # Compute gas-exchange fluxes. Leaf T and Psi are from prev calc loop
-                exchange.gas_exchange_rates(g, par_photo, par_photo_n, par_gs,
-                                            meteo, irradiance_type2, leaf_lbl_prefix, rbt)
+                exchange.set_gas_exchange_rates(
+                    g=g, photo_params=photosynthesis_params, gs_params=stomatal_conductance_params,
+                    air_temperature=meteo['Tac'], relative_humidity=meteo['hs'], air_co2=meteo['Ca'],
+                    atmospheric_pressure=meteo['Pa'], E_type2=irradiance_type2, leaf_ids=leaf_ids,
+                    rbt=turbulence_resistance)
 
                 # Compute sap flow and hydraulic properties
                 hydraulic.hydraulic_prop(g, length_conv=length_conv,
@@ -99,23 +86,21 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
                 # Update soil water status
                 psi_base = hydraulic.soil_water_potential(
                     psi_soil_init=psi_soil, water_withdrawal=g.node(g.node(g.root).vid_collar).Flux * time_conv,
-                    soil_class=soil_class, soil_total_volume=rhyzo_total_volume, psi_min=psi_min)
+                    soil_class=params.soil.soil_class, soil_total_volume=params.soil.rhyzo_total_volume,
+                    psi_min=psi_min)
 
-                if soil_water_deficit:
+                if params.simulation.is_soil_water_deficit:
                     psi_base = max(-1.3, psi_base)
                 else:
                     psi_base = max(-0.7, psi_base)
 
                 # Compute xylem water potential
-                n_iter_psi = hydraulic.xylem_water_potential(g, psi_soil=psi_base, model=modelx, psi_min=psi_min,
-                                                             psi_error_crit=psi_error_threshold, max_iter=max_iter,
-                                                             length_conv=length_conv, fifty_cent=psi_critx,
-                                                             sig_slope=slopex,
-                                                             root_spacing=params.soil.avg_root_spacing,
-                                                             root_radius=params.soil.avg_root_radius,
-                                                             negligible_shoot_resistance=negligible_shoot_resistance,
-                                                             start_vid=g.node(g.root).vid_base, stop_vid=None,
-                                                             psi_step=psi_step)
+                n_iter_psi = hydraulic.xylem_water_potential(
+                    g=g, psi_soil=psi_base, model=modelx, psi_min=psi_min, psi_error_crit=psi_error_threshold,
+                    max_iter=max_iter, length_conv=length_conv, fifty_cent=psi_critx, sig_slope=slopex,
+                    root_spacing=params.soil.avg_root_spacing, root_radius=params.soil.avg_root_radius,
+                    negligible_shoot_resistance=params.simulation.is_negligible_shoot_resistance,
+                    start_vid=g.node(g.root).vid_base, stop_vid=None, psi_step=psi_step)
 
                 psi_new = g.property('psi_head')
 
@@ -148,8 +133,11 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
 
         else:
             # Compute gas-exchange fluxes. Leaf T and Psi are from prev calc loop
-            exchange.gas_exchange_rates(g, par_photo, par_photo_n, par_gs,
-                                        meteo, irradiance_type2, leaf_lbl_prefix, rbt)
+            exchange.set_gas_exchange_rates(
+                g=g, photo_params=photosynthesis_params, gs_params=stomatal_conductance_params,
+                air_temperature=meteo['Tac'], relative_humidity=meteo['hs'], air_co2=meteo['Ca'],
+                atmospheric_pressure=meteo['Pa'], E_type2=irradiance_type2, leaf_ids=leaf_ids,
+                rbt=turbulence_resistance)
 
             # Compute sap flow and hydraulic properties
             hydraulic.hydraulic_prop(g, length_conv=length_conv,
@@ -158,11 +146,14 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
         # End Hydraulic loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         # Compute leaf temperature
-        if energy_budget:
-            g.properties()['Tlc'], t_iter = energy.leaf_temperature(g, meteo, t_soil, t_sky_eff,
-                                                                    solo=solo,
-                                                                    leaf_lbl_prefix=leaf_lbl_prefix, max_iter=max_iter,
-                                                                    t_error_crit=temp_error_threshold, t_step=temp_step)
+        if is_energy_budget:
+            if params.energy.solo:
+                g.properties()['Tlc'], t_iter = energy.calc_leaf_temperature(
+                    g=g, meteo=meteo, t_soil=t_soil, t_sky_eff=t_sky_eff, leaf_ids=leaf_ids,
+                    max_iter=max_iter, t_error_crit=temp_error_threshold, t_step=temp_step)
+            else:
+                g.properties()['Tlc'], t_iter = energy.calc_leaf_temperature2(
+                    g=g, meteo=meteo, t_soil=t_soil, t_sky_eff=t_sky_eff, leaf_ids=leaf_ids)
 
             # t_iter_list.append(t_iter)
             t_new = deepcopy(g.property('Tlc'))

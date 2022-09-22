@@ -5,7 +5,8 @@ from openalea.mtg.mtg import MTG
 from pandas import DataFrame
 from pandas import date_range
 
-from hydroshoot.architecture import get_mtg_base, add_rhyzosphere_concentric_cylinders, add_soil_surface_mesh
+from hydroshoot.architecture import get_mtg_base, add_rhyzosphere_concentric_cylinders, add_soil_surface_mesh, \
+    get_leaves
 from hydroshoot.energy import set_form_factors_simplified, set_wind_speed
 from hydroshoot.exchange import leaf_Na
 from hydroshoot.io import HydroShootInputs, HydroShootHourlyInputs
@@ -15,7 +16,7 @@ from hydroshoot.params import Params
 from hydroshoot.preprocess import calc_gdd_since_budbreak
 
 
-def calc_nitrogen_distribution(g: MTG, gdd_since_budbreak: float, weather: DataFrame, params: Params) -> (MTG, float):
+def calc_nitrogen_distribution(g: MTG, gdd_since_budbreak: float, weather: DataFrame, params: Params) -> float:
     if gdd_since_budbreak is None:
         gdd_since_budbreak = calc_gdd_since_budbreak(
             weather=weather,
@@ -51,26 +52,36 @@ def calc_nitrogen_distribution(g: MTG, gdd_since_budbreak: float, weather: DataF
     g.properties().pop('Ei')
 
     # Estimation of leaf surface-based nitrogen content:
-    for vid in g.VtxList(Scale=3):
-        if g.node(vid).label.startswith(params.mtg_api.leaf_lbl_prefix):
-            g.node(vid).Na = leaf_Na(
-                age_gdd=gdd_since_budbreak,
-                ppfd_10=g.node(vid).Ei10,
-                a_n=params.exchange.Na_dict['aN'],
-                b_n=params.exchange.Na_dict['bN'],
-                a_m=params.exchange.Na_dict['aM'],
-                b_m=params.exchange.Na_dict['bM'])
+    for vid in get_leaves(g=g, leaf_lbl_prefix=params.mtg_api.leaf_lbl_prefix):
+        g.node(vid).Na = leaf_Na(
+            age_gdd=gdd_since_budbreak,
+            ppfd_10=g.node(vid).Ei10,
+            a_n=params.exchange.Na_dict['aN'],
+            b_n=params.exchange.Na_dict['bN'],
+            a_m=params.exchange.Na_dict['aM'],
+            b_m=params.exchange.Na_dict['bM'])
 
-    return g, gdd_since_budbreak
+    return gdd_since_budbreak
 
 
-def remove_stem_geometry(g: MTG) -> MTG:
+def remove_stem_geometry(g: MTG):
     geom_prop = g.properties()['geometry']
     to_remove = [i for i in geom_prop if not g.node(i).label.startswith(('L', 'other', 'soil'))]
     [geom_prop.pop(x) for x in to_remove]
     g.properties()['geometry'] = geom_prop
+    pass
 
-    return g
+
+def set_photosynthetic_capacity(g: MTG, photo_n_params: dict, deactivation_enthalopy: float, leaf_lbl_prefix: str):
+    for vid in get_leaves(g=g, leaf_lbl_prefix=leaf_lbl_prefix):
+        n = g.node(vid)
+        nitrogen_content = n.properties()['Na']
+        n.Vcm25 = photo_n_params['Vcm25_N'][0] * nitrogen_content + photo_n_params['Vcm25_N'][1]
+        n.Jm25 = photo_n_params['Jm25_N'][0] * nitrogen_content + photo_n_params['Jm25_N'][1]
+        n.TPU25 = photo_n_params['TPU25_N'][0] * nitrogen_content + photo_n_params['TPU25_N'][1]
+        n.Rd = photo_n_params['Rd_N'][0] * nitrogen_content + photo_n_params['Rd_N'][1]
+        n.dHd = deactivation_enthalopy
+    pass
 
 
 def init_model(g: MTG, inputs: HydroShootInputs) -> MTG:
@@ -90,7 +101,7 @@ def init_model(g: MTG, inputs: HydroShootInputs) -> MTG:
                 length_conv=1. / params.simulation.conv_to_meter)
 
     # Add form factors
-    if params.simulation.energy_budget:
+    if params.simulation.is_energy_budget:
         if inputs.form_factors is not None:
             for ff in ('ff_sky', 'ff_leaves', 'ff_soil'):
                 g.properties()[ff] = inputs.form_factors[ff]
@@ -116,7 +127,7 @@ def init_model(g: MTG, inputs: HydroShootInputs) -> MTG:
         g = add_soil_surface_mesh(g=g, side_length=side_length)
 
     # Remove undesired geometry for light and energy calculations
-    g = remove_stem_geometry(g)
+    remove_stem_geometry(g)
 
     # Attach optical properties to MTG elements
     g = set_optical_properties(
@@ -132,12 +143,17 @@ def init_model(g: MTG, inputs: HydroShootInputs) -> MTG:
             g.properties()['Na'] = inputs.leaf_nitrogen
         else:
             print('Computing Nitrogen profile...')
-            g, inputs.gdd_since_budbreak = calc_nitrogen_distribution(
+            inputs.gdd_since_budbreak = calc_nitrogen_distribution(
                 g=g,
                 gdd_since_budbreak=inputs.gdd_since_budbreak,
                 weather=inputs.weather,
                 params=params)
 
+    set_photosynthetic_capacity(
+        g=g,
+        photo_n_params=inputs.params.exchange.par_photo_N,
+        deactivation_enthalopy=inputs.params.exchange.par_photo['dHd'],
+        leaf_lbl_prefix=inputs.params.mtg_api.leaf_lbl_prefix)
     return g
 
 
@@ -173,5 +189,7 @@ def init_hourly(g: MTG, inputs_hourly: HydroShootHourlyInputs, leaf_ppfd: dict,
             source=caribu_source, direct=False,
             infinite=True, nz=50, ds=0.5,
             pattern=params.irradiance.pattern)
+
+    g.properties()['Rg'] = {k: v / (0.48 * 4.6) for k, v in g.properties()['Ei'].items()}
 
     return g, diffuse_to_total_irradiance_ratio

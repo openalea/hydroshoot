@@ -24,6 +24,21 @@ def saturated_air_vapor_pressure(temp):
     return 0.611 * exp(17.27 * temp / (237.3 + temp))
 
 
+def calc_air_vapor_pressure(air_temperature: float, relative_humidity: float) -> float:
+    """Compute the actual air vapor pressure.
+
+    Args:
+        air_temperature: [°C] air temperature
+        relative_humidity: (%) air relative humidity (between 0 and 100)
+
+
+    Returns:
+        (float): [kPa] actual air vapor pressure
+
+    """
+    return saturated_air_vapor_pressure(temp=air_temperature) * relative_humidity / 100.
+
+
 def celsius_to_kelvin(temp):
     """Converts temperature from Celsius to Kelvin.
 

@@ -9,9 +9,9 @@ digitalization data using the `openalea.mtg` package.
 
 The resulting MTG incorporates geometry
 """
-
 from functools import reduce
 from itertools import product
+from pathlib import Path
 from pickle import dump, load
 from re import search, findall
 
@@ -1008,8 +1008,8 @@ def vine_leaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
     if vid > 0:
         n = g.node(vid)
         if n.label.startswith('Pet'):
-            in_order = int(n.index()) if not n.label[-1].isalpha() else int(findall(r'\d+', str(n.label))[
-                                                                                -1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
+            # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
+            in_order = int(n.index()) if not n.label[-1].isalpha() else int(findall(r'\d+', str(n.label))[-1])
             order = (g.Class(vid)).split('Pet')[1]
             # if order != 'I': lim_min = lim_max*0.8 # TODO: to be written more properly
 
@@ -1136,7 +1136,7 @@ def cordon_vector(g):
             ls.append(vid)
 
     pos_data = {vid: g.property('TopPosition')[vid] for vid in ls}
-    data = array(pos_data.values())
+    data = array(list(pos_data.values()))
     datamean = data.mean(axis=0)
     #   Do a singular value decomposition on the mean-centered data.
     uu, dd, vv = svd(data - datamean)
@@ -1601,14 +1601,13 @@ def mtg_output(g, wd):
     return
 
 
-def mtg_save(g, scene, file_path):
-    if not file_path.exists():
-        file_path.mkdir()
+def save_mtg(g: mtg.MTG, scene: pgl.Scene, file_path: Path, filename: str = None):
+    file_path.mkdir(exist_ok=True)
 
     geom = {vid: g.node(vid).geometry for vid in g.property('geometry')}
     g.remove_property('geometry')
 
-    fg = file_path / f'mtg{g.date}.pckl'
+    fg = file_path / (f'mtg{g.date}.pckl' if filename is None else filename)
 
     f = open(fg, 'wb')
     dump([g, scene], f)
@@ -1628,13 +1627,27 @@ def mtg_load(wd, index):
     geom = {sh.id: sh.geometry for sh in scene}
 
     f = open(fg)
-    g2, TT = load(f)
+    g2, _ = load(f)
     f.close()
 
     g2.add_property('geometry')
     g2.property('geometry').update(geom)
 
     return g2, scene
+
+
+def load_mtg(path_mtg: str, path_geometry: str) -> (mtg.MTG, pgl.Scene):
+    scene = pgl.Scene()
+    scene.read(str(path_geometry), 'BGEOM')
+    geom = {sh.id: sh.geometry for sh in scene}
+
+    with open(path_mtg, mode='rb') as f:
+        g, _ = load(f)
+
+    g.add_property('geometry')
+    g.property('geometry').update(geom)
+
+    return g, scene
 
 
 def mtg_save_geometry(scene, file_path, index=''):

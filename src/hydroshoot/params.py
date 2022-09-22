@@ -74,11 +74,11 @@ class Simulation:
         self.tzone = simulation_dict['tzone']
         self.output_index = simulation_dict['output_index']
         self.unit_scene_length = simulation_dict['unit_scene_length']
-        self.hydraulic_structure = simulation_dict['hydraulic_structure']
-        self.negligible_shoot_resistance = simulation_dict['negligible_shoot_resistance']
-        self.energy_budget = simulation_dict['energy_budget']
-        self.soil_water_deficit = simulation_dict['soil_water_deficit']
-        self.meteo = simulation_dict['meteo']
+        self.is_hydraulic_structure = simulation_dict['hydraulic_structure']
+        self.is_negligible_shoot_resistance = simulation_dict['negligible_shoot_resistance']
+        self.is_energy_budget = simulation_dict['energy_budget']
+        self.is_soil_water_deficit = simulation_dict['soil_water_deficit']
+        self.weather_file_name = simulation_dict['meteo']
 
         self.date_range = date_range(start=self.date_beg, end=self.date_end, freq='H')
         self.conv_to_second = {'D': 86.4e3, 'H': 3600., 'T': 60., 'S': 1.}[self.date_range.freqstr]

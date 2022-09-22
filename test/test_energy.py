@@ -3,7 +3,7 @@ from numpy.testing import assert_almost_equal
 
 import hydroshoot.energy as energy
 from hydroshoot.architecture import get_leaves
-from hydroshoot.energy import set_form_factors_simplified, leaf_temperature, force_soil_temperature
+from hydroshoot.energy import set_form_factors_simplified, calc_leaf_temperature, force_soil_temperature
 from test.non_regression_data import potted_syrah, meteo
 
 
@@ -59,6 +59,7 @@ def test_leaf_temperature():
     for vid in g.properties()['geometry'].keys():
         node = g.node(vid)
         node.Ei = 0
+        node.Rg = 0
         node.ff_sky = 0.3
         node.ff_leaves = 0.3
         node.ff_soil = 0.4
@@ -66,7 +67,7 @@ def test_leaf_temperature():
         node.E = 0.
         node.Tlc = met.Tac.values[0]
 
-    tleaf, it = leaf_temperature(g, met, tsoil, tsky)
+    tleaf, it = calc_leaf_temperature(g, met, tsoil, tsky, get_leaves(g=g, leaf_lbl_prefix='L'))
     assert len(tleaf) == 46
     first = list(tleaf.keys())[0]
     for vid in tleaf:
