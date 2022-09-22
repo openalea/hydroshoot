@@ -3,6 +3,7 @@ from copy import deepcopy
 import openalea.mtg.traversal as traversal
 
 from hydroshoot import hydraulic, exchange, energy
+from hydroshoot.architecture import get_leaves
 
 
 def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
@@ -34,8 +35,6 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
     xylem_k_cavitation = params.hydraulic.par_K_vul
     psi_min = params.hydraulic.psi_min
 
-    solo = params.energy.solo
-
     irradiance_type2 = params.irradiance.E_type2
 
     leaf_lbl_prefix = params.mtg_api.leaf_lbl_prefix
@@ -49,6 +48,8 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
     temp_error_threshold = params.numerical_resolution.t_error_threshold
 
     modelx, psi_critx, slopex = [xylem_k_cavitation[ikey] for ikey in ('model', 'fifty_cent', 'sig_slope')]
+
+    leaf_ids = get_leaves(g=g, leaf_lbl_prefix=leaf_lbl_prefix)
 
     # Initializations ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     # Initialize all xylem potential values to soil water potential
@@ -153,10 +154,13 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
 
         # Compute leaf temperature
         if energy_budget:
-            g.properties()['Tlc'], t_iter = energy.leaf_temperature(g, meteo, t_soil, t_sky_eff,
-                                                                    solo=solo,
-                                                                    leaf_lbl_prefix=leaf_lbl_prefix, max_iter=max_iter,
-                                                                    t_error_crit=temp_error_threshold, t_step=temp_step)
+            if params.energy.solo:
+                g.properties()['Tlc'], t_iter = energy.calc_leaf_temperature(
+                    g=g, meteo=meteo, t_soil=t_soil, t_sky_eff=t_sky_eff, leaf_ids=leaf_ids,
+                    max_iter=max_iter, t_error_crit=temp_error_threshold, t_step=temp_step)
+            else:
+                g.properties()['Tlc'], t_iter = energy.calc_leaf_temperature2(
+                    g=g, meteo=meteo, t_soil=t_soil, t_sky_eff=t_sky_eff, leaf_ids=leaf_ids)
 
             # t_iter_list.append(t_iter)
             t_new = deepcopy(g.property('Tlc'))
