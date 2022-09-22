@@ -62,7 +62,9 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
     g.properties()['Tlc'] = energy.set_leaf_temperature_to_air_temperature(
         air_temperature=meteo['Tac'], leaf_ids=leaf_ids)
 
-    for it in range(max_iter):
+    t_error = temp_error_threshold
+    it = 0
+    while (t_error >= temp_error_threshold) and (it < max_iter):
         t_prev = deepcopy(g.property('Tlc'))
 
         # Hydraulic loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -147,6 +149,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
 
         # Compute leaf temperature
         if is_energy_budget:
+            it += 1
             if params.energy.solo:
                 g.properties()['Tlc'], t_iter = energy.calc_leaf_temperature(
                     g=g, meteo=meteo, t_soil=t_soil, t_sky_eff=t_sky_eff, leaf_ids=leaf_ids,
@@ -165,23 +168,19 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
             print('t_error = ', t_error, 'counter =', it, 't_iter = ', t_iter, 'it_step = ', it_step)
             t_error_trace.append(t_error)
 
-            # Manage temperature step to ensure convergence
-            if t_error < temp_error_threshold:
-                break
-            else:
-                assert (it <= max_iter), 'The energy budget solution did not converge.'
+            try:
+                if t_error_trace[-1] >= t_error_trace[-2] - temp_error_threshold:
+                    it_step = max(0.001, it_step / 2.)
+            except IndexError:
+                pass
 
-                try:
-                    if t_error_trace[-1] >= t_error_trace[-2] - temp_error_threshold:
-                        it_step = max(0.001, it_step / 2.)
-                except IndexError:
-                    pass
+            t_new_dict = {}
+            for vtx_id in t_new.keys():
+                tx = t_prev[vtx_id] + it_step * (t_new[vtx_id] - t_prev[vtx_id])
+                t_new_dict[vtx_id] = tx
 
-                t_new_dict = {}
-                for vtx_id in t_new.keys():
-                    tx = t_prev[vtx_id] + it_step * (t_new[vtx_id] - t_prev[vtx_id])
-                    t_new_dict[vtx_id] = tx
-
-                g.properties()['Tlc'] = t_new_dict
+            g.properties()['Tlc'] = t_new_dict
+        else:
+            t_error = 0
 
     # End temperature loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
