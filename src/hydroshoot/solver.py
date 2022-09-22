@@ -50,15 +50,6 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
 
     modelx, psi_critx, slopex = [xylem_k_cavitation[ikey] for ikey in ('model', 'fifty_cent', 'sig_slope')]
 
-    if hydraulic_structure:
-        assert (par_gs['model'] != 'vpd'), "Stomatal conductance model should be linked to the hydraulic strucutre"
-    else:
-        par_gs['model'] = 'vpd'
-        negligible_shoot_resistance = True
-
-        print("par_gs: 'model' is forced to 'vpd'")
-        print("negligible_shoot_resistance is forced to True.")
-
     # Initializations ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     # Initialize all xylem potential values to soil water potential
     for vtx_id in traversal.pre_order2(g, g.node(g.root).vid_base):

@@ -180,6 +180,11 @@ def verify_inputs(g: MTG, inputs: HydroShootInputs):
         for k, v in inputs.form_factors.items():
             assert all([vid in v for vid in get_leaves(g=g, leaf_lbl_prefix=inputs.params.mtg_api.leaf_lbl_prefix)])
 
+    if params.simulation.hydraulic_structure:
+        gs_model = params.exchange.par_gs['model']
+        assert gs_model != 'vpd', (
+            f'The stomatal conductance model: "{gs_model}" does not require the hydraulic structure to be calculated')
+
 
 def print_sim_infos(inputs: HydroShootInputs):
     params = inputs.params
