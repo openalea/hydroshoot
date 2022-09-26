@@ -2,6 +2,10 @@ water_molar_mass = 18.01528
 """[g mol-1] Molar mass of pure water
 """
 
+co2_molar_mass = 44.01
+"""[g mol-1] Molar mass of CO2
+"""
+
 water_density = 997.0479
 """density of liquid water at 25 °C temperature [kg m-3]
 """
