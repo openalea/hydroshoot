@@ -37,11 +37,11 @@ if __name__ == '__main__':
     # Run HydroShoot
     # =============================================================================
 
-    model.run(g, str(getcwd()) + '/', scene, psi_soil=-0.5, gdd_since_budbreak=1000.)
+    model.run(g, Path(str(getcwd())), scene, psi_soil=-0.5, gdd_since_budbreak=1000.)
 
 
 
 
-from pandas import read_csv
-df = read_csv(r'C:\Users\albashar\Documents\dvp\grapesoil\grape_soil\example\data\benoit\data_meteo_with_low_WS.csv',
-              sep=';', decimal='.')
+#from pandas import read_csv
+#df = read_csv(r'C:\Users\albashar\Documents\dvp\grapesoil\grape_soil\example\data\benoit\data_meteo_with_low_WS.csv',
+#              sep=';', decimal='.')

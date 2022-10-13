@@ -3,6 +3,7 @@
 
 from os import getcwd
 from numpy import array
+from pathlib import Path
 
 from openalea.mtg import traversal
 from openalea.plantgl.all import Scene
@@ -33,4 +34,4 @@ scene = display.visu(g, def_elmnt_color_dict=True, scene=Scene(), view_result=Tr
 # Run HydroShoot
 # =============================================================================
 
-model.run(g, str(getcwd()) + '/', scene)
+model.run(g, Path(str(getcwd())), scene)
