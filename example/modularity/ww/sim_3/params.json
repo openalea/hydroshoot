@@ -65,7 +65,7 @@
         ]
       }
     },
-    "scene_rotation": 140.0,
+    "row_angle_with_south": 140.0,
     "turtle_format": "soc",
     "turtle_sectors": "46",
     "icosphere_level": null

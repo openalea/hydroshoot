@@ -293,7 +293,7 @@
             "LW"
           ]
         },
-        "scene_rotation": {
+        "row_angle_with_south": {
           "type": "number",
           "description": "[degrees] Counter clockwise angle between the default X-axis direction (South) and the real direction of X-axis."
         },
@@ -325,7 +325,7 @@
         "E_type",
         "E_type2",
         "opt_prop",
-        "scene_rotation",
+        "row_angle_with_south",
         "turtle_format",
         "turtle_sectors",
         "icosphere_level"

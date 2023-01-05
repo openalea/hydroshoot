@@ -117,7 +117,7 @@ class Irradiance:
         self.E_type = irradiance_dict['E_type']
         self.E_type2 = irradiance_dict['E_type2']
         self.opt_prop = _list2tuple(irradiance_dict['opt_prop'])
-        self.scene_rotation = irradiance_dict['scene_rotation']
+        self.scene_rotation = irradiance_dict['row_angle_with_south']
         self.turtle_format = irradiance_dict['turtle_format']
         self.turtle_sectors = irradiance_dict['turtle_sectors']
         self.icosphere_level = irradiance_dict['icosphere_level']
