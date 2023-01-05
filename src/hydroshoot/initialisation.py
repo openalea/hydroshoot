@@ -127,7 +127,8 @@ def init_model(g: MTG, inputs: HydroShootInputs) -> MTG:
         g = add_soil_surface_mesh(g=g, side_length=side_length)
 
     # Remove undesired geometry for light and energy calculations
-    remove_stem_geometry(g)
+    if not inputs.is_ppfd_interception_calculated:
+        remove_stem_geometry(g)
 
     # Attach optical properties to MTG elements
     g = set_optical_properties(
