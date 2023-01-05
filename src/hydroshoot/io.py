@@ -21,6 +21,7 @@ class HydroShootInputs(object):
         self.scene = scene
         self.is_write_result = is_write_result
         self.is_nitrogen_calculated = 'Na' in g.property_names()
+        self.is_ppfd_interception_calculated = 'leaf_ppfd' in g.property_names()
 
         if 'form_factors' in kwargs:
             self.set_form_factors(user_form_factors=kwargs['form_factors'])
