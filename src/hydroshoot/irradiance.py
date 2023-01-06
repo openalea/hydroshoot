@@ -146,7 +146,7 @@ def irradiance_distribution(meteo, geo_location, irradiance_unit,
         turtle_format (str): format irradiance distribution, could be 'soc', or 'uoc'
             (see :func:`turtle` from `sky_tools` package for details)
         sun2scene (pgl.scene): if provided, a sun object (sphere) is added to it
-        rotation_angle (float): [°] counter clockwise azimuth between the default X-axis direction (South) and real
+        rotation_angle (float): [°] counter clockwise angle between the default X-axis direction (South) and real
             direction of X-axis
         icosphere_level (int): the level of refinement of the dual icosphere
             (see :func:`alinea.astk.icosphere.turtle_dome` for details)
