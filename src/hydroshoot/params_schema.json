@@ -97,11 +97,16 @@
           "type": "number",
           "description": "[m] spacing between plants on the same row",
           "minimum": 0
+        },
+        "row_angle_with_south": {
+          "type": "number",
+          "description": "[degrees] Counter clockwise angle between the default X-axis direction (South) and the real direction of X-axis."
         }
       },
       "required": [
         "spacing_between_rows",
-        "spacing_on_row"
+        "spacing_on_row",
+        "row_angle_with_south"
       ]
     },
     "phenology": {
@@ -313,10 +318,6 @@
             "LW"
           ]
         },
-        "row_angle_with_south": {
-          "type": "number",
-          "description": "[degrees] Counter clockwise angle between the default X-axis direction (South) and the real direction of X-axis."
-        },
         "turtle_format": {
           "type": "string",
           "description": "Irradiance distribution over the celestial dome (sky overcast or uniform overcast)",
@@ -345,7 +346,6 @@
         "E_type",
         "E_type2",
         "opt_prop",
-        "row_angle_with_south",
         "turtle_format",
         "turtle_sectors",
         "icosphere_level"

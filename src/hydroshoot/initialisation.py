@@ -34,7 +34,7 @@ def calc_nitrogen_distribution(g: MTG, gdd_since_budbreak: float, weather: DataF
         turtle_sectors=params.irradiance.turtle_sectors,
         turtle_format=params.irradiance.turtle_format,
         sun2scene=None,
-        rotation_angle=params.irradiance.scene_rotation)
+        rotation_angle=params.planting.scene_rotation)
 
     # Compute irradiance interception and absorption
     g, _ = hsCaribu(
@@ -181,7 +181,7 @@ def init_hourly(g: MTG, inputs_hourly: HydroShootHourlyInputs, leaf_ppfd: dict,
             turtle_sectors=params.irradiance.turtle_sectors,
             turtle_format=params.irradiance.turtle_format,
             sun2scene=inputs_hourly.sun2scene,
-            rotation_angle=params.irradiance.scene_rotation)
+            rotation_angle=params.planting.scene_rotation)
 
         # Compute irradiance interception and absorbtion
         g, _ = hsCaribu(

@@ -114,9 +114,10 @@ class NumericalResolution:
 
 
 class Planting:
-    def __init__(self, field_dict):
-        self.spacing_between_rows = field_dict['spacing_between_rows']
-        self.spacing_on_row = field_dict['spacing_on_row']
+    def __init__(self, planting_dict):
+        self.spacing_between_rows = planting_dict['spacing_between_rows']
+        self.spacing_on_row = planting_dict['spacing_on_row']
+        self.scene_rotation = planting_dict['row_angle_with_south']
 
 
 class Irradiance:
@@ -125,7 +126,6 @@ class Irradiance:
         self.E_type = irradiance_dict['E_type']
         self.E_type2 = irradiance_dict['E_type2']
         self.opt_prop = _list2tuple(irradiance_dict['opt_prop'])
-        self.scene_rotation = irradiance_dict['row_angle_with_south']
         self.turtle_format = irradiance_dict['turtle_format']
         self.turtle_sectors = irradiance_dict['turtle_sectors']
         self.icosphere_level = irradiance_dict['icosphere_level']

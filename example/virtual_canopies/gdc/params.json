@@ -16,7 +16,8 @@
   },
   "planting": {
     "spacing_between_rows": 3.6,
-    "spacing_on_row": 1
+    "spacing_on_row": 1,
+    "row_angle_with_south": 140.0
   },
   "phenology": {
     "emdate": "2009-04-01 00:00:00",
@@ -69,7 +70,6 @@
         ]
       }
     },
-    "row_angle_with_south": 140.0,
     "turtle_format": "soc",
     "turtle_sectors": "46",
     "icosphere_level": null
