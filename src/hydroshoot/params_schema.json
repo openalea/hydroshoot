@@ -844,15 +844,33 @@
           ]
         },
         "soil_dimensions": {
-          "type": "array",
-          "description": "[m] (inter-row spacing, intra-row spacing, effective root depth)",
-          "minItems": 3,
-          "maxItems": 3,
-          "items": {
-            "type": "number",
-            "minimum": 0.0,
-            "exclusiveMinimum": true
-          }
+          "type": "object",
+          "description": "The dimensions of the edges of the soil prism to which the plant has access",
+          "properties": {
+            "length": {
+              "type": "number",
+              "description": "[m] Soil surface edge length parallel to the row",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "width": {
+              "type": "number",
+              "description": "[m] Soil surface edge length perpendicular to the row",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "depth": {
+              "type": "number",
+              "description": "[m] Soil surface edge length perpendicular to the row",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            }
+          },
+          "required": [
+            "length",
+            "width",
+            "depth"
+          ]
         },
         "rhyzo_solution": {
           "type": "boolean",

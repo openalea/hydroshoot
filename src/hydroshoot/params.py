@@ -189,9 +189,12 @@ class Soil:
         if 'rhyzo_solution' in soil_dict:
             DeprecationWarning('"rhyzo_solution" parameter is ignored. It will raise an error in future versions')
 
-        self.soil_total_volume = self.soil_dimensions[0] * self.soil_dimensions[1] * self.soil_dimensions[2]
-        self.rhyzo_total_volume = self.rhyzo_coeff * (
-                pi * min(self.soil_dimensions[:2]) ** 2 / 4. * self.soil_dimensions[2])
+        self.soil_total_volume = (
+                self.soil_dimensions['length'] * self.soil_dimensions['width'] * self.soil_dimensions['depth'])
+
+        roots_cylinder_radius = min(self.soil_dimensions['length'], self.soil_dimensions['width'])
+        roots_cylinder_volume = pi * roots_cylinder_radius ** 2 / 4. * self.soil_dimensions['depth']
+        self.rhyzo_total_volume = self.rhyzo_coeff * roots_cylinder_volume
 
 
 def _list2tuple(dct):
