@@ -186,9 +186,6 @@ class Soil:
             self.avg_root_spacing = None
             self.avg_root_radius = None
 
-        if 'rhyzo_solution' in soil_dict:
-            DeprecationWarning('"rhyzo_solution" parameter is ignored. It will raise an error in future versions')
-
         self.soil_total_volume = (
                 self.soil_dimensions['length'] * self.soil_dimensions['width'] * self.soil_dimensions['depth'])
 

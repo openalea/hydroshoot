@@ -872,10 +872,6 @@
             "depth"
           ]
         },
-        "rhyzo_solution": {
-          "type": "boolean",
-          "description": "Add rhyzosphere elements to the mtg"
-        },
         "rhyzo_radii": {
           "type": "array",
           "description": "[m] Radii of concentric rhyzosphere cylinders",
