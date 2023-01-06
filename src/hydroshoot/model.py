@@ -151,7 +151,7 @@ def run(g: MTG, wd: Path, scene: Scene = None, write_result: bool = True, path_o
     t_ls = [np.median(list(leaf_temperature_dict[date].values())) for date in params.simulation.date_range]
 
     # Intercepted global radiation
-    rg_ls = np.array(rg_ls) / (params.soil.soil_dimensions[0] * params.soil.soil_dimensions[1])
+    rg_ls = np.array(rg_ls) / (params.planting.spacing_on_row * params.planting.spacing_between_rows)
 
     # Results DataFrame
     results_df = DataFrame({

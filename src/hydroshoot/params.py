@@ -34,6 +34,7 @@ class Params:
         self.hydraulic = Hydraulic(user_params['hydraulic'])
         self.exchange = Exchange(user_params['exchange'])
         self.soil = Soil(user_params['soil'])
+        self.planting = Planting(user_params['planting'])
 
         self._set_pattern()
 
@@ -59,7 +60,8 @@ class Params:
         return json_file
 
     def _set_pattern(self):
-        y_max, x_max = map(lambda dim: dim / self.simulation.conv_to_meter, self.soil.soil_dimensions[:2])
+        y_max = self.planting.spacing_between_rows / self.simulation.conv_to_meter
+        x_max = self.planting.spacing_on_row / self.simulation.conv_to_meter
         self.irradiance.pattern = ((-x_max / 2.0, -y_max / 2.0), (x_max / 2.0, y_max / 2.0))
 
 
@@ -109,6 +111,12 @@ class NumericalResolution:
         self.psi_error_threshold = numerical_resolution_dict['psi_error_threshold']
         self.t_step = numerical_resolution_dict['t_step']
         self.t_error_threshold = numerical_resolution_dict['t_error_threshold']
+
+
+class Planting:
+    def __init__(self, field_dict):
+        self.spacing_between_rows = field_dict['spacing_between_rows']
+        self.spacing_on_row = field_dict['spacing_on_row']
 
 
 class Irradiance:

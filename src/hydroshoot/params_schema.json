@@ -84,6 +84,26 @@
         "soil_water_deficit"
       ]
     },
+    "planting": {
+      "type": "object",
+      "description": "Planting spacing",
+      "properties": {
+        "spacing_between_rows": {
+          "type": "number",
+          "description": "[m] spacing between two consecutive rows",
+          "minimum": 0
+        },
+        "spacing_on_row": {
+          "type": "number",
+          "description": "[m] spacing between plants on the same row",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "spacing_between_rows",
+        "spacing_on_row"
+      ]
+    },
     "phenology": {
       "type": "object",
       "description": "Parameters required for calculating cumulative degree-day temperature since budbreak",
@@ -106,7 +126,7 @@
     },
     "mtg_api": {
       "type": "object",
-      "description": "API in order to allow HydroShoot to identify the different shoot hydraulic segments",
+      "description": "The labeling required to allow HydroShoot identifying the different shoot hydraulic segments",
       "properties": {
         "collar_label": {
           "type": "string",
