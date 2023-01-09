@@ -22,6 +22,7 @@ Set the required files up
     *params.json* is a *JavaScript Object Notation (JSON)* file that contains the following sections:
 
     *  "simulation"
+    *  "planting"
     *  "phenology"
     *  "mtg_api"
     *  "numerical_resolution"
