@@ -14,6 +14,11 @@
     "energy_budget": true,
     "soil_water_deficit": true
   },
+  "planting": {
+    "spacing_between_rows": 3.6,
+    "spacing_on_row": 1,
+    "row_angle_with_south": 140.0
+  },
   "phenology": {
     "emdate": "2009-04-01 00:00:00",
     "t_base": 10.0
@@ -65,7 +70,6 @@
         ]
       }
     },
-    "scene_rotation": 140.0,
     "turtle_format": "soc",
     "turtle_sectors": "46",
     "icosphere_level": null
@@ -165,11 +169,11 @@
   },
   "soil": {
     "soil_class": "Sandy_Loam",
-    "soil_dimensions": [
-      3.6,
-      1.0,
-      1.2
-    ],
+    "soil_dimensions": {
+      "width": 3.6,
+      "length": 1.0,
+      "depth": 1.2
+    },
     "rhyzo_coeff": 0.25
   }
 }

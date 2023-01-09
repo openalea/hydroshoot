@@ -144,13 +144,22 @@ def verify_inputs(g: MTG, inputs: HydroShootInputs):
     assert params.irradiance.E_type in ('Rg_Watt/m2', 'RgPAR_Watt/m2' 'PPFD_umol/m2/s'), (
         "'irradiance_unit' must be one of the following 'Rg_Watt/m2', 'RgPAR_Watt/m2' or'PPFD_umol/m2/s'.")
 
+    if 'length' in params.soil.soil_dimensions:
+        assert params.soil.soil_dimensions['length'] <= params.planting.spacing_on_row, (
+            "soil 'length' dimension must not exceed that of plant 'spacing_on_row'")
+        assert params.soil.soil_dimensions['width'] <= params.planting.spacing_between_rows, (
+            "soil 'width' dimension must not exceed that of plant 'spacing_between_rows'")
+    elif 'radius' in params.soil.soil_dimensions:
+        assert params.soil.soil_dimensions['radius'] <= 0.5 * min(
+            [params.planting.spacing_on_row, params.planting.spacing_between_rows]), (
+            "soil 'radius' dimension must not exceed the half of any of 'spacing_on_row' or 'spacing_between_rows'")
+
     if params.irradiance.E_type.split('_')[0] == 'PPFD':
-        assert 'PPFD' in inputs.weather.columns, '"PPFD" column in missing in weather data'
+        assert 'PPFD' in inputs.weather.columns, '"PPFD" column is missing in weather data'
     else:
-        assert 'Rg' in inputs.weather.columns, '"Rg" column in missing in weather data'
+        assert 'Rg' in inputs.weather.columns, '"Rg" column is missing in weather data'
 
     if not inputs.is_nitrogen_calculated:
-        print('Computing Nitrogen profile...')
         assert (params.simulation.date_beg - min(inputs.weather.index)).days >= 10, (
             'Meteorological data do not cover 10 days prior to simulation date.')
         if inputs.gdd_since_budbreak is None:
@@ -158,7 +167,7 @@ def verify_inputs(g: MTG, inputs: HydroShootInputs):
                 'The provided weather data do not cover the period from budbreak to the start date of simulation')
 
     if params.soil.rhyzo_solution:
-        radius_max = 0.5 * min(params.soil.soil_dimensions[:2])
+        radius_max = 0.5 * min(params.soil.soil_dimensions['length'], params.soil.soil_dimensions['width'])
         assert max(params.soil.rhyzo_radii) <= radius_max, f'Maximum soil radius must not exceed {radius_max} cm'
 
     if inputs.leaf_nitrogen is not None:

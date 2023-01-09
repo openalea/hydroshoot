@@ -84,6 +84,31 @@
         "soil_water_deficit"
       ]
     },
+    "planting": {
+      "type": "object",
+      "description": "Planting spacing",
+      "properties": {
+        "spacing_between_rows": {
+          "type": "number",
+          "description": "[m] spacing between two consecutive rows",
+          "minimum": 0
+        },
+        "spacing_on_row": {
+          "type": "number",
+          "description": "[m] spacing between plants on the same row",
+          "minimum": 0
+        },
+        "row_angle_with_south": {
+          "type": "number",
+          "description": "[degrees] Counter clockwise angle between the default X-axis direction (South) and the real direction of X-axis."
+        }
+      },
+      "required": [
+        "spacing_between_rows",
+        "spacing_on_row",
+        "row_angle_with_south"
+      ]
+    },
     "phenology": {
       "type": "object",
       "description": "Parameters required for calculating cumulative degree-day temperature since budbreak",
@@ -106,7 +131,7 @@
     },
     "mtg_api": {
       "type": "object",
-      "description": "API in order to allow HydroShoot to identify the different shoot hydraulic segments",
+      "description": "The labeling required to allow HydroShoot identifying the different shoot hydraulic segments",
       "properties": {
         "collar_label": {
           "type": "string",
@@ -293,10 +318,6 @@
             "LW"
           ]
         },
-        "scene_rotation": {
-          "type": "number",
-          "description": "[degrees] Counter clockwise angle between the default X-axis direction (South) and the real direction of X-axis."
-        },
         "turtle_format": {
           "type": "string",
           "description": "Irradiance distribution over the celestial dome (sky overcast or uniform overcast)",
@@ -325,7 +346,6 @@
         "E_type",
         "E_type2",
         "opt_prop",
-        "scene_rotation",
         "turtle_format",
         "turtle_sectors",
         "icosphere_level"
@@ -824,19 +844,51 @@
           ]
         },
         "soil_dimensions": {
-          "type": "array",
-          "description": "[m] (inter-row spacing, intra-row spacing, effective root depth)",
-          "minItems": 3,
-          "maxItems": 3,
-          "items": {
-            "type": "number",
-            "minimum": 0.0,
-            "exclusiveMinimum": true
-          }
-        },
-        "rhyzo_solution": {
-          "type": "boolean",
-          "description": "Add rhyzosphere elements to the mtg"
+          "type": "object",
+          "description": "The dimensions of the edges of the soil prism to which the plant has access",
+          "properties": {
+            "length": {
+              "type": "number",
+              "description": "[m] Soil surface edge length parallel to the row",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "width": {
+              "type": "number",
+              "description": "[m] Soil surface edge length perpendicular to the row",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "radius": {
+              "type": "number",
+              "description": "[m] Soil surface radius",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
+            "depth": {
+              "type": "number",
+              "description": "[m] Soil surface edge length perpendicular to the row",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            }
+          },
+          "required": [
+            "depth"
+          ],
+          "oneOf": [
+            {"required": ["length", "width"],
+              "not": {"required": ["radius"]}
+            },
+            {"allOf": [
+              {
+                "not": {"required": ["length"]}
+              },
+              {
+                "not": {"required": ["width"]}
+              }
+            ]
+            }
+          ]
         },
         "rhyzo_radii": {
           "type": "array",

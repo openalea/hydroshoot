@@ -34,6 +34,7 @@ class Params:
         self.hydraulic = Hydraulic(user_params['hydraulic'])
         self.exchange = Exchange(user_params['exchange'])
         self.soil = Soil(user_params['soil'])
+        self.planting = Planting(user_params['planting'])
 
         self._set_pattern()
 
@@ -59,7 +60,8 @@ class Params:
         return json_file
 
     def _set_pattern(self):
-        y_max, x_max = map(lambda dim: dim / self.simulation.conv_to_meter, self.soil.soil_dimensions[:2])
+        y_max = self.planting.spacing_between_rows / self.simulation.conv_to_meter
+        x_max = self.planting.spacing_on_row / self.simulation.conv_to_meter
         self.irradiance.pattern = ((-x_max / 2.0, -y_max / 2.0), (x_max / 2.0, y_max / 2.0))
 
 
@@ -111,13 +113,19 @@ class NumericalResolution:
         self.t_error_threshold = numerical_resolution_dict['t_error_threshold']
 
 
+class Planting:
+    def __init__(self, planting_dict):
+        self.spacing_between_rows = planting_dict['spacing_between_rows']
+        self.spacing_on_row = planting_dict['spacing_on_row']
+        self.scene_rotation = planting_dict['row_angle_with_south']
+
+
 class Irradiance:
 
     def __init__(self, irradiance_dict):
         self.E_type = irradiance_dict['E_type']
         self.E_type2 = irradiance_dict['E_type2']
         self.opt_prop = _list2tuple(irradiance_dict['opt_prop'])
-        self.scene_rotation = irradiance_dict['scene_rotation']
         self.turtle_format = irradiance_dict['turtle_format']
         self.turtle_sectors = irradiance_dict['turtle_sectors']
         self.icosphere_level = irradiance_dict['icosphere_level']
@@ -178,12 +186,28 @@ class Soil:
             self.avg_root_spacing = None
             self.avg_root_radius = None
 
-        if 'rhyzo_solution' in soil_dict:
-            DeprecationWarning('"rhyzo_solution" parameter is ignored. It will raise an error in future versions')
+        self.soil_total_volume = self.calc_soil_volume(soil_dimensions=soil_dict['soil_dimensions'])
 
-        self.soil_total_volume = self.soil_dimensions[0] * self.soil_dimensions[1] * self.soil_dimensions[2]
         self.rhyzo_total_volume = self.rhyzo_coeff * (
-                pi * min(self.soil_dimensions[:2]) ** 2 / 4. * self.soil_dimensions[2])
+            self.calc_rhyzosphere_volume(soil_dimensions=soil_dict['soil_dimensions']))
+
+    @staticmethod
+    def calc_soil_volume(soil_dimensions: dict) -> float:
+        if 'radius' in soil_dimensions:
+            soil_volume = pi * (soil_dimensions['radius'] ** 2) * soil_dimensions['depth']
+        else:
+            soil_volume = soil_dimensions['length'] * soil_dimensions['width'] * soil_dimensions['depth']
+
+        return soil_volume
+
+    @staticmethod
+    def calc_rhyzosphere_volume(soil_dimensions: dict) -> float:
+        if 'radius' in soil_dimensions:
+            roots_cylinder_radius = soil_dimensions['radius']
+        else:
+            roots_cylinder_radius = min(soil_dimensions['length'], soil_dimensions['width']) / 2.
+
+        return pi * (roots_cylinder_radius ** 2) * soil_dimensions['depth']
 
 
 def _list2tuple(dct):
