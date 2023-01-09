@@ -144,10 +144,15 @@ def verify_inputs(g: MTG, inputs: HydroShootInputs):
     assert params.irradiance.E_type in ('Rg_Watt/m2', 'RgPAR_Watt/m2' 'PPFD_umol/m2/s'), (
         "'irradiance_unit' must be one of the following 'Rg_Watt/m2', 'RgPAR_Watt/m2' or'PPFD_umol/m2/s'.")
 
-    assert params.soil.soil_dimensions['length'] <= params.planting.spacing_on_row, (
-        "soil 'length' dimension must not exceed that of plant 'spacing_on_row'")
-    assert params.soil.soil_dimensions['width'] <= params.planting.spacing_between_rows, (
-        "soil 'width' dimension must not exceed that of plant 'spacing_between_rows'")
+    if 'length' in params.soil.soil_dimensions:
+        assert params.soil.soil_dimensions['length'] <= params.planting.spacing_on_row, (
+            "soil 'length' dimension must not exceed that of plant 'spacing_on_row'")
+        assert params.soil.soil_dimensions['width'] <= params.planting.spacing_between_rows, (
+            "soil 'width' dimension must not exceed that of plant 'spacing_between_rows'")
+    elif 'radius' in params.soil.soil_dimensions:
+        assert params.soil.soil_dimensions['radius'] <= 0.5 * min(
+            [params.planting.spacing_on_row, params.planting.spacing_between_rows]), (
+            "soil 'radius' dimension must not exceed the half of any of 'spacing_on_row' or 'spacing_between_rows'")
 
     if params.irradiance.E_type.split('_')[0] == 'PPFD':
         assert 'PPFD' in inputs.weather.columns, '"PPFD" column in missing in weather data'

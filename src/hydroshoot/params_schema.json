@@ -859,6 +859,12 @@
               "minimum": 0.0,
               "exclusiveMinimum": true
             },
+            "radius": {
+              "type": "number",
+              "description": "[m] Soil surface radius",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
             "depth": {
               "type": "number",
               "description": "[m] Soil surface edge length perpendicular to the row",
@@ -867,9 +873,21 @@
             }
           },
           "required": [
-            "length",
-            "width",
             "depth"
+          ],
+          "oneOf": [
+            {"required": ["length", "width"],
+              "not": {"required": ["radius"]}
+            },
+            {"allOf": [
+              {
+                "not": {"required": ["length"]}
+              },
+              {
+                "not": {"required": ["width"]}
+              }
+            ]
+            }
           ]
         },
         "rhyzo_radii": {
