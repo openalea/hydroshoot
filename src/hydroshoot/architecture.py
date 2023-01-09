@@ -176,7 +176,7 @@ def vine_mtg(file_path):
 
     ind_leaf_points = []
 
-    B_A_S_E = map(''.join, product(*((c.upper(), c.lower()) for c in 'base')))
+    plant_base_identifier = list(map(''.join, product(*((c.upper(), c.lower()) for c in 'base'))))
 
     for i in range(len(table)):
         plant_id, trunk_id, elmnt_id, inT3y_id, shoot_id, order = [table[table.columns[j]][i] for j in range(0, 6)]
@@ -187,7 +187,7 @@ def vine_mtg(file_path):
             vid_diam = None
 
         plant_id = int(plant_id)
-        if trunk_id in B_A_S_E:
+        if trunk_id in plant_base_identifier:
             baseXYZ = vid_position
             trunk_id = 0
         else:
