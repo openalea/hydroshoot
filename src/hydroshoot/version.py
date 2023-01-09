@@ -2,6 +2,7 @@
 #  -*- coding: utf-8 -*-
 
 major = 4
+develop
 minor = 1
 post = 0
 
