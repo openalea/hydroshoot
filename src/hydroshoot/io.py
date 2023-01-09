@@ -155,9 +155,9 @@ def verify_inputs(g: MTG, inputs: HydroShootInputs):
             "soil 'radius' dimension must not exceed the half of any of 'spacing_on_row' or 'spacing_between_rows'")
 
     if params.irradiance.E_type.split('_')[0] == 'PPFD':
-        assert 'PPFD' in inputs.weather.columns, '"PPFD" column in missing in weather data'
+        assert 'PPFD' in inputs.weather.columns, '"PPFD" column is missing in weather data'
     else:
-        assert 'Rg' in inputs.weather.columns, '"Rg" column in missing in weather data'
+        assert 'Rg' in inputs.weather.columns, '"Rg" column is missing in weather data'
 
     if not inputs.is_nitrogen_calculated:
         assert (params.simulation.date_beg - min(inputs.weather.index)).days >= 10, (
