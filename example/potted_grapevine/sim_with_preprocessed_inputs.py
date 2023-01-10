@@ -17,8 +17,13 @@ def preprocess_inputs(grapevine_mtg: MTG, path_project_dir: Path, psi_soil: floa
     path_preprocessed_inputs = path_project_dir / 'preprocessed_inputs'
     path_preprocessed_inputs.mkdir(parents=True, exist_ok=True)
 
-    inputs = io.HydroShootInputs(g=grapevine_mtg, path_project=path_project_dir, scene=scene, psi_soil=psi_soil,
-                                 gdd_since_budbreak=gdd_since_budbreak)
+    inputs = io.HydroShootInputs(
+        path_project=path_project_dir,
+        scene=scene,
+        is_nitrogen_calculated='Na' in g.property_names(),
+        is_ppfd_interception_calculated='leaf_ppfd' in g.property_names(),
+        psi_soil=psi_soil,
+        gdd_since_budbreak=gdd_since_budbreak)
     io.verify_inputs(g=grapevine_mtg, inputs=inputs)
     grapevine_mtg = initialisation.init_model(g=grapevine_mtg, inputs=inputs)
 
