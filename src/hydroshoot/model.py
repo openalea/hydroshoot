@@ -51,7 +51,13 @@ def run(g: MTG, wd: Path, scene: Scene = None, write_result: bool = True, path_o
 
     # Read user parameters
     inputs = io.HydroShootInputs(
-        g=g, path_project=wd, scene=scene, write_result=write_result, path_output_file=path_output, **kwargs)
+        path_project=wd,
+        scene=scene,
+        is_nitrogen_calculated='Na' in g.property_names(),
+        is_ppfd_interception_calculated='leaf_ppfd' in g.property_names(),
+        write_result=write_result,
+        path_output_file=path_output,
+        **kwargs)
     io.verify_inputs(g=g, inputs=inputs)
     params = inputs.params
 
