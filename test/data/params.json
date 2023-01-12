@@ -178,8 +178,6 @@
   "soil": {
     "soil_class": "Sand",
     "soil_dimensions": {
-      "width": 3.6,
-      "length": 1.0,
       "depth": 1.2
     },
     "rhyzo_coeff": 0.5
