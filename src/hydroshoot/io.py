@@ -13,16 +13,13 @@ from hydroshoot.params import Params
 
 
 class HydroShootInputs(object):
-    def __init__(self, path_project: Path, scene: Scene, is_nitrogen_calculated: bool = False,
-                 is_ppfd_interception_calculated: bool = False, is_write_result: bool = True,
-                 path_output_file: Path = None, **kwargs):
+    def __init__(self, path_project: Path, scene: Scene, is_write_result: bool = True, path_output_file: Path = None,
+                 **kwargs):
         self.path_project = path_project
         self.path_output_file = None
         self.path_output_dir = None
         self.scene = scene
         self.is_write_result = is_write_result
-        self.is_nitrogen_calculated = is_nitrogen_calculated
-        self.is_ppfd_interception_calculated = is_ppfd_interception_calculated
 
         if 'form_factors' in kwargs:
             self.set_form_factors(user_form_factors=kwargs['form_factors'])
@@ -31,13 +28,17 @@ class HydroShootInputs(object):
 
         if 'leaf_nitrogen' in kwargs:
             self.leaf_nitrogen = self._parse_keys(user_input=kwargs['leaf_nitrogen'])
+            self.is_nitrogen_calculated = True
         else:
             self.leaf_nitrogen = None
+            self.is_nitrogen_calculated = False
 
         if 'leaf_ppfd' in kwargs:
             self.leaf_ppfd = self.set_ppfd(dicto=kwargs['leaf_ppfd'])
+            self.is_ppfd_interception_calculated = True
         else:
             self.leaf_ppfd = None
+            self.is_ppfd_interception_calculated = False
 
         self.psi_soil_forced = kwargs['psi_soil'] if 'psi_soil' in kwargs else None
         self.gdd_since_budbreak = kwargs['gdd_since_budbreak'] if 'gdd_since_budbreak' in kwargs else None
