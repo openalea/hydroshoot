@@ -33,8 +33,8 @@ class Params:
         self.energy = Energy(user_params['energy'])
         self.hydraulic = Hydraulic(user_params['hydraulic'])
         self.exchange = Exchange(user_params['exchange'])
-        self.soil = Soil(user_params['soil'])
         self.planting = Planting(user_params['planting'])
+        self.soil = Soil(soil_dict=user_params['soil'], planting_dict=user_params['planting'])
 
         self._set_pattern()
 
@@ -170,7 +170,7 @@ class Exchange:
 
 class Soil:
 
-    def __init__(self, soil_dict):
+    def __init__(self, soil_dict, planting_dict):
         self.soil_class = soil_dict['soil_class']
         self.soil_dimensions = soil_dict['soil_dimensions']
         self.rhyzo_coeff = soil_dict['rhyzo_coeff']
@@ -186,10 +186,9 @@ class Soil:
             self.avg_root_spacing = None
             self.avg_root_radius = None
 
-        self.soil_total_volume = self.calc_soil_volume(soil_dimensions=soil_dict['soil_dimensions'])
-
-        self.rhyzo_total_volume = self.rhyzo_coeff * (
-            self.calc_rhyzosphere_volume(soil_dimensions=soil_dict['soil_dimensions']))
+        soil_dimensions = self.get_soil_dimensions(soil_data=soil_dict['soil_dimensions'], planting_data=planting_dict)
+        self.soil_total_volume = self.calc_soil_volume(soil_dimensions=soil_dimensions)
+        self.rhyzo_total_volume = self.rhyzo_coeff * (self.calc_rhyzosphere_volume(soil_dimensions=soil_dimensions))
 
     @staticmethod
     def calc_soil_volume(soil_dimensions: dict) -> float:
@@ -208,6 +207,17 @@ class Soil:
             roots_cylinder_radius = min(soil_dimensions['length'], soil_dimensions['width']) / 2.
 
         return pi * (roots_cylinder_radius ** 2) * soil_dimensions['depth']
+
+    @staticmethod
+    def get_soil_dimensions(soil_data: dict, planting_data: dict) -> dict:
+        if 'radius' not in soil_data and not all([s in soil_data for s in ('width', 'length')]):
+            res = {
+                'width': planting_data['spacing_between_rows'],
+                'length': planting_data['spacing_on_row'],
+                'depth': soil_data['depth']}
+        else:
+            res = soil_data
+        return res
 
 
 def _list2tuple(dct):
