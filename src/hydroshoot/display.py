@@ -105,6 +105,7 @@ def visu(g, plot_prop=None, min_value=None, max_value=None, cmap='jet', fmt='%6.
                 n = g.node(vid)
                 mesh = n.geometry
                 scene_shape = pgl.Shape(mesh, pgl.Material(pgl.Color3(n.color)))
+                scene_shape.id = vid
                 my_scene.add(scene_shape)
             except:
                 pass
@@ -134,6 +135,7 @@ def visu(g, plot_prop=None, min_value=None, max_value=None, cmap='jet', fmt='%6.
                         if i in label: color = elmnt_color_dict[i]
                 #                color=(50,50,50) if vid != tt else (255,255,0)
                 scene_shape = pgl.Shape(mesh, pgl.Material(pgl.Color3(color)))
+                scene_shape.id = vid
                 my_scene.add(scene_shape)
 
     if view_result:
