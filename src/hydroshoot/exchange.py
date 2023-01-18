@@ -351,20 +351,16 @@ def compute_amono_analytic(x1, x2, leaf_temperature, vpd, gammax, rd, psi, model
 
     f_vpd = fvpd_3(model, vpd, psi, psi_crit=psi0, m0=m0, steepness_tuzet=steepness_tuzet, d0_leuning=d0_leuning)
 
-    cube_a = g0 * (x2 + gammax) + (g0 / mesophyll_conductance(leaf_temperature) + f_vpd) * (x1 - rd)
+    g_m = mesophyll_conductance(leaf_temperature)
+    cube_a = g0 * (x2 + gammax) + (g0 / g_m + f_vpd) * (x1 - rd)
     cube_b = utils.cmol2cpa(leaf_temperature, ca) * (x1 - rd) - gammax * x1 - rd * x2
-    cube_c = utils.cmol2cpa(leaf_temperature, ca) + x2 + (1. / mesophyll_conductance(leaf_temperature) + rbt) * (
-            x1 - rd)
-    cube_d = x2 + gammax + (x1 - rd) / mesophyll_conductance(leaf_temperature)
-    cube_e = 1. / mesophyll_conductance(leaf_temperature) + (g0 / mesophyll_conductance(leaf_temperature) + f_vpd) * (
-            1. / mesophyll_conductance(leaf_temperature) + rbt)
-    cube_p = -(cube_d + (x1 - rd) / mesophyll_conductance(leaf_temperature) + cube_a * (
-            1. / mesophyll_conductance(leaf_temperature) + rbt) + (
-                       g0 / mesophyll_conductance(leaf_temperature) + f_vpd) * cube_c) / cube_e
-    cube_q = (cube_d * (x1 - rd) + cube_a * cube_c + (
-            g0 / mesophyll_conductance(leaf_temperature) + f_vpd) * cube_b) / cube_e
+    cube_c = utils.cmol2cpa(leaf_temperature, ca) + x2 + (1. / g_m + rbt) * (x1 - rd)
+    cube_d = x2 + gammax + (x1 - rd) / g_m
+    cube_e = 1. / g_m + (g0 / g_m + f_vpd) * (1. / g_m + rbt)
+    cube_p = -(cube_d + (x1 - rd) / g_m + cube_a * (1. / g_m + rbt) + (g0 / g_m + f_vpd) * cube_c) / cube_e
+    cube_q = (cube_d * (x1 - rd) + cube_a * cube_c + (g0 / g_m + f_vpd) * cube_b) / cube_e
     cube_r = -(cube_a * cube_b / cube_e)
-    cube_Q = (cube_p ** 2. - 3. * cube_q) / 9.
+    cube_Q = max(1.e-32, (cube_p ** 2. - 3. * cube_q) / 9.)
     cube_R = (2. * cube_p ** 3. - 9. * cube_p * cube_q + 27. * cube_r) / 54.
     cube_xi = acos(max(-1., min(1., cube_R / sqrt(cube_Q ** 3.))))
 
