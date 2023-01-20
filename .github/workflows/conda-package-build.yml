@@ -55,7 +55,7 @@ jobs:
         if_true: 'true'
         if_false: 'false'
     - name: Build and Publish
-      uses: openalea/action-build-publish-anaconda@v0.1.3
+      uses: openalea/action-build-publish-anaconda@v0.1.4
       with:
         conda: conda
         mamba: false
