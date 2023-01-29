@@ -65,8 +65,11 @@ if __name__ == '__main__':
         static_inputs = load(f)
     with open(path_preprocessed_data / 'dynamic.json') as f:
         dynamic_inputs = load(f)
+    with open(path_project / 'params.json') as f:
+        user_params = load(f)
 
-    summary_results = model.run(g=g, wd=path_project, scene=scene, psi_soil=-0.5, gdd_since_budbreak=1000.,
+    summary_results = model.run(g=g, wd=path_project, params=user_params,
+                                scene=scene, psi_soil_init=-0.1, gdd_since_budbreak=1000.,
                                 form_factors=static_inputs['form_factors'],
                                 leaf_nitrogen=static_inputs['Na'],
                                 leaf_ppfd=dynamic_inputs,
