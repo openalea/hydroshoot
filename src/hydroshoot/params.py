@@ -18,13 +18,14 @@ from pandas import date_range
 
 class Params:
 
-    def __init__(self, params_path):
-        self._params_path = params_path
-        self._params_schema = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), '../hydroshoot/params_schema.json'))
+    def __init__(self, params_path: str = None, user_params: dict = None):
+        if user_params is None:
+            user_params = self._get_user_params(path_params=params_path)
 
-        user_params = self._get_user_params()
-
+        self._validate_user_params(
+            user_params=user_params,
+            path_params_schema=os.path.abspath(
+                os.path.join(os.path.dirname(__file__), '../hydroshoot/params_schema.json')))
         self.simulation = Simulation(user_params['simulation'])
         self.phenology = Phenology(user_params['phenology'])
         self.mtg_api = MtgAPI(user_params['mtg_api'])
@@ -38,26 +39,36 @@ class Params:
 
         self._set_pattern()
 
-    def _get_user_params(self):
+    @staticmethod
+    def _get_user_params(path_params: str) -> str:
+        """Gets parameter values defined by the user.
+
+        Args:
+            path_params: absolute path to parameters json file
+
+        Returns:
+            - model parameters
         """
-        Get parameters values defined by the user.
 
-        :Params:
-            - **params_path**: (string) absolute path to parameters json file
+        with open(path_params, mode='r') as f:
+            params = load(f)
 
-        :Return:
-            - (dict) dictionary of parameters identifiers and values.
+        return params
+
+    @staticmethod
+    def _validate_user_params(user_params: dict, path_params_schema: str) -> None:
+        """Validate parameter values defined by the user.
+
+        Args:
+            user_params: model parameters defined by the user
+
         """
 
-        with open(self._params_path, mode='r') as f:
-            json_file = load(f)
+        with open(path_params_schema, mode='r') as f:
+            params_scehma = load(f)
 
-        with open(self._params_schema, mode='r') as f:
-            json_schm = load(f)
-
-        validate(json_file, json_schm)
-
-        return json_file
+        validate(user_params, params_scehma)
+        pass
 
     def _set_pattern(self):
         y_max = self.planting.spacing_between_rows / self.simulation.conv_to_meter

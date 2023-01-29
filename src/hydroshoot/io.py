@@ -13,8 +13,8 @@ from hydroshoot.params import Params
 
 
 class HydroShootInputs(object):
-    def __init__(self, path_project: Path, scene: Scene, is_write_result: bool = True, path_output_file: Path = None,
-                 **kwargs):
+    def __init__(self, path_project: Path, user_params: dict, scene: Scene,
+                 is_write_result: bool = True, path_output_file: Path = None, **kwargs):
         self.path_project = path_project
         self.path_output_file = None
         self.path_output_dir = None
@@ -48,7 +48,7 @@ class HydroShootInputs(object):
         self.weather = None
         self.psi_pd = None
 
-        self.params = Params(self.path_project / 'params.json')
+        self.params = Params(params_path=str(self.path_project / 'params.json'), user_params=user_params)
         self.set_weather()
         self.set_soil_predawn_water_potential()
         self.set_output_dir(user_path=path_output_file)
