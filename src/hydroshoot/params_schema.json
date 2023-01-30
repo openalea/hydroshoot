@@ -545,30 +545,6 @@
           "type": "object",
           "description": "Parameters of the photosynthetic capacity (before accounting for the effect of leaf N content",
           "properties": {
-            "Vcm25": {
-              "type": "number",
-              "description": "[umol m-2 s-1] Maximum RuBP-saturated rate of carboxylation",
-              "minimum": 0.0,
-              "exclusiveMinimum": true
-            },
-            "Jm25": {
-              "type": "number",
-              "description": "[umol m-2 s-1] Maximum of electron transport rate",
-              "minimum": 0.0,
-              "exclusiveMinimum": true
-            },
-            "cRd": {
-              "type": "number",
-              "description": "[-] Coefficient of mitochondrial respiration to `Vcm25`",
-              "minimum": 0.0,
-              "exclusiveMinimum": true
-            },
-            "TPU25": {
-              "type": "number",
-              "description": "[umol m-2 s-1] Maximum rate of triose phosphate transport",
-              "minimum": 0.0,
-              "exclusiveMinimum": true
-            },
             "Kc25": {
               "type": "number",
               "description": "[umol mol-1] Michaelis-Menten constant for the carboxylase",
@@ -751,10 +727,6 @@
             }
           },
           "required": [
-            "Vcm25",
-            "Jm25",
-            "cRd",
-            "TPU25",
             "Kc25",
             "Ko25",
             "Tx25",
