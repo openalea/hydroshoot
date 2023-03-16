@@ -164,7 +164,6 @@ class Exchange:
 
     def __init__(self, exchange_dict):
         self.rbt = exchange_dict['rbt']
-        self.ca = exchange_dict['ca']
         self.Na_dict = exchange_dict['Na_dict']
         self.par_gs = exchange_dict['par_gs']
         self.par_photo = {

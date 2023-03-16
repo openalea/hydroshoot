@@ -458,11 +458,6 @@
           "minimum": 0.0,
           "exclusiveMinimum": true
         },
-        "ca": {
-          "type": "number",
-          "description": "[ubar] CO2 partial pressure of the air",
-          "minimum": 0.0
-        },
         "Na_dict": {
           "type": "object",
           "description": "Parameters of the linear relationship between Nitrogen content per area and leaf mass per area according to Prieto et al. 2012 (doi: 10.1111/j.1365-3040.2012.02491.x)",
@@ -786,7 +781,6 @@
       },
       "required": [
         "rbt",
-        "ca",
         "Na_dict",
         "par_gs",
         "par_photo",
