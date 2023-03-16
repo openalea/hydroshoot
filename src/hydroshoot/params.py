@@ -198,26 +198,15 @@ class Soil:
             self.avg_root_radius = None
 
         soil_dimensions = self.get_soil_dimensions(soil_data=soil_dict['soil_dimensions'], planting_data=planting_dict)
-        self.soil_total_volume = self.calc_soil_volume(soil_dimensions=soil_dimensions)
         self.rhyzo_total_volume = self.rhyzo_coeff * (self.calc_rhyzosphere_volume(soil_dimensions=soil_dimensions))
-
-    @staticmethod
-    def calc_soil_volume(soil_dimensions: dict) -> float:
-        if 'radius' in soil_dimensions:
-            soil_volume = pi * (soil_dimensions['radius'] ** 2) * soil_dimensions['depth']
-        else:
-            soil_volume = soil_dimensions['length'] * soil_dimensions['width'] * soil_dimensions['depth']
-
-        return soil_volume
 
     @staticmethod
     def calc_rhyzosphere_volume(soil_dimensions: dict) -> float:
         if 'radius' in soil_dimensions:
-            roots_cylinder_radius = soil_dimensions['radius']
+            res = pi * (soil_dimensions['radius'] ** 2) * soil_dimensions['depth']
         else:
-            roots_cylinder_radius = min(soil_dimensions['length'], soil_dimensions['width']) / 2.
-
-        return pi * (roots_cylinder_radius ** 2) * soil_dimensions['depth']
+            res = soil_dimensions['length'] * soil_dimensions['width'] * soil_dimensions['depth']
+        return res
 
     @staticmethod
     def get_soil_dimensions(soil_data: dict, planting_data: dict) -> dict:
