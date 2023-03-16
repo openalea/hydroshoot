@@ -203,11 +203,10 @@ class Soil:
     @staticmethod
     def calc_rhyzosphere_volume(soil_dimensions: dict) -> float:
         if 'radius' in soil_dimensions:
-            roots_cylinder_radius = soil_dimensions['radius']
+            res = pi * (soil_dimensions['radius'] ** 2) * soil_dimensions['depth']
         else:
-            roots_cylinder_radius = min(soil_dimensions['length'], soil_dimensions['width']) / 2.
-
-        return pi * (roots_cylinder_radius ** 2) * soil_dimensions['depth']
+            res = soil_dimensions['length'] * soil_dimensions['width'] * soil_dimensions['depth']
+        return res
 
     @staticmethod
     def get_soil_dimensions(soil_data: dict, planting_data: dict) -> dict:
