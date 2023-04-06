@@ -1,7 +1,7 @@
 {
   "simulation": {
-    "sdate": "2012-08-01 11:00:00",
-    "edate": "2012-08-01 11:00:00",
+    "sdate": "2012-08-01 00:00:00",
+    "edate": "2012-08-01 23:00:00",
     "latitude": 43.61,
     "longitude": 3.87,
     "elevation": 44.0,
@@ -170,7 +170,7 @@
     }
   },
   "soil": {
-    "soil_class": "Loam",
+    "soil_class": "Loamy_Sand",
     "soil_dimensions": {
       "depth": 1.2
     },
