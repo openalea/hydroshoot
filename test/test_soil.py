@@ -1,7 +1,7 @@
 from copy import deepcopy
 from itertools import product
 
-from numpy import linspace
+from numpy import linspace, arange
 from numpy.random import default_rng
 from numpy.testing import assert_almost_equal
 
@@ -196,3 +196,46 @@ def test_soil_water_uptake_follows_root_profile():
             transpiration=sum([((vox.theta - vox.theta_res) * vox.thickness) for vox in soil_col.voxels]))
 
         assert all([(vox1.theta <= vox2.theta) for vox1, vox2 in zip(soil_col.voxels, soil_col.voxels[1:])])
+
+
+def test_soil_conductivity_decreases_as_water_potential_decreases():
+    for soil_class in soil.SOIL_PROPS.keys():
+        soil_conductivity = [soil.calc_soil_conductivity(psi, soil_class) for psi in arange(0, -3, -0.1)]
+        assert all(x >= y for x, y in zip(soil_conductivity, soil_conductivity[1:]))
+
+
+def test_soil_conductivity_maximum_value_is_greater_for_sand_than_clay():
+    soil_conductivity = [soil.calc_soil_conductivity(0., soil_class) for soil_class in ('Clay', 'Sand')]
+    assert all(x <= y for x, y in zip(soil_conductivity, soil_conductivity[1:]))
+
+
+def test_calc_root_soil_resistance_decreases_as_root_depth_increases():
+    res = [soil.calc_root_soil_resistance(depth=v, soil_conductivity=1, root_radius=0.0001, root_length_density=2000)
+           for v in arange(0, 2, 0.05)]
+    assert all(x >= y for x, y in zip(res, res[1:]))
+
+
+def test_calc_root_soil_resistance_decreases_as_soil_conductivity_increases():
+    res = [soil.calc_root_soil_resistance(depth=1, soil_conductivity=v, root_radius=0.0001, root_length_density=2000)
+           for v in arange(0, 1, 0.01)]
+    assert all(x >= y for x, y in zip(res, res[1:]))
+
+
+def test_calc_root_soil_resistance_decreases_as_root_radius_increases():
+    res = [soil.calc_root_soil_resistance(depth=1, soil_conductivity=1, root_radius=v, root_length_density=2000)
+           for v in arange(0, 0.001, 0.0001)]
+    assert all(x >= y for x, y in zip(res, res[1:]))
+
+
+def test_calc_root_soil_resistance_decreases_as_root_length_increases():
+    res = [soil.calc_root_soil_resistance(depth=1, soil_conductivity=1, root_radius=0.0001, root_length_density=v)
+           for v in arange(0, 2000, 10)]
+    assert all(x >= y for x, y in zip(res, res[1:]))
+
+
+def test_calc_collar_water_potential_decreases_as_transpiration_flux_increases():
+    root_params = dict(bulk_soil_water_potential=-0.1, root_depth=2, root_radius=0.0001, root_length_density=2000)
+    for soil_class in SOIL_CLASSES:
+        res = [soil.calc_collar_water_potential(transpiration=v, soil_class=soil_class, **root_params)
+               for v in linspace(0, 4 / 3600., 10)]  # max transpiration flux assumed to be 4 L/h
+        assert all(x >= y for x, y in zip(res, res[1:]))

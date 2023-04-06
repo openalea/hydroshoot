@@ -1,7 +1,9 @@
-from math import ceil, exp
+from math import ceil, exp, pi, log
 from typing import List
 
 from numpy import mean
+
+from hydroshoot import constants as cst
 
 SOIL_PROPS = dict(
     Sand=(0.045, 0.430, 0.145, 2.68, 712.8),
@@ -90,6 +92,89 @@ def calc_soil_water_potential(theta: float, theta_res: float, theta_sat: float, 
         psi_soil = - 1. / alpha * ((1. / s_e) ** (1. / m) - 1) ** (1. / n)
 
     return psi_soil
+
+
+def calc_soil_conductivity(psi: float, soil_class: str) -> float:
+    """Gives the actual soil hydraulic conductivity following van Genuchten (1980)
+
+    Args:
+        psi (float): [MPa] bulk soil water potential
+        soil_class (str): soil texture classe according to Carsel and Parrish (1988)
+
+    Returns:
+        (float): [cm d-1] actual soil water conductivity
+
+    References:
+        Carsel R., Parrish R., 1988.
+            Developing joint probability distributions of soil water retention characteristics.
+            Water Resources Research 24,755 - 769.
+        van Genuchten M., 1980.
+            A closed-form equation for predicting the hydraulic conductivity of unsaturated soils.
+            Soil Science Society of America Journal 44, 892897.
+    """
+
+    psi *= 1.e6 / (cst.water_density * cst.gravitational_acceleration) * 100.  # MPa -> cm_H20
+    theta_r, theta_s, alpha, n, k_sat = SOIL_PROPS[soil_class]
+    m = 1. - 1. / n
+    effective_saturation = 1. / ((1. + abs(alpha * psi) ** n) ** m)
+    return k_sat * (effective_saturation ** 0.5) * (1. - (1. - effective_saturation ** (1. / m)) ** m) ** 2
+
+
+def calc_root_soil_resistance(depth: float, soil_conductivity: float, root_radius: float = 0.0001,
+                              root_length_density: float = 2000) -> float:
+    """Calculates the resistance to water flow at the soil-root interface according to Gardner (1960).
+
+    Args:
+        root_radius: [m] average radius of roots
+        soil_conductivity: [cm d-1] soil hydraulic conductivity
+        root_length_density: [m m-3] root length per soil volume
+        depth: [m] root depth
+
+    Returns:
+        (float): [MPa s kg-1] water resistance at the soil-root interface
+
+    References:
+        Gardner (1960)
+            Dynamic aspects of water availability to plants.
+            Soil science 89, 63 - 73.
+        Tardieu et al. (2015)
+            Modelling the coordination of the controls of stomatal aperture, transpiration, leaf growth,
+                and abscisic acid: update and extension of the Tardieu–Davies model.
+            Journal of Experimental Botany 66, 2227 – 2237.
+            https://doi.org/10.1093/jxb/erv039
+
+    """
+    k = soil_conductivity * 10. / 86400.  # cm d-1 -> kg s-1
+    d = (pi * root_length_density) ** -0.5  # half distance between roots [m]
+    root_length_per_plant = root_length_density * depth  # root length per plant [m m-2]
+    soil_root_resistance = 0.5 * log(d ** 2 / root_radius ** 2) / (4 * pi * k * root_length_per_plant)  # m s kg-1
+    return soil_root_resistance * 1.e-2  # m s kg-1 -> MPa s kg-1
+
+
+def calc_collar_water_potential(transpiration: float, bulk_soil_water_potential: float, root_depth: float,
+                                soil_class: str, root_radius: float, root_length_density: float) -> float:
+    """Calculates the lumped water potential of the root system, assumed to be equal to that at the plant collar.
+
+    Args:
+        root_depth: [m] depth of the root system
+        transpiration: [kg s-1] transpiration flux
+        bulk_soil_water_potential: [MPa]
+        soil_class (str): soil texture classe according to Carsel and Parrish (1988)
+        root_radius: [m] average radius of roots
+        root_length_density: [m m-3] root length per soil volume
+
+    Returns:
+        [MPa] water potential at the plant collar
+
+    """
+    resistance = calc_root_soil_resistance(  # [MPa s kg-1]
+        depth=root_depth,
+        soil_conductivity=calc_soil_conductivity(
+            psi=bulk_soil_water_potential,
+            soil_class=soil_class),
+        root_radius=root_radius,
+        root_length_density=root_length_density)
+    return bulk_soil_water_potential - resistance * transpiration
 
 
 class SoilTexture:
