@@ -27,4 +27,4 @@ def build_mtg(path_file: Path, is_show_scene: bool = True) -> (mtg.MTG, Scene):
 if __name__ == '__main__':
     path_project = Path(__file__).parent
     g, scene = build_mtg(path_file=path_project / 'grapevine_pot.csv')
-    summary_results = model.run(g=g, wd=path_project, scene=scene, psi_soil=-0.5, gdd_since_budbreak=1000.)
+    summary_results = model.run(g=g, wd=path_project, scene=scene, psi_soil=-0.2, gdd_since_budbreak=100.)
