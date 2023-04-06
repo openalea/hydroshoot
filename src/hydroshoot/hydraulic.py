@@ -16,6 +16,7 @@ from openalea.plantgl.all import surface as surf
 from scipy import optimize
 
 import hydroshoot.constants as cst
+from hydroshoot.soil import calc_collar_water_potential
 
 
 def conductivity_max(diameter, a=2.8, b=0.1, min_kmax=0.):
@@ -320,7 +321,17 @@ def transient_xylem_water_potential(g, model='tuzet', length_conv=1.e-2, psi_soi
                 z_head = n.properties()['TopPosition'][2] * length_conv
                 z_base = n.properties()['BotPosition'][2] * length_conv
 
-                psi_base = psi_soil if vtx_id == vid_base else p.psi_head
+                if vtx_id == vid_base:
+                    # psi_base = psi_soil
+                    psi_base = calc_collar_water_potential(
+                        transpiration=flux,
+                        bulk_soil_water_potential=psi_soil,
+                        root_depth=1.2,
+                        soil_class='Loam',
+                        root_radius=0.0001,
+                        root_length_density=2000.)
+                else:
+                    psi_base = p.psi_head
 
                 try:
                     psi_head = n.psi_head
