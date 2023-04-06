@@ -189,7 +189,7 @@ def soil_water_potential(psi_soil_init, water_withdrawal, soil_class, soil_total
     psi = psi_soil_init * 1.e6 / (cst.water_density * cst.gravitational_acceleration) * 100.  # MPa -> cm_H20
     theta_init = theta_r + (theta_s - theta_r) / (1. + abs(alpha * psi) ** n) ** m
 
-    flux = water_withdrawal * 1.e-3  # kg T-1 -> m3 T-1
+    flux = water_withdrawal / cst.water_density  # kg T-1 -> m3 T-1
 
     porosity_volume = soil_total_volume * theta_s
 
@@ -251,7 +251,7 @@ def hydraulic_prop(g, length_conv=1.e-2, a=2.6, b=2.0, min_kmax=0.):
                 # leaf_area = (0.0175*(n.Length*10.)**1.9057)*LengthConv**2 #[m2]
                 n.leaf_area = leaf_area
 
-            n.Flux = (n.E * cst.water_molar_mass * 1.e-3) * leaf_area
+            n.Flux = (n.E * cst.water_molar_mass * 1.e-3) * leaf_area  # [kg(H2O) s-1]
             # n.FluxC = ((n.An)*44.0095*1.e-9)*leaf_area # [kgCO2 s-1]
             n.FluxC = n.An * leaf_area  # [umol s-1]
 
