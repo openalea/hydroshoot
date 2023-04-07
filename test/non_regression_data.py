@@ -14,14 +14,6 @@ def potted_syrah():
     """Returns an `openalea.mtg` representing a potted syrah grapevine."""
     digit = join(sources_dir, 'grapevine_pot.csv')
     g = architecture.vine_mtg(digit)
-    # Local Coordinates Correction
-    for v in traversal.iter_mtg2(g, g.root):
-        n = g.node(g.Trunk(v, Scale=1)[0])
-        theta = 180 if int(n.index()) < 200 else -90 if int(n.index()) < 300 else 0
-        architecture.vine_orientation(g, v, theta, local_rotation=True)
-    # rotation
-    for v in traversal.iter_mtg2(g, g.root):
-        architecture.vine_orientation(g, v, 90., local_rotation=False)
     for v in traversal.iter_mtg2(g, g.root):
         architecture.vine_phyto_modular(g, v)
         architecture.vine_mtg_properties(g, v)
@@ -33,7 +25,7 @@ def potted_syrah():
 
 def meteo():
     """Returns a `pandas.DataFrame` containing meteorological data."""
-    meteo_path = join(sources_dir, 'meteo.input')
+    meteo_path = join(sources_dir, 'meteo.csv')
     df = read_csv(meteo_path, sep=';', decimal='.', header=0)
     df.time = DatetimeIndex(df.time)
     df = df.set_index(df.time)

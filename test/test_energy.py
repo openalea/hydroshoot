@@ -41,7 +41,7 @@ def test_form_factors_simplified():
     g = potted_syrah()
     set_form_factors_simplified(g, icosphere_level=0)
     # non regression test
-    assert_almost_equal(sum(g.property('ff_leaves').values()), 147.7, 1)
+    assert_almost_equal(sum(g.property('ff_leaves').values()), 148.6, 1)
 
 
 def test_forced_soil_temperature():
