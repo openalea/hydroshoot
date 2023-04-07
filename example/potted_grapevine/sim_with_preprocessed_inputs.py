@@ -60,7 +60,7 @@ if __name__ == '__main__':
     path_preprocessed_data = path_project / 'preprocessed_inputs'
 
     g, scene = build_mtg(path_file=path_project / 'grapevine_pot.csv', is_show_scene=False)
-    # preprocess_inputs(grapevine_mtg=g, path_project_dir=path_project, psi_soil=-0.2, gdd_since_budbreak=1000., scene=scene)
+    # preprocess_inputs(grapevine_mtg=g, path_project_dir=path_project, psi_soil=-0.2, gdd_since_budbreak=100., scene=scene)
 
     with open(path_preprocessed_data / 'static.json') as f:
         static_inputs = load(f)
