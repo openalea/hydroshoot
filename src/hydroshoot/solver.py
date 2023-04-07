@@ -91,11 +91,6 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
                     soil_class=params.soil.soil_class, soil_total_volume=params.soil.rhyzo_total_volume,
                     psi_min=psi_min)
 
-                if params.simulation.is_soil_water_deficit:
-                    psi_base = max(-1.3, psi_base)
-                else:
-                    psi_base = max(-0.7, psi_base)
-
                 # Compute xylem water potential
                 n_iter_psi = hydraulic.xylem_water_potential(
                     g=g, psi_soil=psi_base, model=modelx, psi_min=psi_min, psi_error_crit=psi_error_threshold,

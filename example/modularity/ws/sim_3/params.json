@@ -11,8 +11,7 @@
     "unit_scene_length": "cm",
     "hydraulic_structure": true,
     "negligible_shoot_resistance": false,
-    "energy_budget": false,
-    "soil_water_deficit": true
+    "energy_budget": false
   },
   "planting": {
     "spacing_between_rows": 3.6,

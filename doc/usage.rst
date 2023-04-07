@@ -108,21 +108,11 @@ Let's build the mock-up using the digitalization data provided in "grapevine_pot
     # Path for plant digitalization data.
     g = architecture.vine_mtg('grapevine_pot.csv')
 
-    # Local Coordinates Correction
-    for v in traversal.iter_mtg2(g, g.root):
-        n = g.node(g.Trunk(v, Scale=1)[0])
-        theta = 180 if int(n.index()) < 200 else -90 if int(n.index()) < 300 else 0
-        architecture.vine_orientation(g, v, theta, local_rotation=True)
-
-    # Scene rotation
-    for v in traversal.iter_mtg2(g, g.root):
-        architecture.vine_orientation(g, v, 90., local_rotation=False)
-
-    for v in traversal.iter_mtg2(g, g.root):
-        architecture.vine_phyto_modular(g, v)
-        architecture.vine_mtg_properties(g, v)
-        architecture.vine_mtg_geometry(g, v)
-        architecture.vine_transform(g, v)
+    for v in traversal.iter_mtg2(grapevine_mtg, grapevine_mtg.root):
+        architecture.vine_phyto_modular(grapevine_mtg, v)
+        architecture.vine_mtg_properties(grapevine_mtg, v)
+        architecture.vine_mtg_geometry(grapevine_mtg, v)
+        architecture.vine_transform(grapevine_mtg, v)
 
 Display now the scene using **display** module, you should be having something like :numref:`fig_mockup`:
 
@@ -146,8 +136,7 @@ start and end dates of the simulation in the "params.json" file ("sdate": "2012-
 
 .. code-block:: python
 
-    model.run(g, str(getcwd()) + '/', scene, psi_soil=-0.5,
-              gdd_since_budbreak=1000.)
+    model.run(g, str(getcwd()) + '/', scene, psi_soil=-0.2, gdd_since_budbreak=100.)
 
 You should now have created the '/output/' folder where output files ("time_series.ouput", "mtg20120801110000.pckl")
 are stored. "time_series.ouput" file should contain close values to those below:
@@ -156,7 +145,7 @@ are stored. "time_series.ouput" file should contain close values to those below:
 .. code-block:: none
 
     time;Rg;An;E;Tleaf
-    2012-08-01 11:00:00;69.77;5.65;82.26;27.45
+    2012-08-01 11:00:00;69.83;7.99;179.17;26.05
 
 
 .. figure:: figs/usage_fig_3.png

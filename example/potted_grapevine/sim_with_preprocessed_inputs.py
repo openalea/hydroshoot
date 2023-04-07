@@ -19,6 +19,7 @@ def preprocess_inputs(grapevine_mtg: MTG, path_project_dir: Path, psi_soil: floa
 
     inputs = io.HydroShootInputs(
         path_project=path_project_dir,
+        user_params=None,
         scene=scene,
         psi_soil=psi_soil,
         gdd_since_budbreak=gdd_since_budbreak)
@@ -59,7 +60,7 @@ if __name__ == '__main__':
     path_preprocessed_data = path_project / 'preprocessed_inputs'
 
     g, scene = build_mtg(path_file=path_project / 'grapevine_pot.csv', is_show_scene=False)
-    # preprocess_inputs(grapevine_mtg=g, path_project_dir=path_project, psi_soil=-0.5, gdd_since_budbreak=1000., scene=scene)
+    # preprocess_inputs(grapevine_mtg=g, path_project_dir=path_project, psi_soil=-0.2, gdd_since_budbreak=100., scene=scene)
 
     with open(path_preprocessed_data / 'static.json') as f:
         static_inputs = load(f)
@@ -69,7 +70,7 @@ if __name__ == '__main__':
         user_params = load(f)
 
     summary_results = model.run(g=g, wd=path_project, params=user_params,
-                                scene=scene, psi_soil_init=-0.1, gdd_since_budbreak=1000.,
+                                scene=scene, psi_soil=-0.2, gdd_since_budbreak=100.,
                                 form_factors=static_inputs['form_factors'],
                                 leaf_nitrogen=static_inputs['Na'],
                                 leaf_ppfd=dynamic_inputs,

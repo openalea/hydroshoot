@@ -4,15 +4,14 @@
     "edate": "2012-08-01 11:00:00",
     "latitude": 43.61,
     "longitude": 3.87,
-	"meteo": "meteo.input",
     "elevation": 44.0,
+    "meteo": "meteo.csv",
     "tzone": "Europe/Paris",
     "output_index": "",
     "unit_scene_length": "cm",
     "hydraulic_structure": true,
     "negligible_shoot_resistance": false,
-    "energy_budget": true,
-    "soil_water_deficit": true
+    "energy_budget": true
   },
   "planting": {
     "spacing_between_rows": 3.6,
@@ -143,10 +142,10 @@
         "deltaHa": 37.83
       },
       "photo_inhibition": {
-        "dhd_inhib_beg":195,
-        "dHd_inhib_max":190,
-        "psi_inhib_beg":-1.5,
-        "psi_inhib_max":-3,
+        "dhd_inhib_beg": 195,
+        "dHd_inhib_max": 190,
+        "psi_inhib_beg": -1.5,
+        "psi_inhib_max": -3,
         "temp_inhib_beg": 35,
         "temp_inhib_max": 40
       }
@@ -171,12 +170,10 @@
     }
   },
   "soil": {
-    "soil_class": "Sand",
+    "soil_class": "Loamy_Sand",
     "soil_dimensions": {
       "depth": 1.2
     },
     "rhyzo_coeff": 0.5
   }
 }
-
-

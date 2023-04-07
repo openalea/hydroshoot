@@ -209,7 +209,6 @@ def print_sim_infos(inputs: HydroShootInputs):
     print(f'Calculate Energy budget: {params.simulation.is_energy_budget}')
     print(f'Ignore shoot resistance: {params.simulation.is_negligible_shoot_resistance}')
     print(f'Calculate Hydraulic structure: {params.simulation.is_hydraulic_structure}')
-    print(f'Force well-watered conditions: {params.simulation.is_soil_water_deficit}')
     print(f'Add Rhyzoshpere cylinders: {params.soil.rhyzo_solution}')
     print(f'Use user form factors: {inputs.form_factors is not None}')
     print(f'Use user irradiance data: {inputs.leaf_ppfd is not None}')

@@ -62,10 +62,6 @@
         "energy_budget": {
           "type": "boolean",
           "description": "`true` to calculate leaf temperature from leaf energy budget; `false` to set leaf temperature equal to air temperature"
-        },
-        "soil_water_deficit": {
-          "type": "boolean",
-          "description": "`true` to allow simulating soil water deficit; `false` to prevent soil water from dropping below a given threshold"
         }
       },
       "required": [
@@ -80,8 +76,7 @@
         "unit_scene_length",
         "hydraulic_structure",
         "negligible_shoot_resistance",
-        "energy_budget",
-        "soil_water_deficit"
+        "energy_budget"
       ]
     },
     "planting": {
@@ -842,17 +837,34 @@
             "depth"
           ],
           "oneOf": [
-            {"required": ["length", "width"],
-              "not": {"required": ["radius"]}
-            },
-            {"allOf": [
-              {
-                "not": {"required": ["length"]}
-              },
-              {
-                "not": {"required": ["width"]}
+            {
+              "required": [
+                "length",
+                "width"
+              ],
+              "not": {
+                "required": [
+                  "radius"
+                ]
               }
-            ]
+            },
+            {
+              "allOf": [
+                {
+                  "not": {
+                    "required": [
+                      "length"
+                    ]
+                  }
+                },
+                {
+                  "not": {
+                    "required": [
+                      "width"
+                    ]
+                  }
+                }
+              ]
             }
           ]
         },
