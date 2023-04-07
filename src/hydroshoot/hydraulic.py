@@ -8,7 +8,7 @@ This module computes xylem water potential value at each node of the shoot.
 """
 
 from copy import deepcopy
-from math import exp, pi, log
+from math import exp
 
 import openalea.mtg.traversal as traversal
 from numpy import array
@@ -16,7 +16,6 @@ from openalea.plantgl.all import surface as surf
 from scipy import optimize
 
 import hydroshoot.constants as cst
-from hydroshoot.soil import calc_collar_water_potential
 
 
 def conductivity_max(diameter, a=2.8, b=0.1, min_kmax=0.):
@@ -104,56 +103,6 @@ def def_param_soil(custom=None):
         def_dict['Custom'] = custom
 
     return def_dict
-
-
-def k_soil_soil(psi, soil_class):
-    """Gives the actual soil hydraulic conductivity following van Genuchten (1980)
-
-    Args:
-        psi (float): [MPa] bulk soil water potential
-        soil_class (str): one of the soil classes proposed by Carsel and Parrish (1988), see :func:`def_param_soil` for
-            details
-
-    Returns:
-        (float): [cm d-1] actual soil water conductivity
-
-    References:
-        Carsel R., Parrish R., 1988.
-            Developing joint probability distributions of soil water retention characteristics.
-            Water Resources Research 24,755 - 769.
-        van Genuchten M., 1980.
-            A closed-form equation for predicting the hydraulic conductivity of unsaturated soils.
-            Soil Science Society of America Journal 44, 892897.
-    """
-
-    psi *= 1.e6 / (cst.water_density * cst.gravitational_acceleration) * 100.  # MPa -> cm_H20
-    param = def_param_soil()[soil_class]
-    theta_r, theta_s, alpha, n, k_sat = [param[i] for i in range(5)]
-    m = 1. - 1. / n
-    effective_saturation = 1. / (1. + abs(alpha * psi) ** n) ** m
-    k_soil = k_sat * effective_saturation ** 0.5 * (1. - (1. - effective_saturation ** (1. / m)) ** m) ** 2
-
-    return k_soil
-
-
-def k_soil_root(k_soil, root_spacing, root_radius):
-    """Computes the water conductivity at the soil-root interface according to Gardner (1960)
-
-    Args:
-        k_soil (float): [cm d-1] soil hydraulic conductivity
-        root_spacing (float): [m] mean spacing between the neighbouring roots
-        root_radius (float): [m] mean root radius
-
-    Returns:
-        (float): [cm d-1] water conductivity at the soil-root interface
-
-    References:
-        Gardner (1960)
-            Dynamic aspects of water availability to plants.
-            Soil science 89, 63 - 73.
-
-    """
-    return 4. * pi * k_soil / log((root_spacing / root_radius) ** 2)
 
 
 def soil_water_potential(psi_soil_init, water_withdrawal, soil_class, soil_total_volume, psi_min=-3.):
@@ -323,13 +272,9 @@ def transient_xylem_water_potential(g, model='tuzet', length_conv=1.e-2, psi_soi
 
                 if vtx_id == vid_base:
                     # psi_base = psi_soil
-                    psi_base = calc_collar_water_potential(
+                    psi_base = n.calc_collar_water_potential(
                         transpiration=flux,
-                        bulk_soil_water_potential=psi_soil,
-                        rhyzosphere_volume=4.48,
-                        soil_class='Clay_Loam',
-                        root_radius=0.0001,
-                        root_length=2000.)
+                        soil_water_potential=psi_soil)
                 else:
                     psi_base = p.psi_head
 
@@ -341,35 +286,18 @@ def transient_xylem_water_potential(g, model='tuzet', length_conv=1.e-2, psi_soi
 
                 psi = 0.5 * (psi_head + psi_base)
 
-                if n.label.startswith('rhyzo'):
-                    cyl_diameter = n.TopDiameter * length_conv
-                    depth = n.depth * length_conv
-                    flux *= 8640. / (pi * cyl_diameter * depth)  # [cm d-1]
+                k_max = n.properties()['Kmax']
 
-                    if n.label.startswith('rhyzo0'):
-                        k_soil = k_soil_soil(psi, n.soil_class)  # [cm d-1]
-                        g_act = k_soil_root(k_soil, root_spacing, root_radius)  # [cm d-1 m-1]
-                        psi_head = max(psi_min, psi_base - (
-                                flux / g_act) * cst.water_density * cst.gravitational_acceleration * 1.e-6)
-                        k_act = None
-                    else:
-                        k_act = k_soil_soil(psi, n.soil_class)  # [cm d-1]
-                        psi_head = max(psi_min, psi_base - (
-                                length * flux / k_act) * cst.water_density * cst.gravitational_acceleration * 1.e-6)
-
+                if not negligible_shoot_resistance:
+                    k_act = k_max * cavitation_factor(psi, model, fifty_cent, sig_slope)
+                    psi_head = max(psi_min,
+                                   psi_base - length * flux / k_act - (
+                                           cst.water_density * cst.gravitational_acceleration * (
+                                           z_head - z_base)) * 1.e-6)
                 else:
-                    k_max = n.properties()['Kmax']
-
-                    if not negligible_shoot_resistance:
-                        k_act = k_max * cavitation_factor(psi, model, fifty_cent, sig_slope)
-                        psi_head = max(psi_min,
-                                       psi_base - length * flux / k_act - (
-                                               cst.water_density * cst.gravitational_acceleration * (
-                                               z_head - z_base)) * 1.e-6)
-                    else:
-                        k_act = None
-                        psi_head = max(psi_min, psi_base - (
-                                cst.water_density * cst.gravitational_acceleration * (z_head - z_base)) * 1.e-6)
+                    k_act = None
+                    psi_head = max(psi_min, psi_base - (
+                            cst.water_density * cst.gravitational_acceleration * (z_head - z_base)) * 1.e-6)
 
                 n.psi_head = psi_head
                 n.KL = k_act

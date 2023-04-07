@@ -1,5 +1,4 @@
 from numpy import arange
-
 from openalea.mtg import traversal
 
 from hydroshoot import hydraulic, architecture
@@ -57,29 +56,6 @@ def test_def_param_soil_returns_the_right_soil_property_values():
 def test_def_param_soil_returns_Custom_soil_properties_when_provided():
     custom_soil = (0.02, 0.3, 0.03, 1.5, 25)
     assert hydraulic.def_param_soil(custom_soil)['Custom'] == custom_soil
-
-
-def test_k_soil_soil_decreases_as_water_potential_decreases():
-    for soil_class in hydraulic.def_param_soil().keys():
-        soil_conductivity = [hydraulic.k_soil_soil(psi, soil_class) for psi in arange(0, -3, -0.1)]
-        assert all(x >= y for x, y in zip(soil_conductivity, soil_conductivity[1:]))
-
-
-def test_k_soil_soil_maximum_value_is_greater_for_sand_than_clay():
-    soil_conductivity = [hydraulic.k_soil_soil(0., soil_class) for soil_class in ('Clay', 'Sand')]
-    assert all(x <= y for x, y in zip(soil_conductivity, soil_conductivity[1:]))
-
-
-def k_soil_root_increases_as_soil_conductivity_increases():
-    soil_conductivity = [0.48, 1.68, 2.88, 4.8, 6.0, 6.24, 10.8, 24.96, 31.44, 106.1, 350.2, 712.8]
-    soil_root_cond = [hydraulic.k_soil_root(k_soil, root_spacing=0.013, root_radius=.0001) for k_soil in soil_conductivity]
-    assert all(x <= y for x, y in zip(soil_root_cond, soil_root_cond[1:]))
-
-
-def k_soil_root_increases_as_the_ratio_of_average_root_distance_to_radius_decreases():
-    soil_root_cond = [hydraulic.k_soil_root(k_soil=6., root_spacing=0.013, root_radius=0.013 / x)
-                      for x in range(200, 100, -10)]
-    assert all(x <= y for x, y in zip(soil_root_cond, soil_root_cond[1:]))
 
 
 def test_soil_water_potential_decreases_as_water_withdrawal_increases():

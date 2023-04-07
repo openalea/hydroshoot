@@ -169,8 +169,9 @@ def verify_inputs(g: MTG, inputs: HydroShootInputs):
                 'The provided weather data do not cover the period from budbreak to the start date of simulation')
 
     if params.soil.rhyzo_solution:
-        radius_max = 0.5 * min(params.soil.soil_dimensions['length'], params.soil.soil_dimensions['width'])
-        assert max(params.soil.rhyzo_radii) <= radius_max, f'Maximum soil radius must not exceed {radius_max} cm'
+        length_max = params.soil.rhyzo_volume / (3.14 * params.soil.avg_root_radius ** 2)
+        assert params.soil.root_length <= length_max, (
+            f'Root radius ({params.soil.avg_root_radius}) is higher than the distance between roots ({length_max:.5f})')
 
     if inputs.leaf_nitrogen is not None:
         assert all([vid in inputs.leaf_nitrogen
@@ -209,7 +210,7 @@ def print_sim_infos(inputs: HydroShootInputs):
     print(f'Calculate Energy budget: {params.simulation.is_energy_budget}')
     print(f'Ignore shoot resistance: {params.simulation.is_negligible_shoot_resistance}')
     print(f'Calculate Hydraulic structure: {params.simulation.is_hydraulic_structure}')
-    print(f'Add Rhyzoshpere cylinders: {params.soil.rhyzo_solution}')
+    print(f'Add Rhyzoshpere resistance: {params.soil.rhyzo_solution}')
     print(f'Use user form factors: {inputs.form_factors is not None}')
     print(f'Use user irradiance data: {inputs.leaf_ppfd is not None}')
     print(f'Use user nitrogen data: {inputs.leaf_nitrogen is not None}')

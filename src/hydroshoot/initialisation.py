@@ -5,13 +5,12 @@ from openalea.mtg.mtg import MTG
 from pandas import DataFrame
 from pandas import date_range
 
-from hydroshoot.architecture import get_mtg_base, add_rhyzosphere_concentric_cylinders, add_soil_surface_mesh, \
-    get_leaves
+from hydroshoot import soil
+from hydroshoot.architecture import get_mtg_base, add_soil_surface_mesh, get_leaves
 from hydroshoot.energy import set_form_factors_simplified, set_wind_speed
 from hydroshoot.exchange import leaf_Na
 from hydroshoot.io import HydroShootInputs, HydroShootHourlyInputs
-from hydroshoot.irradiance import irradiance_distribution, hsCaribu
-from hydroshoot.irradiance import set_optical_properties
+from hydroshoot.irradiance import irradiance_distribution, hsCaribu, set_optical_properties
 from hydroshoot.params import Params
 from hydroshoot.preprocess import calc_gdd_since_budbreak
 
@@ -86,19 +85,22 @@ def set_photosynthetic_capacity(g: MTG, photo_n_params: dict, deactivation_entha
 
 def init_model(g: MTG, inputs: HydroShootInputs) -> MTG:
     params = inputs.params
-    g.node(g.root).vid_collar = get_mtg_base(g, vtx_label=params.mtg_api.collar_label)
-    g.node(g.root).vid_base = g.node(g.root).vid_collar
+    vid_collar = get_mtg_base(g, vtx_label=params.mtg_api.collar_label)
+    g.node(g.root).vid_collar = vid_collar
+    g.node(g.root).vid_base = vid_collar
 
     # Add rhyzosphere concentric cylinders
-    if params.soil.rhyzo_solution:
-        if not any(item.startswith('rhyzo') for item in g.property('label').values()):
-            g = add_rhyzosphere_concentric_cylinders(
-                g=g,
-                cylinders_radii=params.soil.rhyzo_radii,
-                soil_dimensions=params.soil.soil_dimensions,
-                soil_class=params.soil.soil_class,
-                vtx_label=params.mtg_api.collar_label,
-                length_conv=1. / params.simulation.conv_to_meter)
+    def calc_collar_water_potential(transpiration: float, soil_water_potential: float) -> float:
+        kwargs = dict(
+            bulk_soil_water_potential=soil_water_potential,
+            rhyzosphere_volume=params.soil.rhyzo_volume,
+            soil_class=params.soil.soil_class,
+            root_radius=params.soil.avg_root_radius,
+            root_length=params.soil.root_length)
+        kwargs.update({'transpiration': transpiration if params.soil.rhyzo_solution else 0})
+        return soil.calc_collar_water_potential(**kwargs)
+
+    g.node(vid_collar).calc_collar_water_potential = calc_collar_water_potential
 
     # Add form factors
     if params.simulation.is_energy_budget:

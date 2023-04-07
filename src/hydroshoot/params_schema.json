@@ -868,23 +868,15 @@
             }
           ]
         },
-        "rhyzo_radii": {
-          "type": "array",
-          "description": "[m] Radii of concentric rhyzosphere cylinders",
-          "minItems": 1,
-          "items": {
-            "type": "number"
-          }
-        },
         "rhyzo_coeff": {
           "type": "number",
           "description": "[-] Fraction of extractable soil water",
           "minimum": 0,
           "maxItems": 1
         },
-        "avg_root_spacing": {
+        "root_length": {
           "type": "number",
-          "description": "[m] average spacing between roots",
+          "description": "[m] length of all roots of the plant",
           "minimum": 0
         },
         "avg_root_radius": {
