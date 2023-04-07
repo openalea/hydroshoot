@@ -88,7 +88,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
                 # Update soil water status
                 psi_base = hydraulic.soil_water_potential(
                     psi_soil_init=psi_soil, water_withdrawal=g.node(g.node(g.root).vid_collar).Flux * time_conv,
-                    soil_class=params.soil.soil_class, soil_total_volume=params.soil.rhyzo_total_volume,
+                    soil_class=params.soil.soil_class, soil_total_volume=params.soil.soil_volume,
                     psi_min=psi_min)
 
                 # Compute xylem water potential
