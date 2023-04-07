@@ -335,7 +335,7 @@ def transient_xylem_water_potential(g, model='tuzet', length_conv=1.e-2, psi_soi
 
                 try:
                     psi_head = n.psi_head
-                    assert n.psi_head, "Water potential has a `None` value"
+                    assert n.psi_head is not None, "Water potential has a `None` value"
                 except AttributeError:
                     psi_head = psi_base
 
