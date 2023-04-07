@@ -75,9 +75,6 @@ def run(g: MTG, wd: Path, params: dict = None, scene: Scene = None, write_result
 
     g = init_model(g=g, inputs=inputs)
 
-    # Save geometry in an external file
-    # HSArc.mtg_save_geometry(scene, output_path)
-
     # ==============================================================================
     # Simulations
     # ==============================================================================
