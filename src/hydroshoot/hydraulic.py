@@ -326,10 +326,10 @@ def transient_xylem_water_potential(g, model='tuzet', length_conv=1.e-2, psi_soi
                     psi_base = calc_collar_water_potential(
                         transpiration=flux,
                         bulk_soil_water_potential=psi_soil,
-                        root_depth=1.2,
-                        soil_class='Loam',
+                        rhyzosphere_volume=4.48,
+                        soil_class='Clay_Loam',
                         root_radius=0.0001,
-                        root_length_density=2000.)
+                        root_length=2000.)
                 else:
                     psi_base = p.psi_head
 
