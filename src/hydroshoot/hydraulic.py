@@ -6,9 +6,9 @@ Hydraulic structure module of HydroShoot.
 
 This module computes xylem water potential value at each node of the shoot.
 """
-
 from copy import deepcopy
 from math import exp
+from typing import Callable
 
 import openalea.mtg.traversal as traversal
 from numpy import array
@@ -220,15 +220,16 @@ def hydraulic_prop(g, length_conv=1.e-2, a=2.6, b=2.0, min_kmax=0.):
     return g
 
 
-def transient_xylem_water_potential(g, model='tuzet', length_conv=1.e-2, psi_soil=-0.6, psi_min=-3., fifty_cent=-0.51,
-                                    sig_slope=1., root_spacing=0.013, root_radius=.0001,
-                                    negligible_shoot_resistance=False,
-                                    start_vid=None, stop_vid=None):
+def transient_xylem_water_potential(g, calc_collar_water_potential: Callable,
+                                    model='tuzet', length_conv=1.e-2, psi_soil=-0.6, psi_min=-3., fifty_cent=-0.51,
+                                    sig_slope=1., negligible_shoot_resistance=False, start_vid=None, stop_vid=None):
     """Computes a transient hydraulic structure of a plant shoot based on constant values of the hydraulic segments'
     conductivities. The hydraulic segments are assumed isotropic having only axial conductivities.
 
     Args:
         g (openalea.mtg.MTG): a multiscale tree graph object
+        calc_collar_water_potential: a function that takes 'transpiration' and 'soil_water_potential' for inputs and
+            returns the collar water potential as scalar output
         model (str): one of 'misson', 'tuzet' or 'linear', see :func:`cavitation_factor` for details
         length_conv (float): conversion coefficient from the length unit of the mtg to that of [1 m]
         psi_soil (float): [MPa] soil water potential
@@ -271,8 +272,7 @@ def transient_xylem_water_potential(g, model='tuzet', length_conv=1.e-2, psi_soi
                 z_base = n.properties()['BotPosition'][2] * length_conv
 
                 if vtx_id == vid_base:
-                    # psi_base = psi_soil
-                    psi_base = n.calc_collar_water_potential(
+                    psi_base = calc_collar_water_potential(
                         transpiration=flux,
                         soil_water_potential=psi_soil)
                 else:
@@ -305,13 +305,16 @@ def transient_xylem_water_potential(g, model='tuzet', length_conv=1.e-2, psi_soi
     return
 
 
-def xylem_water_potential(g, psi_soil=-0.8, model='tuzet', psi_min=-3.0, psi_error_crit=0.001, max_iter=100,
-                          length_conv=1.E-2, fifty_cent=-0.51, sig_slope=0.1, root_spacing=0.013, root_radius=.0001,
-                          negligible_shoot_resistance=False, start_vid=None, stop_vid=None, psi_step=0.5):
+def xylem_water_potential(g, calc_collar_water_potential,
+                          psi_soil=-0.8, model='tuzet', psi_min=-3.0, psi_error_crit=0.001, max_iter=100,
+                          length_conv=1.E-2, fifty_cent=-0.51, sig_slope=0.1, negligible_shoot_resistance=False,
+                          start_vid=None, stop_vid=None, psi_step=0.5):
     """Computes the hydraulic structure of plant's shoot.
 
     Args:
         g (openalea.mtg.MTG): a multiscale tree graph object
+        calc_collar_water_potential: a function that takes 'transpiration' and 'soil_water_potential' for inputs and
+            returns the collar water potential as scalar output
         psi_soil (float): [MPa] soil water potential
         model (str): one of 'misson', 'tuzet' or 'linear', see :func:`cavitation_factor` for details
         psi_min (float): [MPa] minimum allowable water potential in the hydraulic segments
@@ -349,8 +352,18 @@ def xylem_water_potential(g, psi_soil=-0.8, model='tuzet', psi_min=-3.0, psi_err
 
         psi_prev = deepcopy(g.property('psi_head'))
 
-        transient_xylem_water_potential(g, model, length_conv, psi_soil, psi_min, fifty_cent, sig_slope,
-                                        root_spacing, root_radius, negligible_shoot_resistance, start_vid, stop_vid)
+        transient_xylem_water_potential(
+            g=g,
+            calc_collar_water_potential=calc_collar_water_potential,
+            model=model,
+            length_conv=length_conv,
+            psi_soil=psi_soil,
+            psi_min=psi_min,
+            fifty_cent=fifty_cent,
+            sig_slope=sig_slope,
+            negligible_shoot_resistance=negligible_shoot_resistance,
+            start_vid=start_vid,
+            stop_vid=stop_vid)
 
         psi_new = deepcopy(g.property('psi_head'))
 

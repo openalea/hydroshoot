@@ -168,7 +168,7 @@ def verify_inputs(g: MTG, inputs: HydroShootInputs):
             assert min(inputs.weather.index) <= params.phenology.date_budbreak, (
                 'The provided weather data do not cover the period from budbreak to the start date of simulation')
 
-    if params.soil.rhyzo_solution:
+    if params.soil.is_rhyzo_solution:
         length_max = params.soil.rhyzo_volume / (3.14 * params.soil.avg_root_radius ** 2)
         assert params.soil.root_length <= length_max, (
             f'Root radius ({params.soil.avg_root_radius}) is higher than the distance between roots ({length_max:.5f})')
@@ -210,7 +210,7 @@ def print_sim_infos(inputs: HydroShootInputs):
     print(f'Calculate Energy budget: {params.simulation.is_energy_budget}')
     print(f'Ignore shoot resistance: {params.simulation.is_negligible_shoot_resistance}')
     print(f'Calculate Hydraulic structure: {params.simulation.is_hydraulic_structure}')
-    print(f'Add Rhyzoshpere resistance: {params.soil.rhyzo_solution}')
+    print(f'Add rhyzoshpere resistance: {params.soil.is_rhyzo_solution}')
     print(f'Use user form factors: {inputs.form_factors is not None}')
     print(f'Use user irradiance data: {inputs.leaf_ppfd is not None}')
     print(f'Use user nitrogen data: {inputs.leaf_nitrogen is not None}')

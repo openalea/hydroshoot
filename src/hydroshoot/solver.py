@@ -6,7 +6,7 @@ from hydroshoot import hydraulic, exchange, energy
 from hydroshoot.architecture import get_leaves
 
 
-def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
+def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params, calc_collar_water_potential):
     """Computes gas-exchange, energy and hydraulic structure of plant's shoot jointly.
 
     Args:
@@ -16,6 +16,8 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
         t_soil (float): [degreeC] soil surface temperature
         t_sky_eff (float): [degreeC] effective sky temperature
         params (params): [-] :class:`hydroshoot.params.Params()` object
+        calc_collar_water_potential: a function that takes 'transpiration' and 'soil_water_potential' for inputs and
+            returns the collar water potential as scalar output
 
     """
     length_conv = params.simulation.conv_to_meter
@@ -93,9 +95,9 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
 
                 # Compute xylem water potential
                 n_iter_psi = hydraulic.xylem_water_potential(
-                    g=g, psi_soil=psi_base, model=modelx, psi_min=psi_min, psi_error_crit=psi_error_threshold,
+                    g=g, calc_collar_water_potential=calc_collar_water_potential,
+                    psi_soil=psi_base, model=modelx, psi_min=psi_min, psi_error_crit=psi_error_threshold,
                     max_iter=max_iter, length_conv=length_conv, fifty_cent=psi_critx, sig_slope=slopex,
-                    root_spacing=params.soil.avg_root_spacing, root_radius=params.soil.avg_root_radius,
                     negligible_shoot_resistance=params.simulation.is_negligible_shoot_resistance,
                     start_vid=g.node(g.root).vid_base, stop_vid=None, psi_step=psi_step)
 

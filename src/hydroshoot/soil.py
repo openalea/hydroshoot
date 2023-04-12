@@ -116,18 +116,19 @@ def calc_soil_conductivity(psi: float, soil_class: str) -> float:
     psi *= 1.e6 / (cst.water_density * cst.gravitational_acceleration) * 100.  # MPa -> cm_H20
     theta_r, theta_s, alpha, n, k_sat = SOIL_PROPS[soil_class]
     m = 1. - 1. / n
-    effective_saturation = 1. / ((1. + abs(alpha * psi) ** n) ** m)
+    effective_saturation = 1. / ((1. + (abs(alpha * psi)) ** n) ** m)
     return k_sat * (effective_saturation ** 0.5) * (1. - (1. - effective_saturation ** (1. / m)) ** m) ** 2
 
 
-def calc_root_soil_resistance(soil_conductivity: float, root_radius: float = 0.0001,
-                              root_length_density: float = 2000) -> float:
+def calc_root_soil_resistance(soil_conductivity: float, rhyzosphere_volume: float,
+                              root_radius: float = 0.0001, root_length: float = 2000) -> float:
     """Calculates the resistance to water flow at the soil-root interface according to Gardner (1960).
 
     Args:
-        root_radius: [m] average radius of roots
         soil_conductivity: [cm d-1] soil hydraulic conductivity
-        root_length_density: [m m-3] root length per soil volume
+        rhyzosphere_volume: [m3] volume of the rhyzosphere
+        root_radius: [m] average radius of roots
+        root_length: [m] root length
 
     Returns:
         (float): [m2 s kg-1] resistance to water flow at the soil-root interface
@@ -143,9 +144,10 @@ def calc_root_soil_resistance(soil_conductivity: float, root_radius: float = 0.0
             https://doi.org/10.1093/jxb/erv039
 
     """
-    k = soil_conductivity * 10. / 86400.  # cm d-1 -> kg m-2 s-1
+    root_length_density = root_length / rhyzosphere_volume  # [m m3]
     d = (pi * root_length_density) ** -0.5  # half distance between roots [m]
-    return log(d ** 2 / root_radius ** 2) / (4 * pi * k)  # m2 s kg-1
+    k = soil_conductivity * 1.e-2 / 86400. * (2 * pi * d * root_length) * cst.water_density  # cm d-1 -> kg m-2 s-1
+    return log(d ** 2 / ((2 * root_radius) ** 2)) / (4 * pi * k)  # m2 s kg-1
 
 
 def calc_collar_water_potential(transpiration: float, bulk_soil_water_potential: float, rhyzosphere_volume: float,
@@ -168,8 +170,9 @@ def calc_collar_water_potential(transpiration: float, bulk_soil_water_potential:
         soil_conductivity=calc_soil_conductivity(
             psi=bulk_soil_water_potential,
             soil_class=soil_class),
+        rhyzosphere_volume=rhyzosphere_volume,
         root_radius=root_radius,
-        root_length_density=root_length / rhyzosphere_volume)
+        root_length=root_length)
     uptake_per_unit_root_length = transpiration / root_length  # kg m-1 s-1
     return bulk_soil_water_potential - resistance * uptake_per_unit_root_length * (
             cst.water_density * cst.gravitational_acceleration * 1.e-6)  # m -> MPa

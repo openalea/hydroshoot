@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import Callable
 
 import openalea.mtg.traversal as traversal
 from openalea.mtg.mtg import MTG
@@ -83,24 +84,27 @@ def set_photosynthetic_capacity(g: MTG, photo_n_params: dict, deactivation_entha
     pass
 
 
+def set_collar_water_potential_function(params: Params, **kwargs) -> Callable:
+    if params.soil.is_rhyzo_solution:
+        def func(transpiration: float, soil_water_potential: float, **kwargs) -> float:
+            return soil.calc_collar_water_potential(
+                transpiration=transpiration,
+                bulk_soil_water_potential=soil_water_potential,
+                rhyzosphere_volume=params.soil.rhyzo_volume,
+                soil_class=params.soil.soil_class,
+                root_radius=params.soil.avg_root_radius,
+                root_length=params.soil.root_length)
+    else:
+        def func(soil_water_potential: float, **kwargs):
+            return soil_water_potential
+    return func
+
+
 def init_model(g: MTG, inputs: HydroShootInputs) -> MTG:
     params = inputs.params
     vid_collar = get_mtg_base(g, vtx_label=params.mtg_api.collar_label)
     g.node(g.root).vid_collar = vid_collar
     g.node(g.root).vid_base = vid_collar
-
-    # Add rhyzosphere concentric cylinders
-    def calc_collar_water_potential(transpiration: float, soil_water_potential: float) -> float:
-        kwargs = dict(
-            bulk_soil_water_potential=soil_water_potential,
-            rhyzosphere_volume=params.soil.rhyzo_volume,
-            soil_class=params.soil.soil_class,
-            root_radius=params.soil.avg_root_radius,
-            root_length=params.soil.root_length)
-        kwargs.update({'transpiration': transpiration if params.soil.rhyzo_solution else 0})
-        return soil.calc_collar_water_potential(**kwargs)
-
-    g.node(vid_collar).calc_collar_water_potential = calc_collar_water_potential
 
     # Add form factors
     if params.simulation.is_energy_budget:
