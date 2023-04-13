@@ -169,7 +169,7 @@ def verify_inputs(g: MTG, inputs: HydroShootInputs):
                 'The provided weather data do not cover the period from budbreak to the start date of simulation')
 
     if params.soil.is_rhyzo_solution:
-        length_max = params.soil.rhyzo_volume / (3.14 * params.soil.avg_root_radius ** 2)
+        length_max = params.soil.rhyzo_volume / (3.14 * (2 * params.soil.avg_root_radius) ** 2)
         assert params.soil.root_length <= length_max, (
             f'Root radius ({params.soil.avg_root_radius}) is higher than the distance between roots ({length_max:.5f})')
 
