@@ -20,6 +20,8 @@ def test_calc_soil_water_potential():
         soil_props = {k: v[i] for i, k in enumerate(('theta_res', 'theta_sat', 'alpha', 'n'))}
         assert 0 == soil.calc_soil_water_potential(theta=soil_props['theta_sat'], **soil_props)
         assert 1.e-12 > soil.calc_soil_water_potential(theta=soil_props['theta_res'], **soil_props)
+        assert soil.calc_soil_water_potential(theta=0, **soil_props) == soil.calc_soil_water_potential(theta=soil_props['theta_res'], **soil_props)
+        assert soil.calc_soil_water_potential(theta=1, **soil_props) == soil.calc_soil_water_potential(theta=soil_props['theta_sat'], **soil_props)
         res = []
         for theta in linspace(soil_props['theta_res'], soil_props['theta_sat'], 10):
             res.append(soil.calc_soil_water_potential(theta=theta, **soil_props))

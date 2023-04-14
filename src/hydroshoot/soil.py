@@ -65,7 +65,7 @@ def calc_soil_water_potential(theta: float, theta_res: float, theta_sat: float, 
             A closed-form equation for predicting the hydraulic conductivity of unsaturated soils.
             Soil Science Society of America Journal 44, 892897.
     """
-    theta = max(theta, theta_res * (1 + 1.e-6))
+    theta = min(max(theta, theta_res * (1 + 1.e-6)), theta_sat)
     m = 1 - 1. / n
     if theta == theta_sat:
         psi_soil = 0
