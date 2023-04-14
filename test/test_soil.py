@@ -5,6 +5,28 @@ from hydroshoot import soil
 SOIL_CLASSES = list(soil.SOIL_PROPS.keys())
 
 
+def test_calc_soil_water_content_from_water_potential():
+    soil_props = dict(
+        theta_res=0.045,
+        theta_sat=0.430,
+        alpha=0.145,
+        n=2.68)
+    assert soil.calc_volumetric_water_content_from_water_potential(psi=0, **soil_props) == soil_props['theta_sat']
+    assert soil.calc_volumetric_water_content_from_water_potential(psi=-1.e12, **soil_props) == soil_props['theta_res']
+
+
+def test_calc_soil_water_potential():
+    for v in soil.SOIL_PROPS.values():
+        soil_props = {k: v[i] for i, k in enumerate(('theta_res', 'theta_sat', 'alpha', 'n'))}
+        assert 0 == soil.calc_soil_water_potential(theta=soil_props['theta_sat'], **soil_props)
+        assert 1.e-12 > soil.calc_soil_water_potential(theta=soil_props['theta_res'], **soil_props)
+        res = []
+        for theta in linspace(soil_props['theta_res'], soil_props['theta_sat'], 10):
+            res.append(soil.calc_soil_water_potential(theta=theta, **soil_props))
+        assert all([x <= y for x, y in zip(res, res[1:])])
+    pass
+
+
 def test_soil_conductivity_decreases_as_water_potential_decreases():
     for soil_class in soil.SOIL_PROPS.keys():
         soil_conductivity = [soil.calc_soil_conductivity(psi, soil_class) for psi in arange(0, -3, -0.1)]
