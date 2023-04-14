@@ -11,9 +11,7 @@ from math import exp
 from typing import Callable
 
 import openalea.mtg.traversal as traversal
-from numpy import array
 from openalea.plantgl.all import surface as surf
-from scipy import optimize
 
 import hydroshoot.constants as cst
 
@@ -69,95 +67,6 @@ def cavitation_factor(psi, model='tuzet', fifty_cent=-0.51, sig_slope=3):
         raise ValueError("The 'model' argument must be one of the following ('misson','tuzet', 'linear').")
 
     return k_reduction
-
-
-def def_param_soil(custom=None):
-    """
-    Returns a dictionary of classes of default soil hydrodynamic parameters for the model of van Genuchten-Muallem.
-    For each soil class (`dict.key`), the data are organized as follows:
-    name : (theta_r, theta_s, alpha[cm-1], n, k_sat[cm d-1])
-
-    Args:
-        custom (tuple): set of soil parameters ordered as mentioned above.
-
-    References
-        Carsel R., Parrish R., 1988.
-            Developing joint probability distributions of soil water retention characteristics.
-            Water Resources Research 24,755 – 769.
-    """
-
-    def_dict = {'Sand': (0.045, 0.430, 0.145, 2.68, 712.8),
-                'Loamy_Sand': (0.057, 0.410, 0.124, 2.28, 350.2),
-                'Sandy_Loam': (0.065, 0.410, 0.075, 1.89, 106.1),
-                'Loam': (0.078, 0.430, 0.036, 1.56, 24.96),
-                'Silt': (0.034, 0.460, 0.016, 1.37, 6.00),
-                'Silty_Loam': (0.067, 0.450, 0.020, 1.41, 10.80),
-                'Sandy_Clay_Loam': (0.100, 0.390, 0.059, 1.48, 31.44),
-                'Clay_Loam': (0.095, 0.410, 0.019, 1.31, 6.24),
-                'Silty_Clay_Loam': (0.089, 0.430, 0.010, 1.23, 1.68),
-                'Sandy_Clay': (0.100, 0.380, 0.027, 1.23, 2.88),
-                'Silty_Clay': (0.070, 0.360, 0.005, 1.09, 0.48),
-                'Clay': (0.068, 0.380, 0.008, 1.09, 4.80)}
-
-    if custom:
-        def_dict['Custom'] = custom
-
-    return def_dict
-
-
-def soil_water_potential(psi_soil_init, water_withdrawal, soil_class, soil_total_volume, psi_min=-3.):
-    """Computes soil water potential following van Genuchten (1980)
-
-    Args:
-        psi_soil_init (float): [MPa] initial soil water potential
-        water_withdrawal (float): [Kg T-1] water volume that is withdrawn from the soil (by transpiration for instance)
-            during a time lapse T
-        soil_class (str): one of the soil classes proposed by Carsel and Parrish (1988), see :func:`def_param_soil` for
-            details
-        soil_total_volume (float): [m3] total apparent volume of the soil (including solid, liquid and gaseous
-            fractions)
-        psi_min (float): [MPa] minimum allowable water potential
-
-    Returns:
-        (float): [MPa] soil water potential
-
-    Notes:
-        Strictly speaking, :arg:`psi_min` expresses rather the minimum water potential at the base of the plant shoot.
-
-    References:
-        van Genuchten M., 1980.
-            A closed-form equation for predicting the hydraulic conductivity of unsaturated soils.
-            Soil Science Society of America Journal 44, 892897.
-    """
-
-    psi_soil_init = min(-1e-6, psi_soil_init)
-    theta_r, theta_s, alpha, n, k_sat = def_param_soil()[soil_class]
-
-    m = 1. - 1. / n
-
-    psi = psi_soil_init * 1.e6 / (cst.water_density * cst.gravitational_acceleration) * 100.  # MPa -> cm_H20
-    theta_init = theta_r + (theta_s - theta_r) / (1. + abs(alpha * psi) ** n) ** m
-
-    flux = water_withdrawal / cst.water_density  # kg T-1 -> m3 T-1
-
-    porosity_volume = soil_total_volume * theta_s
-
-    delta_theta = flux / porosity_volume  # [m3 m-3]
-
-    theta = max(theta_r, theta_init - delta_theta)
-
-    if theta <= theta_r:
-        psi_soil = psi_min
-    elif theta >= theta_s:
-        psi_soil = 0.0
-    else:
-        def _water_retention(x):
-            return 1. / (1. + abs(alpha * x) ** n) ** m - (theta - theta_r) / (theta_s - theta_r)
-
-        psi_soil = optimize.fsolve(_water_retention, array(psi))[0] / (
-                1.e6 / (cst.water_density * cst.gravitational_acceleration) * 100)
-
-    return max(psi_min, float(psi_soil))
 
 
 def hydraulic_prop(g, length_conv=1.e-2, a=2.6, b=2.0, min_kmax=0.):

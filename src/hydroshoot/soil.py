@@ -76,6 +76,51 @@ def calc_soil_water_potential(theta: float, theta_res: float, theta_sat: float, 
     return psi_soil
 
 
+def update_soil_water_potential(psi_soil_init, water_withdrawal, soil_class, soil_total_volume, psi_min):
+    """Updates the value of soil water potential after subtracting water quantity taken by the plant.
+
+    Args:
+        psi_soil_init (float): [MPa] initial soil water potential
+        water_withdrawal (float): [Kg T-1] water volume that is withdrawn from the soil (by transpiration for instance)
+            during a timelapse T
+        soil_class (str): one of the soil classes proposed by Carsel and Parrish (1988)
+        soil_total_volume (float): [m3] total apparent volume of the soil
+        psi_min (float): [MPa] minimum allowable water potential
+
+    Returns:
+        (float): [MPa] soil water potential calculated following the water retention curve of van Genuchten (1980)
+
+    References:
+        Carsel R., Parrish R., 1988.
+            Developing joint probability distributions of soil water retention characteristics.
+            Water Resources Research 24,755 - 769.
+        van Genuchten M., 1980.
+            A closed-form equation for predicting the hydraulic conductivity of unsaturated soils.
+            Soil Science Society of America Journal 44, 892897.
+    """
+
+    psi_soil_init = min(-1e-6, psi_soil_init)
+    theta_r, theta_s, alpha, n, k_sat = SOIL_PROPS[soil_class]
+
+    m = 1. - 1. / n
+
+    psi = psi_soil_init * 1.e6 / (cst.water_density * cst.gravitational_acceleration) * 100.  # MPa -> cm_H20
+    theta_init = theta_r + (theta_s - theta_r) / (1. + abs(alpha * psi) ** n) ** m
+
+    flux = water_withdrawal / cst.water_density  # kg T-1 -> m3 T-1
+
+    porosity_volume = soil_total_volume * theta_s
+
+    delta_theta = flux / porosity_volume  # [m3 m-3]
+
+    theta = max(theta_r, theta_init - delta_theta)
+
+    psi_soil = calc_soil_water_potential(theta=theta, theta_res=theta_r, theta_sat=theta_s, alpha=alpha, n=n) / (
+            1.e6 / (cst.water_density * cst.gravitational_acceleration) * 100)
+
+    return max(psi_min, psi_soil)
+
+
 def calc_soil_conductivity(psi: float, soil_class: str) -> float:
     """Gives the actual soil hydraulic conductivity following van Genuchten (1980)
 

@@ -14,7 +14,7 @@ from openalea.mtg.plantframe import color as pglcolor
 
 plt.style.use('ggplot')
 
-from hydroshoot.hydraulic import def_param_soil
+from hydroshoot.soil import SOIL_PROPS
 
 DEFAULT_LABELS = {
     'Eabs': r'$\mathregular{E_{abs}\/[\mu mol\/m^{-2}\/s^{-1}]}$',
@@ -337,7 +337,7 @@ def retention_curve(g, ax=None):
 
     plt.xscale('log')
     soil_class = g.node(g.Ancestors(g.node(g.root).vid_base)[0]).soil_class
-    param = def_param_soil()[soil_class]
+    param = SOIL_PROPS[soil_class]
     theta_r, theta_s, alpha, n, k_sat = [param[i] for i in range(5)]
     m = 1. - 1. / n
 

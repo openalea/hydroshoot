@@ -4,6 +4,7 @@ import openalea.mtg.traversal as traversal
 
 from hydroshoot import hydraulic, exchange, energy
 from hydroshoot.architecture import get_leaves
+from hydroshoot.soil import update_soil_water_potential
 
 
 def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params, calc_collar_water_potential):
@@ -88,7 +89,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params, calc_colla
                                          a=xylem_k_max['a'], b=xylem_k_max['b'], min_kmax=xylem_k_max['min_kmax'])
 
                 # Update soil water status
-                psi_base = hydraulic.soil_water_potential(
+                psi_base = update_soil_water_potential(
                     psi_soil_init=psi_soil, water_withdrawal=g.node(g.node(g.root).vid_collar).Flux * time_conv,
                     soil_class=params.soil.soil_class, soil_total_volume=params.soil.soil_volume,
                     psi_min=psi_min)

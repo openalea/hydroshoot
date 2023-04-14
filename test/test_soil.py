@@ -20,13 +20,32 @@ def test_calc_soil_water_potential():
         soil_props = {k: v[i] for i, k in enumerate(('theta_res', 'theta_sat', 'alpha', 'n'))}
         assert 0 == soil.calc_soil_water_potential(theta=soil_props['theta_sat'], **soil_props)
         assert 1.e-12 > soil.calc_soil_water_potential(theta=soil_props['theta_res'], **soil_props)
-        assert soil.calc_soil_water_potential(theta=0, **soil_props) == soil.calc_soil_water_potential(theta=soil_props['theta_res'], **soil_props)
-        assert soil.calc_soil_water_potential(theta=1, **soil_props) == soil.calc_soil_water_potential(theta=soil_props['theta_sat'], **soil_props)
+        assert soil.calc_soil_water_potential(theta=0, **soil_props) == soil.calc_soil_water_potential(
+            theta=soil_props['theta_res'], **soil_props)
+        assert soil.calc_soil_water_potential(theta=1, **soil_props) == soil.calc_soil_water_potential(
+            theta=soil_props['theta_sat'], **soil_props)
         res = []
         for theta in linspace(soil_props['theta_res'], soil_props['theta_sat'], 10):
             res.append(soil.calc_soil_water_potential(theta=theta, **soil_props))
         assert all([x <= y for x, y in zip(res, res[1:])])
     pass
+
+
+def test_soil_water_potential_decreases_as_water_withdrawal_increases():
+    for soil_class in SOIL_CLASSES:
+        psi_soil = [soil.update_soil_water_potential(psi_soil_init=0., water_withdrawal=w, soil_class=soil_class,
+                                                     soil_total_volume=1, psi_min=-3.)
+                    for w in arange(0, 3, 0.1)]
+        assert all(x >= y for x, y in zip(psi_soil, psi_soil[1:]))
+
+
+def test_soil_water_potential_drops_faster_for_small_soil_reservoirs_than_bigger_ones():
+    for soil_class in SOIL_CLASSES:
+        psi_soil_small = soil.update_soil_water_potential(psi_soil_init=0., water_withdrawal=1., soil_class=soil_class,
+                                                          soil_total_volume=1., psi_min=-3.)
+        psi_soil_big = soil.update_soil_water_potential(psi_soil_init=0., water_withdrawal=1., soil_class=soil_class,
+                                                        soil_total_volume=2., psi_min=-3.)
+        assert psi_soil_small < psi_soil_big
 
 
 def test_soil_conductivity_decreases_as_water_potential_decreases():

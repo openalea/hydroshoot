@@ -8,8 +8,8 @@ from pandas import DataFrame, read_csv, DatetimeIndex
 from hydroshoot.architecture import get_leaves
 from hydroshoot.display import visu
 from hydroshoot.energy import force_soil_temperature
-from hydroshoot.hydraulic import soil_water_potential
 from hydroshoot.params import Params
+from hydroshoot.soil import update_soil_water_potential
 
 
 class HydroShootInputs(object):
@@ -127,7 +127,7 @@ class HydroShootHourlyInputs(object):
                     pass
             # Estimate soil water potential evolution due to transpiration
             else:
-                self.psi_soil = soil_water_potential(
+                self.psi_soil = update_soil_water_potential(
                     psi_soil_init=self.psi_soil,
                     water_withdrawal=g.node(g.node(g.root).vid_collar).Flux * params.simulation.conv_to_second,
                     soil_class=params.soil.soil_class,
