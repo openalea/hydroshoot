@@ -47,21 +47,6 @@ def calc_volumetric_water_content_from_water_potential(
     return theta
 
 
-def calc_volumetric_water_content_from_water_reservoir(water_content: float, soil_thickness: float) -> float:
-    """Computes soil volumetric water content
-
-    Args:
-        water_content: [mm] soil water content
-        soil_thickness: [mm] soil layer thickness
-
-    Returns:
-        (float): [-] soil volumetric water content
-
-    """
-
-    return water_content / soil_thickness
-
-
 def calc_soil_water_potential(theta: float, theta_res: float, theta_sat: float, alpha: float, n: float) -> float:
     """Computes soil water potential following van Genuchten (1980)
 
