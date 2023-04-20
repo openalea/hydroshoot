@@ -419,7 +419,7 @@ def vine_phyto_modular(g, v, *args):
 
 
 def vine_NFII(in_order, pruning_type='avg_field_model', N_init=0.18, N_max=2.25, N_max_order=4, in_order_max=25,
-              sig_slope=5.7, phyto_type='P0'):
+              sig_slope=5.7, phyto_type='P0', ci_nfii=0.42):
     """
     Returns NFII, the total number of secondary phytomers per primary internode.
 
@@ -432,6 +432,7 @@ def vine_NFII(in_order, pruning_type='avg_field_model', N_init=0.18, N_max=2.25,
     - **in_order_max**: float, the order of the primary internode where the number of secondary internodes is assumed equal to zero
     - **sig_slope**: float, the slope (b) of the sigmoidal relationshipe NFII=f(in_order), a modified formula of that proposed by Louarn (2005, PhD, Eq. II.8)
     - **phyto_type**: string, the type of the primary phytomere. Can be one of 'P0', 'P1' or 'P2' (Louarn et al., 2007)
+    - **ci_nfii**: average confidence interval for NFII (ci_nfii = 0.42 observed in field)
 
     :Notes:
     - **'GDC_1'**, **'Lyre'**, **'Rideau_simple'**, **'VSP_HL'**, are data collected in 2009 from well-irrigated field-grown Syrah vines at INRA-Montpellier.
@@ -472,7 +473,6 @@ def vine_NFII(in_order, pruning_type='avg_field_model', N_init=0.18, N_max=2.25,
     a2 = -N_max / (in_order_max - N_max_order)
     b2 = N_max * (1 + N_max_order / (in_order_max - N_max_order))
 
-    CI_1 = 0.42  # Average confidence interval for NFII observed in field (procedure to be improved)
     CI_2_coef = 0.007 * in_order + 0.193  # Average confidence interval for NFII observed in pots (procedure to be improved)
 
     if pruning_type in NFII_dict.keys():
@@ -491,7 +491,7 @@ def vine_NFII(in_order, pruning_type='avg_field_model', N_init=0.18, N_max=2.25,
     else:  # default_pruning_type = 'avg_field_model'
         NFII_init = a1 * (in_order - 1) + b1 if in_order <= N_max_order else a2 * in_order + b2
         NFII_init = max(0., NFII_init)
-        NFII = NFII_init + CI_1 * (min(1, max(-1, randn() / 2.96)))
+        NFII = NFII_init + ci_nfii * (min(1, max(-1, randn() / 2.96)))
 
     NFII = int(round(NFII, 0))
 
@@ -614,7 +614,7 @@ def vine_axeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
                N_init=0.18, N_max=2.25, N_max_order=4, in_order_max=25,
                slope_nfii=5.7, phyto_type='P0', a_L=43.718, b_L=-37.663,
                a_P=1.722, b_P=10.136, c_P=-5.435, Fifty_cent=400.,
-               slope_curv=70., curv_type='convexe'):
+               slope_curv=70., curv_type='convexe', **kwargs):
     """
     Adds secondary phytomers to an existing MTG.
 
@@ -655,7 +655,7 @@ def vine_axeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
                     findall(r'\d+', str(fatherI.label))[
                         -1])  # In case where the label ends with an alphabetical letter ('M' for Multiple internodes)
                 NFII = vine_NFII(in_order, pruning_type, N_init, N_max, N_max_order, in_order_max, slope_nfii,
-                                 phyto_type)
+                                 phyto_type, **kwargs)
                 tot_len = 0.1 * vine_LII(NFII, pruning_type, a_L, b_L, a_P, b_P, c_P)
                 length = vine_internode_length(NFII, tot_len)
 
