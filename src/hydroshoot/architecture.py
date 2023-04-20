@@ -109,10 +109,6 @@ def soil0(l=1.):
 # MTG topology construction
 # ==============================================================================
 
-def VineMTG(file_path):
-    raise DeprecationWarning('This function must be replaced by vine_mtg()')
-    return vine_mtg(file_path)
-
 
 def vine_mtg(file_path):
     """
@@ -377,12 +373,6 @@ def vine_mtg(file_path):
     return g
 
 
-def VinePhytoModular(g, v, *args):
-    raise DeprecationWarning("This function must be replaced by \
-                             vine_phyto_modular()")
-    return vine_phyto_modular(g, v, *args)
-
-
 def vine_phyto_modular(g, v, *args):
     """
     Identifies the type of phytometer according to Louarn et al. (2007).
@@ -426,13 +416,6 @@ def vine_phyto_modular(g, v, *args):
     except:
         pass
     return g
-
-
-def VineNFII(in_order, pruning_type='avg_field_model', N_init=0.18, N_max=2.25,
-             N_max_order=4, in_order_max=25, sig_slope=5.7, phyto_type='P0'):
-    raise DeprecationWarning("This function must be replaced by vine_NFII()")
-    return vine_NFII(in_order, pruning_type, N_init, N_max, N_max_order,
-                     in_order_max, sig_slope, phyto_type)
 
 
 def vine_NFII(in_order, pruning_type='avg_field_model', N_init=0.18, N_max=2.25, N_max_order=4, in_order_max=25,
@@ -515,12 +498,6 @@ def vine_NFII(in_order, pruning_type='avg_field_model', N_init=0.18, N_max=2.25,
     return NFII
 
 
-def VineLII(NFII, pruning_type='avg_field_model', a_L=43.718, b_L=-37.663,
-            a_P=1.722, b_P=10.136, c_P=-5.435):
-    raise DeprecationWarning("This function must be replaced by vine_LII()")
-    return vine_LII(NFII, pruning_type, a_L, b_L, a_P, b_P, c_P)
-
-
 def vine_LII(NFII, pruning_type='avg_field_model', a_L=43.718, b_L=-37.663, a_P=1.722, b_P=10.136, c_P=-5.435):
     """
     Returns LII [mm], the total length of secondary axis.
@@ -540,12 +517,6 @@ def vine_LII(NFII, pruning_type='avg_field_model', a_L=43.718, b_L=-37.663, a_P=
     return LII
 
 
-def VineInL(phyto_num, tot_len):
-    raise DeprecationWarning("This function must be replaced by \
-                             vine_internode_length()")
-    return vine_internode_length(phyto_num, tot_len)
-
-
 def vine_internode_length(phyto_num, tot_len):
     """
     Returns the length of an individual internode.
@@ -562,14 +533,6 @@ def vine_internode_length(phyto_num, tot_len):
         inL = 0.
 
     return inL
-
-
-def VineAxisCurv(incli_init, length, Fifty_cent=400., sig_slope=70.,
-                 curv_type='convexe'):
-    raise DeprecationWarning("This function must be replaced by \
-                             vine_axis_curvature()")
-    return vine_axis_curvature(incli_init, length, Fifty_cent, sig_slope,
-                               curv_type)
 
 
 def vine_axis_curvature(incli_init, length, Fifty_cent=400., sig_slope=70.,
@@ -618,13 +581,6 @@ def vector_rotation(vector, axis, theta):
     return dot(rotation_matrix, vector)
 
 
-def VineAxeIIinsert(inI_vector, insert_angle=46., insert_angle_CI=4.6, rot_range=180.):
-    raise DeprecationWarning("This function must be replaced by \
-                             vine_axeII_insert()")
-    return vine_axeII_insert(inI_vector, insert_angle, insert_angle_CI,
-                             rot_range)
-
-
 def vine_axeII_insert(inI_vector, insert_angle=46., insert_angle_CI=4.6, rot_range=180.):
     """
     Returns the azimut and inclination [rad] of the insertion unit vector of the first secondary internode
@@ -651,20 +607,6 @@ def vine_axeII_insert(inI_vector, insert_angle=46., insert_angle_CI=4.6, rot_ran
     len_init, azi_init, incli_init = cart_to_pol(vec_2)
 
     return azi_init, incli_init
-
-
-def VineAxeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
-              insert_angle_CI=4.6, pruning_type='avg_field_model', N_init=0.18,
-              N_max=2.25, N_max_order=4, in_order_max=25, slope_nfii=5.7,
-              phyto_type='P0', a_L=43.718, b_L=-37.663, a_P=1.722, b_P=10.136,
-              c_P=-5.435, Fifty_cent=400., slope_curv=70., curv_type='convexe'):
-    raise DeprecationWarning("This function must be replaced by vine_axeII()")
-
-    return vine_axeII(g, vid, phyllo_angle, PT_init, insert_angle,
-                      insert_angle_CI, pruning_type, N_init, N_max,
-                      N_max_order, in_order_max, slope_nfii, phyto_type,
-                      a_L, b_L, a_P, b_P, c_P, Fifty_cent, slope_curv,
-                      curv_type)
 
 
 def vine_axeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
@@ -832,13 +774,6 @@ def vine_axeII(g, vid, phyllo_angle=180., PT_init=0.5, insert_angle=46.,
     return g
 
 
-def VinePetLen(in_order, len_max=8., Fifty_cent=30., sig_slope=4.2):
-    raise DeprecationWarning("This function must be replaced by \
-                             vine_petiole_length()")
-
-    return vine_petiole_length(in_order, len_max, Fifty_cent, sig_slope)
-
-
 def vine_petiole_length(in_order, len_max=8., Fifty_cent=30., sig_slope=4.2):
     """
     Returns petiole length (def in cm) of an internode or a pruning complex.
@@ -854,17 +789,6 @@ def vine_petiole_length(in_order, len_max=8., Fifty_cent=30., sig_slope=4.2):
     # TODO: The confidence intervals may be added
 
     return petiol_len
-
-
-def VinePetiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
-                phyllo_angle_cv=10., len_max_I=8., len_max_II=4.,
-                Fifty_cent=30., sig_slope=4.2):
-    raise DeprecationWarning("This function must be replaced by \
-                             vine_petiole()")
-
-    return vine_petiole(g, vid, pet_ins, pet_ins_cv, phyllo_angle,
-                        phyllo_angle_cv, len_max_I, len_max_II, Fifty_cent,
-                        sig_slope)
 
 
 def vine_petiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
@@ -949,15 +873,6 @@ def vine_petiole(g, vid, pet_ins=90., pet_ins_cv=10., phyllo_angle=180.,
     return g
 
 
-def VineLeafLen(in_order, lim_max=15., lim_min=5.1, order_lim_max=7,
-                max_order=40):
-    raise DeprecationWarning("This function must be replaced by \
-                             vine_midrib_length()")
-
-    return vine_midrib_length(in_order, lim_max, lim_min, order_lim_max,
-                              max_order)
-
-
 def vine_midrib_length(in_order, lim_max=15., lim_min=5.1, order_lim_max=7, max_order=40):
     """
     Returns the length of a leaf based on the order of the holding internode.
@@ -975,16 +890,6 @@ def vine_midrib_length(in_order, lim_max=15., lim_min=5.1, order_lim_max=7, max_
         LimbeLen = lim_max - (in_order - order_lim_max) * lim_max / (max_order - order_lim_max)
 
     return LimbeLen
-
-
-def VineLeaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
-             lim_max=15., lim_min=5.1, order_lim_max=7, max_order=40,
-             cordon_vector=None):
-    raise DeprecationWarning("This function must be replaced by \
-                             vine_leaf()")
-
-    return vine_leaf(g, vid, leaf_inc, leaf_inc_cv, rand_rot_angle, lim_max,
-                     lim_min, order_lim_max, max_order, cordon_vector)
 
 
 def vine_leaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
@@ -1035,13 +940,6 @@ def vine_leaf(g, vid, leaf_inc=-45., leaf_inc_cv=10., rand_rot_angle=30.,
                                         round(z_bot + dz_limbe, 2)]
 
     return g
-
-
-def VineLobesTips(pPet, lobes_tips):
-    raise DeprecationWarning("This function must be replaced by \
-                             vine_lobes_tips()")
-
-    return vine_lobes_tips(pPet, lobes_tips)
 
 
 def vine_lobes_tips(pPet, lobes_tips):
@@ -1366,13 +1264,6 @@ def vine_diam(g, vid, D_trunk=5.06, D_arm=3.77, D_Cx=2.91, D_3y=1.75,
     return Diam
 
 
-def VineMTGProp(g, vid):
-    raise DeprecationWarning("This function must be replaced by \
-                             vine_mtg_properties()")
-
-    return vine_mtg_properties(g, vid)
-
-
 def vine_mtg_properties(g, vid):
     """
     Attaches geometric properties to MTG vertices.
@@ -1421,13 +1312,6 @@ def vine_mtg_properties(g, vid):
     return g
 
 
-def VineMTGGeom(g, vid):
-    raise DeprecationWarning("This function must be replaced by \
-                             vine_mtg_geometry()")
-
-    return vine_mtg_geometry(g, vid)
-
-
 def vine_mtg_geometry(g, vid):
     """
     Adds geometry to elements of an MTG object.
@@ -1472,13 +1356,6 @@ def vine_mtg_geometry(g, vid):
     return g
 
 
-def VineTransform(g, vid):
-    raise DeprecationWarning("This function must be replaced by \
-                             vine_transform()")
-
-    return vine_transform(g, vid)
-
-
 def vine_transform(g, vid):
     """
     Transforms all elements of an MTG to their real position.
@@ -1520,13 +1397,6 @@ def vine_transform(g, vid):
                 g.node(vid).geometry = mesh
 
     return g
-
-
-def VineOrient(g, vid, theta, v_axis=[0., 0., 1.], local_rotation=False):
-    raise DeprecationWarning("This function must be replaced by \
-                             vine_orientation()")
-
-    return vine_orientation(g, vid, theta, v_axis, local_rotation)
 
 
 def vine_orientation(g, vid, theta, v_axis=[0., 0., 1.], local_rotation=False):
