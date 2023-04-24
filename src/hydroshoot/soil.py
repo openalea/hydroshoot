@@ -109,9 +109,9 @@ def update_soil_water_potential(psi_soil_init, water_withdrawal, soil_class, soi
 
     flux = water_withdrawal / cst.water_density  # kg T-1 -> m3 T-1
 
-    porosity_volume = soil_total_volume * theta_s
+    # porosity_volume = soil_total_volume * theta_s
 
-    delta_theta = flux / porosity_volume  # [m3 m-3]
+    delta_theta = flux / soil_total_volume  # [m3 m-3]
 
     theta = max(theta_r, theta_init - delta_theta)
 
