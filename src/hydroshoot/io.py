@@ -1,5 +1,6 @@
 from datetime import datetime
 from pathlib import Path
+from typing import Union
 
 from openalea.mtg.mtg import MTG
 from openalea.plantgl.all import Scene
@@ -13,11 +14,12 @@ from hydroshoot.params import Params
 
 
 class HydroShootInputs(object):
-    def __init__(self, path_project: Path, user_params: dict, scene: Scene,
+    def __init__(self, path_project: Path, path_weather: Path, scene: Scene, user_params: Union[dict, None],
                  is_write_result: bool = True, path_output_file: Path = None, **kwargs):
         self.path_project = path_project
         self.path_output_file = None
         self.path_output_dir = None
+        self.path_weather = path_weather
         self.scene = scene
         self.is_write_result = is_write_result
 
@@ -54,7 +56,7 @@ class HydroShootInputs(object):
         self.set_output_dir(user_path=path_output_file)
 
     def set_weather(self):
-        df = read_csv(self.path_project / self.params.simulation.weather_file_name, sep=';', decimal='.', header=0)
+        df = read_csv(self.path_weather, sep=';', decimal='.', header=0)
         df.time = DatetimeIndex(df.time)
         df = df.set_index(df.time)
         if 'Ca' not in df.columns:
