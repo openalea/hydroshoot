@@ -16,13 +16,14 @@ from hydroshoot.energy import calc_effective_sky_temperature
 from hydroshoot.initialisation import init_model, init_hourly
 
 
-def run(g: MTG, wd: Path, params: dict = None, scene: Scene = None, write_result: bool = True, path_output: Path = None,
-        **kwargs) -> DataFrame:
+def run(g: MTG, wd: Path, path_weather: Path, params: dict = None, scene: Scene = None,
+        write_result: bool = True, path_output: Path = None, **kwargs) -> DataFrame:
     """Calculates leaf gas and energy exchange in addition to the hydraulic structure of an individual plant.
 
     Args:
         g: mtg object
         wd: working directory
+        path_weather: path to the weather file
         params: model params
         scene: PlantGl scene (default None)
         write_result: if True then hourly plant-scale outputs are written into a CSV file
@@ -53,6 +54,7 @@ def run(g: MTG, wd: Path, params: dict = None, scene: Scene = None, write_result
     # Read user parameters
     inputs = io.HydroShootInputs(
         path_project=wd,
+        path_weather=path_weather,
         user_params=params,
         scene=scene,
         write_result=write_result,
