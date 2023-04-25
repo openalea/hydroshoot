@@ -90,7 +90,6 @@ class Simulation:
         self.is_hydraulic_structure = simulation_dict['hydraulic_structure']
         self.is_negligible_shoot_resistance = simulation_dict['negligible_shoot_resistance']
         self.is_energy_budget = simulation_dict['energy_budget']
-        self.weather_file_name = simulation_dict['meteo']
 
         self.date_range = date_range(start=self.date_beg, end=self.date_end, freq='H')
         self.conv_to_second = {'D': 86.4e3, 'H': 3600., 'T': 60., 'S': 1.}[self.date_range.freqstr]
