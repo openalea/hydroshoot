@@ -5,7 +5,6 @@
     "latitude": 43.61,
     "longitude": 3.87,
     "elevation": 44.0,
-    "meteo": "meteo.csv",
     "tzone": "Europe/Paris",
     "output_index": "",
     "unit_scene_length": "cm",

@@ -8,9 +8,11 @@ from test import non_regression_data
 
 
 def test_potted_grapevine():
+    path_data = Path(__file__).parent / 'data'
     results = model.run(
         g=non_regression_data.potted_syrah(),
-        wd=Path(__file__).parent / 'data',
+        wd=path_data,
+        path_weather=path_data / 'meteo.csv',
         write_result=False,
         psi_soil=-0.2,
         gdd_since_budbreak=100.)
