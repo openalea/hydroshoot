@@ -2,6 +2,7 @@
 simple shoot architecture.
 """
 
+from json import load
 from pathlib import Path
 
 from openalea.mtg import traversal, mtg
@@ -26,5 +27,16 @@ def build_mtg(path_file: Path, is_show_scene: bool = True) -> (mtg.MTG, Scene):
 
 if __name__ == '__main__':
     path_project = Path(__file__).parent
+
     g, scene = build_mtg(path_file=path_project / 'grapevine_pot.csv')
-    summary_results = model.run(g=g, wd=path_project, scene=scene, psi_soil=-0.2, gdd_since_budbreak=100.)
+
+    with open(path_project / 'params.json') as f:
+        user_params = load(f)
+
+    summary_results = model.run(
+        g=g,
+        wd=path_project,
+        path_weather=path_project / 'meteo.input',
+        scene=scene,
+        psi_soil=-0.2,
+        gdd_since_budbreak=100.)
