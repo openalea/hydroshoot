@@ -535,6 +535,12 @@
           "type": "object",
           "description": "Parameters of the photosynthetic capacity (before accounting for the effect of leaf N content",
           "properties": {
+            "alpha": {
+              "type": "number",
+              "description": "[umol(CO2) umol(photon)-1] Photochemical efficiency or initial quantum yield",
+              "minimum": 0.0,
+              "exclusiveMinimum": true
+            },
             "Kc25": {
               "type": "number",
               "description": "[umol mol-1] Michaelis-Menten constant for the carboxylase",
@@ -717,6 +723,7 @@
             }
           },
           "required": [
+            "alpha",
             "Kc25",
             "Ko25",
             "Tx25",
