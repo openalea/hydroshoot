@@ -11,7 +11,6 @@ from copy import deepcopy
 from math import exp, acos, sqrt, cos, log
 
 from hydroshoot import utilities as utils
-from hydroshoot.architecture import get_leaves
 from hydroshoot.constants import oxygen_partial_pressure as o, ideal_gaz_cst as r
 
 
@@ -66,7 +65,7 @@ def arrhenius_1(param_name, leaf_temperature, photo_params):
     Args:
         param_name (str): name of the parameter to be considered, one of 'Tx', 'Kc', and 'Ko'
         leaf_temperature (float): [°C] leaf temperature
-        photo_params (dict): default values at 25 °C of Farquhar's model (cf. :func:`par_photo_default`)
+        photo_params (dict): default values at 25 °C of Farquhar's model
 
     Returns:
         (float): the value of the given :arg:`param_name` at the given :arg:`leaf_temperature`
@@ -97,7 +96,7 @@ def arrhenius_2(param_name, leaf_temperature, photo_params):
     Args:
         param_name (str): name of the parameter to be considered, one of `Vcmax`, `Jmax`, `TPUmax`, and `Rdmax`
         leaf_temperature (float): [°C] leaf temperature
-        photo_params (dict): default values at 25 °C of Farquhar's model (cf. :func:`par_photo_default`)
+        photo_params (dict): default values at 25 °C of Farquhar's model
 
     Returns:
         (float): the value of the given :arg:`param_name` at the given :arg:`leaf_temperature`
@@ -448,7 +447,7 @@ def an_gs_ci(air_temperature, absorbed_ppfd, relative_humidity, leaf_temperature
         relative_humidity (float): (%) air relative humidity
         leaf_temperature (float): [°C] leaf temperature
         leaf_water_potential (float): [MPa] bulk water potential of the leaf
-        photo_params (dict): default values at 25 °C of Farquhar's model (cf. :func:`par_photo_default`)
+        photo_params (dict): default values at 25 °C of Farquhar's model
         gs_params (dict): stomatal conductance params (keys must be: 'model', 'g0', 'm0', 'psi0', 'D0', 'n')
         rbt (float): [m2 s ubar umol-1] combined turbulance and boundary layer resistance to CO2
         ca (float): [ubar] CO2 partial pressure of the air
@@ -532,7 +531,7 @@ def calc_gas_exchange_rates(leaf_water_potential, leaf_temperature, carboxylatio
         leaf_length (dict): [m] leaf length
         wind_speed (dict): [m s-1] wind speed at the leaf level
         leaf_ids (list): leaf ids (default None)
-        photo_params (dict): values at 25 °C of Farquhar's model (cf. :func:`par_photo_default`)
+        photo_params (dict): values at 25 °C of Farquhar's model
         gs_params (dict): parameters of the stomatal conductance model (model, g0, m0, psi0, D0, n)
         air_temperature (float): [°C] air temperature
         relative_humidity (float): (%) air relative humidity (between 0 and 100 for dry and saturated air, respectively)
@@ -623,7 +622,7 @@ def set_gas_exchange_rates(g, photo_params, gs_params, air_temperature, relative
 
     Args:
         g: a multiscale tree graph object
-        photo_params (dict): values at 25 °C of Farquhar's model (cf. :func:`par_photo_default`)
+        photo_params (dict): values at 25 °C of Farquhar's model
         gs_params (dict): parameters of the stomatal conductance model (model, g0, m0, psi0, D0, n)
         air_temperature (float): [°C] air temperature
         relative_humidity (float): (%) air relative humidity (between 0 and 100 for dry and saturated air, respectively)
