@@ -29,6 +29,7 @@ def setup_default_photosynthesis_params():
         Jm25=143.0,
         cRd=0.008,
         TPU25=10.0,
+        alpha=0.24,
         Kc25=404.9,
         Ko25=278.4,
         Tx25=42.75,
