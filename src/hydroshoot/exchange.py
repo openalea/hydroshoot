@@ -196,7 +196,7 @@ def compute_an_2par(params_photo, ppfd, leaf_temp):
     tpu = arrhenius_2('TPUmax', leaf_temp, params_photo)
     r_d = arrhenius_2('Rdmax', leaf_temp, params_photo)
 
-    alpha = .24
+    alpha = params_photo['alpha']
 
     j = (alpha * ppfd) / ((1 + ((alpha ** 2 * ppfd ** 2) / (j_max ** 2))) ** 0.5)
 
