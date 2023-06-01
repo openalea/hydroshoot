@@ -9,8 +9,8 @@ from pandas import DataFrame, read_csv, DatetimeIndex
 from hydroshoot.architecture import get_leaves
 from hydroshoot.display import visu
 from hydroshoot.energy import force_soil_temperature
-from hydroshoot.hydraulic import soil_water_potential
 from hydroshoot.params import Params
+from hydroshoot.soil import update_soil_water_potential
 
 
 class HydroShootInputs(object):
@@ -129,11 +129,11 @@ class HydroShootHourlyInputs(object):
                     pass
             # Estimate soil water potential evolution due to transpiration
             else:
-                self.psi_soil = soil_water_potential(
+                self.psi_soil = update_soil_water_potential(
                     psi_soil_init=self.psi_soil,
                     water_withdrawal=g.node(g.node(g.root).vid_collar).Flux * params.simulation.conv_to_second,
                     soil_class=params.soil.soil_class,
-                    soil_total_volume=params.soil.rhyzo_total_volume,
+                    soil_total_volume=params.soil.soil_volume,
                     psi_min=params.hydraulic.psi_min)
 
         pass
@@ -170,9 +170,10 @@ def verify_inputs(g: MTG, inputs: HydroShootInputs):
             assert min(inputs.weather.index) <= params.phenology.date_budbreak, (
                 'The provided weather data do not cover the period from budbreak to the start date of simulation')
 
-    if params.soil.rhyzo_solution:
-        radius_max = 0.5 * min(params.soil.soil_dimensions['length'], params.soil.soil_dimensions['width'])
-        assert max(params.soil.rhyzo_radii) <= radius_max, f'Maximum soil radius must not exceed {radius_max} cm'
+    if params.soil.is_rhyzo_solution:
+        length_max = params.soil.rhyzo_volume / (3.14 * (2 * params.soil.avg_root_radius) ** 2)
+        assert params.soil.root_length <= length_max, (
+            f'Root radius ({params.soil.avg_root_radius}) is higher than the distance between roots ({length_max:.5f})')
 
     if inputs.leaf_nitrogen is not None:
         assert all([vid in inputs.leaf_nitrogen
@@ -211,7 +212,7 @@ def print_sim_infos(inputs: HydroShootInputs):
     print(f'Calculate Energy budget: {params.simulation.is_energy_budget}')
     print(f'Ignore shoot resistance: {params.simulation.is_negligible_shoot_resistance}')
     print(f'Calculate Hydraulic structure: {params.simulation.is_hydraulic_structure}')
-    print(f'Add Rhyzoshpere cylinders: {params.soil.rhyzo_solution}')
+    print(f'Add rhyzoshpere resistance: {params.soil.is_rhyzo_solution}')
     print(f'Use user form factors: {inputs.form_factors is not None}')
     print(f'Use user irradiance data: {inputs.leaf_ppfd is not None}')
     print(f'Use user nitrogen data: {inputs.leaf_nitrogen is not None}')

@@ -4,9 +4,10 @@ import openalea.mtg.traversal as traversal
 
 from hydroshoot import hydraulic, exchange, energy
 from hydroshoot.architecture import get_leaves
+from hydroshoot.soil import update_soil_water_potential
 
 
-def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
+def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params, calc_collar_water_potential):
     """Computes gas-exchange, energy and hydraulic structure of plant's shoot jointly.
 
     Args:
@@ -16,6 +17,8 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
         t_soil (float): [degreeC] soil surface temperature
         t_sky_eff (float): [degreeC] effective sky temperature
         params (params): [-] :class:`hydroshoot.params.Params()` object
+        calc_collar_water_potential: a function that takes 'transpiration' and 'soil_water_potential' for inputs and
+            returns the collar water potential as scalar output
 
     """
     length_conv = params.simulation.conv_to_meter
@@ -86,16 +89,16 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params):
                                          a=xylem_k_max['a'], b=xylem_k_max['b'], min_kmax=xylem_k_max['min_kmax'])
 
                 # Update soil water status
-                psi_base = hydraulic.soil_water_potential(
+                psi_base = update_soil_water_potential(
                     psi_soil_init=psi_soil, water_withdrawal=g.node(g.node(g.root).vid_collar).Flux * time_conv,
-                    soil_class=params.soil.soil_class, soil_total_volume=params.soil.rhyzo_total_volume,
+                    soil_class=params.soil.soil_class, soil_total_volume=params.soil.soil_volume,
                     psi_min=psi_min)
 
                 # Compute xylem water potential
                 n_iter_psi = hydraulic.xylem_water_potential(
-                    g=g, psi_soil=psi_base, model=modelx, psi_min=psi_min, psi_error_crit=psi_error_threshold,
+                    g=g, calc_collar_water_potential=calc_collar_water_potential,
+                    psi_soil=psi_base, model=modelx, psi_min=psi_min, psi_error_crit=psi_error_threshold,
                     max_iter=max_iter, length_conv=length_conv, fifty_cent=psi_critx, sig_slope=slopex,
-                    root_spacing=params.soil.avg_root_spacing, root_radius=params.soil.avg_root_radius,
                     negligible_shoot_resistance=params.simulation.is_negligible_shoot_resistance,
                     start_vid=g.node(g.root).vid_base, stop_vid=None, psi_step=psi_step)
 

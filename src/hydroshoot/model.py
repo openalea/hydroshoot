@@ -13,7 +13,7 @@ from pandas import DataFrame
 
 from hydroshoot import (architecture, solver, io)
 from hydroshoot.energy import calc_effective_sky_temperature
-from hydroshoot.initialisation import init_model, init_hourly
+from hydroshoot.initialisation import init_model, init_hourly, set_collar_water_potential_function
 
 
 def run(g: MTG, wd: Path, path_weather: Path, params: dict = None, scene: Scene = None,
@@ -77,8 +77,7 @@ def run(g: MTG, wd: Path, path_weather: Path, params: dict = None, scene: Scene 
 
     g = init_model(g=g, inputs=inputs)
 
-    # Save geometry in an external file
-    # HSArc.mtg_save_geometry(scene, output_path)
+    calc_collar_water_potential = set_collar_water_potential_function(params=params)
 
     # ==============================================================================
     # Simulations
@@ -112,7 +111,8 @@ def run(g: MTG, wd: Path, path_weather: Path, params: dict = None, scene: Scene 
 
         solver.solve_interactions(
             g=g, meteo=inputs_hourly.weather.loc[date], psi_soil=inputs_hourly.psi_soil,
-            t_soil=inputs_hourly.soil_temperature, t_sky_eff=inputs_hourly.sky_temperature, params=params)
+            t_soil=inputs_hourly.soil_temperature, t_sky_eff=inputs_hourly.sky_temperature, params=params,
+            calc_collar_water_potential=calc_collar_water_potential)
 
         # Write mtg to an external file
         if scene is not None:

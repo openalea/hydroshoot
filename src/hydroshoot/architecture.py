@@ -1092,39 +1092,6 @@ def add_soil_surface_mesh(g, side_length=10.):
     return g
 
 
-def add_rhyzosphere_concentric_cylinders(g, cylinders_radii, soil_dimensions, soil_class, vtx_label, length_conv):
-    """Adds concentric soil cylinders to the mtg.
-
-    Args:
-        g (MTG): a multiscale tree graph object
-        cylinders_radii (list of float): [m] the radii of cylinders to be used
-        soil_dimensions (list of float): [m] (length, width, depth) of the soil compartment
-        soil_class (str): Soil class name according to Carsel and Parrish (1988) WRR 24,755–769 DOI: 10.1029/WR024i005p00755
-        vtx_label (str): Label prefix of the basal highest-scale stem vertex
-        length_conv (float): [-] conversion coefficient from [m] to the unit of the mtg
-
-    Returns:
-        (MTG): mtg object
-
-    """
-    depth = soil_dimensions[2] * length_conv
-    child = g.node(get_mtg_base(g, vtx_label=vtx_label))
-
-    radius_prev = 0.
-    for i, cylinder_radius in enumerate(cylinders_radii):
-        radius = cylinder_radius * length_conv
-        length = (radius - radius_prev) * length_conv
-        label = 'rhyzo%d' % i
-        child = g.node(child._vid).insert_parent(label=label, depth=depth, Length=length,
-                                                 TopDiameter=radius * 2., BotDiameter=radius * 2.,
-                                                 TopPosition=3 * [0], BotPosition=3 * [0],
-                                                 soil_class=soil_class)
-        radius_prev = radius
-
-    g.node(g.root).vid_base = child._vid
-    return g
-
-
 # ==============================================================================
 # ==============================================================================
 # MTG geometry construction
