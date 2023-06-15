@@ -127,7 +127,7 @@ def set_leaf_temperature_to_air_temperature(air_temperature, leaf_ids):
     return {vid: air_temperature for vid in leaf_ids}
 
 
-def set_wind_speed(g, meteo, leaf_lbl_prefix='L'):
+def set_local_wind_speed(g, meteo, leaf_lbl_prefix='L') -> dict:
     """Basic model for wind speed at leaf level, considered equal to air wind speed for all leaves
 
     Args:
