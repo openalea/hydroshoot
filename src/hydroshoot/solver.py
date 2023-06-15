@@ -80,7 +80,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params, calc_colla
                 # Compute gas-exchange fluxes. Leaf T and Psi are from prev calc loop
                 exchange.set_gas_exchange_rates(
                     g=g, photo_params=photosynthesis_params, gs_params=stomatal_conductance_params,
-                    air_temperature=meteo['Tac'], relative_humidity=meteo['hs'], air_co2=meteo['Ca'],
+                    relative_humidity=meteo['hs'], air_co2=meteo['Ca'],
                     atmospheric_pressure=meteo['Pa'], E_type2=irradiance_type2, leaf_ids=leaf_ids,
                     rbt=turbulence_resistance)
 
@@ -135,7 +135,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params, calc_colla
             # Compute gas-exchange fluxes. Leaf T and Psi are from prev calc loop
             exchange.set_gas_exchange_rates(
                 g=g, photo_params=photosynthesis_params, gs_params=stomatal_conductance_params,
-                air_temperature=meteo['Tac'], relative_humidity=meteo['hs'], air_co2=meteo['Ca'],
+                relative_humidity=meteo['hs'], air_co2=meteo['Ca'],
                 atmospheric_pressure=meteo['Pa'], E_type2=irradiance_type2, leaf_ids=leaf_ids,
                 rbt=turbulence_resistance)
 
@@ -150,11 +150,11 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params, calc_colla
             it += 1
             if params.energy.solo:
                 g.properties()['Tlc'], t_iter = energy.calc_leaf_temperature(
-                    g=g, meteo=meteo, t_soil=t_soil, t_sky_eff=t_sky_eff, leaf_ids=leaf_ids,
+                    g=g, t_soil=t_soil, t_sky_eff=t_sky_eff, leaf_ids=leaf_ids,
                     max_iter=max_iter, t_error_crit=temp_error_threshold, t_step=temp_step)
             else:
                 g.properties()['Tlc'], t_iter = energy.calc_leaf_temperature2(
-                    g=g, meteo=meteo, t_soil=t_soil, t_sky_eff=t_sky_eff, leaf_ids=leaf_ids)
+                    g=g, t_soil=t_soil, t_sky_eff=t_sky_eff, leaf_ids=leaf_ids)
 
             # t_iter_list.append(t_iter)
             t_new = deepcopy(g.property('Tlc'))

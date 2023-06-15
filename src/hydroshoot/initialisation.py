@@ -8,7 +8,7 @@ from pandas import date_range
 
 from hydroshoot import soil
 from hydroshoot.architecture import get_mtg_base, add_soil_surface_mesh, get_leaves
-from hydroshoot.energy import set_form_factors_simplified, set_wind_speed
+from hydroshoot.energy import set_form_factors_simplified, set_wind_speed, set_local_air_temperature
 from hydroshoot.exchange import leaf_Na
 from hydroshoot.io import HydroShootInputs, HydroShootHourlyInputs
 from hydroshoot.irradiance import irradiance_distribution, hsCaribu, set_optical_properties
@@ -171,6 +171,10 @@ def init_hourly(g: MTG, inputs_hourly: HydroShootHourlyInputs, leaf_ppfd: dict,
 
     # initiate wind speed
     g.properties()['u'] = set_wind_speed(
+        g=g, meteo=inputs_hourly.weather, leaf_lbl_prefix=params.mtg_api.leaf_lbl_prefix)
+
+    # initiate local air temperature
+    g.properties()['Tac'] = set_local_air_temperature(
         g=g, meteo=inputs_hourly.weather, leaf_lbl_prefix=params.mtg_api.leaf_lbl_prefix)
 
     if leaf_ppfd is not None:
