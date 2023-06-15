@@ -65,9 +65,10 @@ def test_leaf_temperature():
         node.ff_soil = 0.4
         node.gbH = 1
         node.E = 0.
-        node.Tlc = met.Tac.values[0]
+        node.Tac = met.Tac.values[0]
+        node.Tlc = node.Tac
 
-    tleaf, it = calc_leaf_temperature(g, met, tsoil, tsky, get_leaves(g=g, leaf_lbl_prefix='L'))
+    tleaf, it = calc_leaf_temperature(g, tsoil, tsky, get_leaves(g=g, leaf_lbl_prefix='L'))
     assert len(tleaf) == 46
     first = list(tleaf.keys())[0]
     for vid in tleaf:

@@ -144,6 +144,22 @@ def set_wind_speed(g, meteo, leaf_lbl_prefix='L'):
     return {vid: u for vid in leaves}
 
 
+def set_local_air_temperature(g, meteo, leaf_lbl_prefix='L') -> dict:
+    """Basic model for air temperature at the leaf level, considered equal to air temperature at reference height for
+    all leaves.
+
+    Args:
+        g: a multiscale tree graph object
+        meteo (DataFrame): forcing meteorological variables
+        leaf_lbl_prefix (str): the prefix of the leaf label
+
+    Returns:
+        (dict): keys are leaves vertices ids and their values are all equal to air temperature at reference height
+
+    """
+    return {vid: meteo['Tac'].iloc[0] for vid in get_leaves(g=g, leaf_lbl_prefix=leaf_lbl_prefix)}
+
+
 def _gbH(leaf_length, wind_speed):
     """Computes boundary layer conductance to heat
 
@@ -187,12 +203,11 @@ def calc_heat_boundary_layer_conductance(g, leaf_ids, unit_scene_length):
     return g
 
 
-def calc_leaf_temperature(g, meteo, t_soil, t_sky_eff, leaf_ids, max_iter=100, t_error_crit=0.01, t_step=0.5):
+def calc_leaf_temperature(g, t_soil, t_sky_eff, leaf_ids, max_iter=100, t_error_crit=0.01, t_step=0.5):
     """Computes the temperature of each individual leaf and soil elements.
 
     Args:
         g: a multiscale tree graph object
-        meteo (DataFrame): forcing meteorological variables
         t_soil (float): [°C] soil surface temperature
         t_sky_eff (float): [°C] effective sky temperature
         solo (bool):
@@ -211,7 +226,6 @@ def calc_leaf_temperature(g, meteo, t_soil, t_sky_eff, leaf_ids, max_iter=100, t
     """
 
     temp_sky = utils.celsius_to_kelvin(t_sky_eff)
-    temp_air = utils.celsius_to_kelvin(meteo['Tac'])
     temp_soil = utils.celsius_to_kelvin(t_soil)
 
     t_prev = g.property('Tlc')
@@ -231,6 +245,7 @@ def calc_leaf_temperature(g, meteo, t_soil, t_sky_eff, leaf_ids, max_iter=100, t
             gb_h = mtg_node.properties()['gbH']
             evap = mtg_node.properties()['E']
             t_leaf = utils.celsius_to_kelvin(mtg_node.properties()['Tlc'])
+            temp_air = utils.celsius_to_kelvin(mtg_node.properties()['Tac'])
 
             longwave_gain_from_leaves = ff_leaves * cst.sigma * t_leaf ** 4
 
@@ -264,13 +279,12 @@ def calc_leaf_temperature(g, meteo, t_soil, t_sky_eff, leaf_ids, max_iter=100, t
     return t_new, it
 
 
-def calc_leaf_temperature2(g, meteo, t_soil, t_sky_eff, leaf_ids):
+def calc_leaf_temperature2(g, t_soil, t_sky_eff, leaf_ids):
     """Computes the temperature of each individual leaf and soil elements whilst considering explicitly each other
     leaf temperature energy in a matrix solution using symbolic solver.
 
     Args:
         g: a multiscale tree graph object
-        meteo (DataFrame): forcing meteorological variables
         t_soil (float): [°C] soil surface temperature
         t_sky_eff (float): [°C] effective sky temperature
         leaf_ids (list of int): leaf ids
@@ -282,7 +296,6 @@ def calc_leaf_temperature2(g, meteo, t_soil, t_sky_eff, leaf_ids):
     """
 
     temp_sky = utils.celsius_to_kelvin(t_sky_eff)
-    temp_air = utils.celsius_to_kelvin(meteo['Tac'])
     temp_soil = utils.celsius_to_kelvin(t_soil)
 
     t_prev = g.property('Tlc')
@@ -299,6 +312,7 @@ def calc_leaf_temperature2(g, meteo, t_soil, t_sky_eff, leaf_ids):
         ff_sky = mtg_node.properties()['ff_sky']
         ff_leaves = mtg_node.properties()['ff_leaves']
         ff_soil = mtg_node.properties()['ff_soil']
+        temp_air = utils.celsius_to_kelvin(mtg_node.properties()['Tac'])
 
         gb_h = mtg_node.properties()['gbH']
         evap = mtg_node.properties()['E']

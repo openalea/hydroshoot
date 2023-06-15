@@ -533,7 +533,7 @@ def calc_gas_exchange_rates(leaf_water_potential, leaf_temperature, carboxylatio
         leaf_ids (list): leaf ids (default None)
         photo_params (dict): values at 25 °C of Farquhar's model
         gs_params (dict): parameters of the stomatal conductance model (model, g0, m0, psi0, D0, n)
-        air_temperature (float): [°C] air temperature
+        air_temperature (dict): [°C] air temperature
         relative_humidity (float): (%) air relative humidity (between 0 and 100 for dry and saturated air, respectively)
         air_co2 (float): [ppm] air CO2 concentration
         atmospheric_pressure (float): [kPa] atmospheric pressure
@@ -581,7 +581,7 @@ def calc_gas_exchange_rates(leaf_water_potential, leaf_temperature, carboxylatio
             dHd=entalpy_deactivation[vid]))
 
         a_n, c_c, c_i, gs = an_gs_ci(
-            air_temperature=air_temperature,
+            air_temperature=air_temperature[vid],
             absorbed_ppfd=absorbed_ppfd[vid],
             relative_humidity=relative_humidity,
             leaf_temperature=temperature_leaf,
@@ -595,13 +595,13 @@ def calc_gas_exchange_rates(leaf_water_potential, leaf_temperature, carboxylatio
             leaf_length=leaf_length[vid],
             wind_speed=wind_speed[vid],
             atm_pressure=atmospheric_pressure,
-            air_temp=air_temperature,
+            air_temp=air_temperature[vid],
             ideal_gas_cst=r)
 
         # Transpiration
         e = calc_transpiration_rate(
             leaf_temperature=temperature_leaf,
-            ea=utils.calc_air_vapor_pressure(air_temperature=air_temperature, relative_humidity=relative_humidity),
+            ea=utils.calc_air_vapor_pressure(air_temperature=air_temperature[vid], relative_humidity=relative_humidity),
             gs=gs,
             gb=gb,
             atm_pressure=atmospheric_pressure)
@@ -616,7 +616,7 @@ def calc_gas_exchange_rates(leaf_water_potential, leaf_temperature, carboxylatio
             boundary_layer_conductance_rate, transpiration_rate)
 
 
-def set_gas_exchange_rates(g, photo_params, gs_params, air_temperature, relative_humidity, air_co2,
+def set_gas_exchange_rates(g, photo_params, gs_params, relative_humidity, air_co2,
                            atmospheric_pressure, E_type2, leaf_ids, rbt=2. / 3.):
     """Sets gas exchange fluxes at the leaf scale analytically.
 
@@ -624,7 +624,6 @@ def set_gas_exchange_rates(g, photo_params, gs_params, air_temperature, relative
         g: a multiscale tree graph object
         photo_params (dict): values at 25 °C of Farquhar's model
         gs_params (dict): parameters of the stomatal conductance model (model, g0, m0, psi0, D0, n)
-        air_temperature (float): [°C] air temperature
         relative_humidity (float): (%) air relative humidity (between 0 and 100 for dry and saturated air, respectively)
         air_co2 (float): [ppm] air CO2 concentration
         atmospheric_pressure (float): [kPa] atmospheric pressure
@@ -656,6 +655,7 @@ def set_gas_exchange_rates(g, photo_params, gs_params, air_temperature, relative
     all_absorbed_ppfd = g.property(E_type2)
     all_leaf_length = g.property('Length')
     all_wind_speed = g.property('u')
+    all_air_temperature = g.property('Tac')
 
     (g.properties()['An'], g.properties()['Ci'], g.properties()['gs'], g.properties()['gb'],
      g.properties()['E']) = calc_gas_exchange_rates(
@@ -672,7 +672,7 @@ def set_gas_exchange_rates(g, photo_params, gs_params, air_temperature, relative
         leaf_ids=leaf_ids,
         photo_params=photo_params,
         gs_params=gs_params,
-        air_temperature=air_temperature,
+        air_temperature=all_air_temperature,
         relative_humidity=relative_humidity,
         air_co2=air_co2,
         atmospheric_pressure=atmospheric_pressure,
