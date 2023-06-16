@@ -356,9 +356,11 @@ def force_soil_temperature(meteo):
         (double): [°C] soil temperature
 
     """
-
-    dt_soil = [3, 3, 3, 3, 3, 3, 3, 3, 10, 15, 20, 20, 20, 20, 20, 15, 6, 5, 4, 3, 3, 3, 3, 3]
-    t_soil = meteo.Tac[0] + dt_soil[meteo.index.hour[0]]
+    if 'Tsoil' in meteo.columns:
+        t_soil = meteo.Tsoil[0]
+    else:
+        dt_soil = [3, 3, 3, 3, 3, 3, 3, 3, 10, 15, 20, 20, 20, 20, 20, 15, 6, 5, 4, 3, 3, 3, 3, 3]
+        t_soil = meteo.Tac[0] + dt_soil[meteo.index.hour[0]]
     return t_soil
 
 
