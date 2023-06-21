@@ -11,7 +11,7 @@ from openalea.mtg.mtg import MTG
 from openalea.plantgl.all import Scene, surface
 from pandas import DataFrame
 
-from hydroshoot import (architecture, solver, io)
+from hydroshoot import (architecture, solver, io, soil, constants)
 from hydroshoot.energy import calc_effective_sky_temperature
 from hydroshoot.initialisation import init_model, init_hourly, set_collar_water_potential_function
 
@@ -89,6 +89,10 @@ def run(g: MTG, wd: Path, path_weather: Path, params: dict = None, scene: Scene 
     # sapWest = []
     an_ls = []
     rg_ls = []
+    psi_soil_ls = []
+    psi_collar_ls = []
+    psi_leaf_ls = []
+    theta_soil = []
     leaf_temperature_dict = {}
 
     # The time loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -131,6 +135,13 @@ def run(g: MTG, wd: Path, path_weather: Path, params: dict = None, scene: Scene 
 
         an_ls.append(g.node(g.node(g.root).vid_collar).FluxC)
 
+        psi_soil_ls.append(inputs_hourly.psi_soil)
+        psi_collar_ls.append(g.node(g.node(g.root).vid_collar).psi_head)
+        psi_leaf_ls.append(np.median([g.node(vid).psi_head for vid in g.property("gs").keys()]))
+        theta_soil.append(soil.calc_volumetric_water_content_from_water_potential(
+            constants.water_density * constants.gravitational_acceleration * inputs_hourly.psi_soil,
+            *soil.SOIL_PROPS[params.soil.soil_class][:-1]))
+
         leaf_temperature_dict[date] = deepcopy(g.property('Tlc'))
 
         print('---------------------------')
@@ -169,7 +180,13 @@ def run(g: MTG, wd: Path, path_weather: Path, params: dict = None, scene: Scene 
         'E': sapflow,
         # 'sapEast': sapEast,
         # 'sapWest': sapWest,
-        'Tleaf': t_ls}, index=params.simulation.date_range)
+        'Tleaf': t_ls,
+        'psi_soil': psi_soil_ls,
+        'psi_collar': psi_collar_ls,
+        'psi_leaf': psi_leaf_ls,
+        'theta_soil': theta_soil
+    },
+        index=params.simulation.date_range)
 
     # Write
     if write_result:
