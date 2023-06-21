@@ -29,6 +29,7 @@ def run(g: MTG, wd: Path, path_weather: Path, params: dict = None, scene: Scene 
         write_result: if True then hourly plant-scale outputs are written into a CSV file
         path_output: summary data output file path
         kwargs: can include:
+            psi_soil_init (float): [MPa] initial soil water potential
             psi_soil (float): [MPa] predawn soil water potential
             gdd_since_budbreak (float): [°Cd] growing degree-day since bubreak
             sun2scene (Scene): PlantGl scene, when prodivided, a sun object (sphere) is added to it
@@ -91,7 +92,7 @@ def run(g: MTG, wd: Path, path_weather: Path, params: dict = None, scene: Scene 
     leaf_temperature_dict = {}
 
     # The time loop +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    inputs_hourly = io.HydroShootHourlyInputs(psi_soil=inputs.psi_soil_forced, sun2scene=inputs.sun2scene)
+    inputs_hourly = io.HydroShootHourlyInputs(psi_soil=inputs.psi_soil, sun2scene=inputs.sun2scene)
 
     for date in params.simulation.date_range:
         print("=" * 72)
@@ -99,7 +100,7 @@ def run(g: MTG, wd: Path, path_weather: Path, params: dict = None, scene: Scene 
 
         # Select meteo data
         inputs_hourly.update(g=g, date_sim=date, hourly_weather=inputs.weather[inputs.weather.index == date],
-                             psi_pd=inputs.psi_pd, params=params)
+                             psi_pd=inputs.psi_pd, is_psi_forced=inputs.is_psi_soil_forced, params=params)
 
         g, diffuse_to_total_irradiance_ratio = init_hourly(
             g=g, inputs_hourly=inputs_hourly, leaf_ppfd=inputs.leaf_ppfd, params=params)

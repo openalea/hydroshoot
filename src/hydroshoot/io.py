@@ -42,7 +42,19 @@ class HydroShootInputs(object):
             self.leaf_ppfd = None
             self.is_ppfd_interception_calculated = False
 
-        self.psi_soil_forced = kwargs['psi_soil'] if 'psi_soil' in kwargs else None
+        if 'psi_soil' in kwargs:
+            psi_soil = kwargs['psi_soil']
+            is_psi_soil_forced: bool = True
+        elif 'psi_soil_init' in kwargs:
+            psi_soil = kwargs['psi_soil_init']
+            is_psi_soil_forced: bool = False
+        else:
+            psi_soil = None
+            is_psi_soil_forced: bool = False
+
+        self.psi_soil: float = psi_soil
+        self.is_psi_soil_forced: bool = is_psi_soil_forced
+
         self.gdd_since_budbreak = kwargs['gdd_since_budbreak'] if 'gdd_since_budbreak' in kwargs else None
         self.sun2scene = kwargs['sun2scene'] if 'sun2scene' in kwargs else None
         self.soil_size = kwargs['soil_size'] if 'soil_size' in kwargs else None
@@ -67,7 +79,7 @@ class HydroShootInputs(object):
         self.weather = df
 
     def set_soil_predawn_water_potential(self):
-        if self.psi_soil_forced is None:
+        if self.psi_soil is None:
             assert (self.path_project / 'psi_soil.input').is_file(), "The 'psi_soil.input' file is missing."
             psi_pd = read_csv(self.path_project / 'psi_soil.input', sep=';', decimal='.').set_index('time')
             psi_pd.index = [datetime.strptime(str(s), "%Y-%m-%d") for s in psi_pd.index]
@@ -109,23 +121,23 @@ class HydroShootHourlyInputs(object):
         self.sun2scene = sun2scene
         self.soil_temperature = None
         self.sky_temperature = None
-        self.is_psi_soil_forced = self.psi_soil is not None
 
-    def update(self, g: MTG, date_sim: datetime, hourly_weather: DataFrame, psi_pd: DataFrame, params: Params):
+    def update(self, g: MTG, date_sim: datetime, hourly_weather: DataFrame, psi_pd: DataFrame, is_psi_forced: bool,
+               params: Params):
         self.date = date_sim
         self.weather = hourly_weather
-        self.calc_psi_soil(g=g, psi_pd=psi_pd, params=params)
+        self.calc_psi_soil(g=g, psi_pd=psi_pd, params=params, is_psi_forced=is_psi_forced)
         self.sun2scene = visu(g, def_elmnt_color_dict=True, scene=Scene()) if self.sun2scene is not None else None
         self.soil_temperature = force_soil_temperature(self.weather)
 
         pass
 
-    def calc_psi_soil(self, g: MTG, psi_pd: DataFrame, params: Params):
-        if not self.is_psi_soil_forced:
+    def calc_psi_soil(self, g: MTG, psi_pd: DataFrame, params: Params, is_psi_forced: bool):
+        if not is_psi_forced:
             if self.date.hour == 0:
                 try:
                     self.psi_soil = psi_pd.loc[self.date, :][0]
-                except KeyError:
+                except (KeyError, AttributeError) as e:
                     pass
             # Estimate soil water potential evolution due to transpiration
             else:
