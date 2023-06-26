@@ -73,7 +73,7 @@ def vapor_pressure_deficit(temp_air, temp_leaf, rh):
     Args:
         temp_air (float): [°C] air temperature
         temp_leaf (float): [°C] leaf temperature
-        rh (float): [-] air relative humidity (%, between 0 and 1)
+        rh (float): [-] air relative humidity (%, between 0 and 100)
 
     Returns:
         (float): [kPa] leaf-to-air vapour pressure deficit
