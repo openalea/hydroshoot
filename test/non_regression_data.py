@@ -42,5 +42,5 @@ def json_parameters():
 
 def reference_time_series_output():
     """Returns a `pandas.DataFrame` containing reference hydroshoot time-series output."""
-    path = join(sources_dir, 'reference_time_series.output')
+    path = join(sources_dir, 'reference_time_series.csv')
     return read_csv(path, sep=';', decimal='.')

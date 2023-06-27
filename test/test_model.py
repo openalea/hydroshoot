@@ -18,4 +18,4 @@ def test_potted_grapevine():
         gdd_since_budbreak=100.)
     ref = non_regression_data.reference_time_series_output()
     # do not compare date index
-    assert_array_almost_equal(ref.iloc[0, 1:], results.reset_index(drop=True).iloc[0, :], decimal=0)
+    assert_array_almost_equal(ref.iloc[0, :], results.reset_index(drop=True).iloc[0, :], decimal=0)

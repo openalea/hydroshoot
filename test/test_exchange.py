@@ -52,14 +52,18 @@ def setup_default_stomatal_conductance_params():
 
 
 def setup_leaf_local_weather():
-    return Series({'time': datetime(2012, 8, 1, 11),
-                   'Tac': 26.84,
-                   'hs': 43.77,
-                   'Rg': 300.28742,
-                   'u': 2.17,
-                   'Ca': 400,
-                   'Pa': 101.3,
-                   'PPFD': 663.035})
+    res = Series({'time': datetime(2012, 8, 1, 11),
+                  'Tac': 26.84,
+                  'Tlc': 26.84,
+                  'hs': 43.77,
+                  'Rg': 300.28742,
+                  'u': 2.17,
+                  'Ca': 400,
+                  'Pa': 101.3,
+                  'PPFD': 663.035})
+    res['vpd'] = utilities.vapor_pressure_deficit(temp_air=res['Tac'], temp_leaf=res['Tlc'], rh=res['hs'])
+
+    return res
 
 
 def test_leaf_na_is_as_expected():
@@ -309,10 +313,9 @@ def test_an_gs_ci_reduces_gas_exchange_rates_as_leaf_water_potential_decreases(
         leaf_local_weather=setup_leaf_local_weather()):
     an, _, _, gs = zip(
         *[exchange.an_gs_ci(
-            air_temperature=leaf_local_weather['Tac'],
             absorbed_ppfd=leaf_local_weather['PPFD'],
-            relative_humidity=leaf_local_weather['hs'],
-            leaf_temperature=25.,
+            vapor_pressure_deficit=leaf_local_weather['vpd'],
+            leaf_temperature=leaf_local_weather['Tac'],
             leaf_water_potential=psi,
             photo_params=setup_default_photosynthesis_params(),
             gs_params=setup_default_stomatal_conductance_params(),
@@ -327,9 +330,8 @@ def test_an_gs_ci_reduces_gas_exchange_rates_as_leaf_water_potential_decreases(
 def test_an_gs_ci_changes_gas_exchange_rates_as_leaf_temperature_changes(leaf_local_weather=setup_leaf_local_weather()):
     an, _, _, gs = zip(
         *[exchange.an_gs_ci(
-            air_temperature=leaf_local_weather['Tac'],
             absorbed_ppfd=leaf_local_weather['PPFD'],
-            relative_humidity=leaf_local_weather['hs'],
+            vapor_pressure_deficit=leaf_local_weather['vpd'],
             leaf_temperature=t,
             leaf_water_potential=0,
             photo_params=setup_default_photosynthesis_params(),
@@ -345,9 +347,8 @@ def test_an_gs_ci_changes_gas_exchange_rates_as_leaf_temperature_changes(leaf_lo
 def test_an_gs_ci_yields_maximum_net_photosynthesis_at_31_degrees_celsius(
         leaf_local_weather=setup_leaf_local_weather()):
     an_max, *_ = exchange.an_gs_ci(
-        air_temperature=leaf_local_weather['Tac'],
         absorbed_ppfd=leaf_local_weather['PPFD'],
-        relative_humidity=leaf_local_weather['hs'],
+        vapor_pressure_deficit=leaf_local_weather['vpd'],
         leaf_temperature=31,
         leaf_water_potential=0,
         photo_params=setup_default_photosynthesis_params(),
@@ -357,9 +358,8 @@ def test_an_gs_ci_yields_maximum_net_photosynthesis_at_31_degrees_celsius(
 
     an, *_ = zip(
         *[exchange.an_gs_ci(
-            air_temperature=leaf_local_weather['Tac'],
             absorbed_ppfd=leaf_local_weather['PPFD'],
-            relative_humidity=leaf_local_weather['hs'],
+            vapor_pressure_deficit=leaf_local_weather['vpd'],
             leaf_temperature=t,
             leaf_water_potential=0,
             photo_params=setup_default_photosynthesis_params(),
@@ -374,9 +374,8 @@ def test_an_gs_ci_yields_maximum_net_photosynthesis_at_31_degrees_celsius(
 def test_an_gs_ci_yields_maximum_stomatal_conductance_at_34_degrees_celsius(
         leaf_local_weather=setup_leaf_local_weather()):
     *_, gs_max = exchange.an_gs_ci(
-        air_temperature=leaf_local_weather['Tac'],
         absorbed_ppfd=leaf_local_weather['PPFD'],
-        relative_humidity=leaf_local_weather['hs'],
+        vapor_pressure_deficit=leaf_local_weather['vpd'],
         leaf_temperature=34,
         leaf_water_potential=0,
         photo_params=setup_default_photosynthesis_params(),
@@ -386,9 +385,8 @@ def test_an_gs_ci_yields_maximum_stomatal_conductance_at_34_degrees_celsius(
 
     *_, gs = zip(
         *[exchange.an_gs_ci(
-            air_temperature=leaf_local_weather['Tac'],
             absorbed_ppfd=leaf_local_weather['PPFD'],
-            relative_humidity=leaf_local_weather['hs'],
+            vapor_pressure_deficit=leaf_local_weather['vpd'],
             leaf_temperature=t,
             leaf_water_potential=0,
             photo_params=setup_default_photosynthesis_params(),
@@ -404,9 +402,8 @@ def test_an_gs_ci_yields_more_severe_stress_when_temperature_and_water_stresses_
         leaf_local_weather=setup_leaf_local_weather()):
     an_t, *_, gs_t = zip(
         *[exchange.an_gs_ci(
-            air_temperature=leaf_local_weather['Tac'],
             absorbed_ppfd=leaf_local_weather['PPFD'],
-            relative_humidity=leaf_local_weather['hs'],
+            vapor_pressure_deficit=leaf_local_weather['vpd'],
             leaf_temperature=t,
             leaf_water_potential=0,
             photo_params=setup_default_photosynthesis_params(),
@@ -417,9 +414,8 @@ def test_an_gs_ci_yields_more_severe_stress_when_temperature_and_water_stresses_
 
     an_t_psi, *_, gs_t_psi = zip(
         *[exchange.an_gs_ci(
-            air_temperature=leaf_local_weather['Tac'],
             absorbed_ppfd=leaf_local_weather['PPFD'],
-            relative_humidity=leaf_local_weather['hs'],
+            vapor_pressure_deficit=leaf_local_weather['vpd'],
             leaf_temperature=t,
             leaf_water_potential=-2,
             photo_params=setup_default_photosynthesis_params(),
@@ -433,24 +429,23 @@ def test_an_gs_ci_yields_more_severe_stress_when_temperature_and_water_stresses_
 
 
 def test_transpiration_rate_incrases_as_vapor_pressure_deficit_increases(leaf_local_weather=setup_leaf_local_weather()):
-    air_temp = 25.
-    leaf_temp = 25.
     atmospheric_pressure = leaf_local_weather['Pa']
+    air_temp = leaf_local_weather['Tac']
+    leaf_temp = air_temp
     gb = exchange.boundary_layer_conductance(leaf_length=0.1, wind_speed=leaf_local_weather['u'],
-                                             atm_pressure=leaf_local_weather['Pa'], air_temp=air_temp,
+                                             atm_pressure=atmospheric_pressure, air_temp=air_temp,
                                              ideal_gas_cst=constants.ideal_gaz_cst)
-    es = utilities.saturated_air_vapor_pressure(leaf_temp)
+    vpd = utilities.vapor_pressure_deficit(temp_air=air_temp, temp_leaf=leaf_temp, rh=leaf_local_weather['hs'])
     *_, gs = exchange.an_gs_ci(
-        air_temperature=leaf_local_weather['Tac'],
         absorbed_ppfd=leaf_local_weather['PPFD'],
-        relative_humidity=leaf_local_weather['hs'],
-        leaf_temperature=34,
+        vapor_pressure_deficit=vpd,
+        leaf_temperature=leaf_temp,
         leaf_water_potential=0,
         photo_params=setup_default_photosynthesis_params(),
         gs_params=setup_default_stomatal_conductance_params(),
         rbt=2. / 3.,
         ca=400.)
 
-    transpiration = [exchange.calc_transpiration_rate(leaf_temp, ea, gs, gb, atmospheric_pressure)
-                     for ea in linspace(es, 0, 10)]
-    assert all(x <= y for x, y in zip(transpiration, transpiration[1:]))
+    transpiration = [exchange.calc_transpiration_rate(vpd=vpd, gs=gs, gb=gb, atm_pressure=atmospheric_pressure)
+                     for vpd in linspace(vpd, 0, 10)]
+    assert all(x >= y for x, y in zip(transpiration, transpiration[1:]))
