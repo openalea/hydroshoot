@@ -61,10 +61,6 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params, calc_colla
     t_error_trace = []
     it_step = temp_step
 
-    # Initialize leaf temperature to air temperature
-    g.properties()['Tlc'] = energy.set_leaf_temperature_to_air_temperature(
-        air_temperature=meteo['Tac'], leaf_ids=leaf_ids)
-
     t_error = temp_error_threshold
     it = 0
     while (t_error >= temp_error_threshold) and (it < max_iter):
@@ -178,6 +174,7 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params, calc_colla
                 t_new_dict[vtx_id] = tx
 
             g.properties()['Tlc'] = t_new_dict
+            g = energy.set_local_vpd(g=g, relative_humidity=meteo['hs'], leaf_lbl_prefix=params.mtg_api.leaf_lbl_prefix)
         else:
             t_error = 0
 
