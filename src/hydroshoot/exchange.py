@@ -436,15 +436,14 @@ def compute_an_analytic(leaf_temperature, vpd, x1c, x2c, x1j, x2j, x1t, x2t, rd,
     return a_n, utils.cpa2cmol(leaf_temperature, c_c), utils.cpa2cmol(leaf_temperature, c_i), gsw
 
 
-def an_gs_ci(air_temperature, absorbed_ppfd, relative_humidity, leaf_temperature, leaf_water_potential,
+def an_gs_ci(absorbed_ppfd, vapor_pressure_deficit, leaf_temperature, leaf_water_potential,
              photo_params, gs_params, rbt=2. / 3., ca=400.):
     """Computes simultaneously the net CO2 assimilation rate (An), stomatal conductance to water vapor (gs), and
     inter-cellular CO2 concentration (Ci), by a_n analytic scheme.
 
     Args:
-        air_temperature (float): [°C] air temperature
         absorbed_ppfd (float): [umol m-2 s-1] absorbed Photosynthetic Photon Flux Density
-        relative_humidity (float): (%) air relative humidity
+        vapor_pressure_deficit (float): (kPa) leaf-to-air vapor pressure deficit
         leaf_temperature (float): [°C] leaf temperature
         leaf_water_potential (float): [MPa] bulk water potential of the leaf
         photo_params (dict): default values at 25 °C of Farquhar's model
@@ -466,7 +465,7 @@ def an_gs_ci(air_temperature, absorbed_ppfd, relative_humidity, leaf_temperature
 
     a_n, c_c, c_i, gs = compute_an_analytic(
         leaf_temperature=leaf_temperature,
-        vpd=utils.vapor_pressure_deficit(temp_air=air_temperature, temp_leaf=leaf_temperature, rh=relative_humidity),
+        vpd=vapor_pressure_deficit,
         psi=leaf_water_potential,
         x1c=x1c,
         x2c=x2c,
@@ -487,12 +486,11 @@ def an_gs_ci(air_temperature, absorbed_ppfd, relative_humidity, leaf_temperature
     return a_n, c_c, c_i, gs
 
 
-def calc_transpiration_rate(leaf_temperature, ea, gs, gb, atm_pressure=101.3):
+def calc_transpiration_rate(vpd, gs, gb, atm_pressure=101.3):
     """Computes transpiration rate per unit leaf surface area.
 
     Args:
-        leaf_temperature (float): [°C] leaf temperature
-        ea (float): [kPa] air vapor pressure
+        vpd (float): [kPa] leaf-to-air vapor pressure deficit
         gs (float): [mol m-2 s-1] stomatal conductance to water vapor
         gb (float): [mol m-2 s-1] boundary layer conductance to water vapor
         atm_pressure (float): [kPa] atmospheric pressure
@@ -506,16 +504,13 @@ def calc_transpiration_rate(leaf_temperature, ea, gs, gb, atm_pressure=101.3):
     """
 
     gv = 1. / ((2. / gb) + (1. / gs))
-    es_l = utils.saturated_air_vapor_pressure(leaf_temperature)
-    transpiration = gv * ((es_l - ea) / atm_pressure)
-
-    return transpiration
+    return gv * (vpd / atm_pressure)
 
 
 def calc_gas_exchange_rates(leaf_water_potential, leaf_temperature, carboxylation_max, electron_transport,
                             triose_photsphate_transport, mitochondreal_respiration,
                             entalpy_deactivation, absorbed_ppfd, leaf_length, wind_speed, photo_params, gs_params,
-                            air_temperature, relative_humidity, air_co2, atmospheric_pressure, rbt=2. / 3.,
+                            air_temperature, vapor_pressure_deficit, air_co2, atmospheric_pressure, rbt=2. / 3.,
                             leaf_ids=None):
     """Computes gas exchange fluxes at the leaf scale analytically.
 
@@ -534,7 +529,7 @@ def calc_gas_exchange_rates(leaf_water_potential, leaf_temperature, carboxylatio
         photo_params (dict): values at 25 °C of Farquhar's model
         gs_params (dict): parameters of the stomatal conductance model (model, g0, m0, psi0, D0, n)
         air_temperature (dict): [°C] air temperature
-        relative_humidity (float): (%) air relative humidity (between 0 and 100 for dry and saturated air, respectively)
+        vapor_pressure_deficit (float): [kPa] leaf-to-air vapor pressure deficit
         air_co2 (float): [ppm] air CO2 concentration
         atmospheric_pressure (float): [kPa] atmospheric pressure
         rbt (float): [m2 s ubar umol-1] the combined turbulance and boundary layer resistance to CO2 transport
@@ -561,6 +556,7 @@ def calc_gas_exchange_rates(leaf_water_potential, leaf_temperature, carboxylatio
     for vid in (leaf_ids if leaf_ids is not None else leaf_length.keys()):
         water_potential_leaf = leaf_water_potential[vid]
         temperature_leaf = leaf_temperature[vid]
+        vpd_leaf = vapor_pressure_deficit[vid]
         entalpy_deactivation[vid] = dHd_sensibility(
             psi=water_potential_leaf,
             temp=temperature_leaf,
@@ -581,9 +577,8 @@ def calc_gas_exchange_rates(leaf_water_potential, leaf_temperature, carboxylatio
             dHd=entalpy_deactivation[vid]))
 
         a_n, c_c, c_i, gs = an_gs_ci(
-            air_temperature=air_temperature[vid],
             absorbed_ppfd=absorbed_ppfd[vid],
-            relative_humidity=relative_humidity,
+            vapor_pressure_deficit=vpd_leaf,
             leaf_temperature=temperature_leaf,
             photo_params=leaf_par_photo,
             gs_params=gs_params,
@@ -600,8 +595,7 @@ def calc_gas_exchange_rates(leaf_water_potential, leaf_temperature, carboxylatio
 
         # Transpiration
         e = calc_transpiration_rate(
-            leaf_temperature=temperature_leaf,
-            ea=utils.calc_air_vapor_pressure(air_temperature=air_temperature[vid], relative_humidity=relative_humidity),
+            vpd=vpd_leaf,
             gs=gs,
             gb=gb,
             atm_pressure=atmospheric_pressure)
@@ -656,6 +650,7 @@ def set_gas_exchange_rates(g, photo_params, gs_params, relative_humidity, air_co
     all_leaf_length = g.property('Length')
     all_wind_speed = g.property('u')
     all_air_temperature = g.property('Tac')
+    all_vapor_pressure_deficit = g.property('vpd')
 
     (g.properties()['An'], g.properties()['Ci'], g.properties()['gs'], g.properties()['gb'],
      g.properties()['E']) = calc_gas_exchange_rates(
@@ -673,7 +668,7 @@ def set_gas_exchange_rates(g, photo_params, gs_params, relative_humidity, air_co
         photo_params=photo_params,
         gs_params=gs_params,
         air_temperature=all_air_temperature,
-        relative_humidity=relative_humidity,
+        vapor_pressure_deficit=all_vapor_pressure_deficit,
         air_co2=air_co2,
         atmospheric_pressure=atmospheric_pressure,
         rbt=rbt)

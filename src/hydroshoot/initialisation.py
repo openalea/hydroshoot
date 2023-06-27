@@ -8,7 +8,8 @@ from pandas import date_range
 
 from hydroshoot import soil
 from hydroshoot.architecture import get_mtg_base, add_soil_surface_mesh, get_leaves
-from hydroshoot.energy import set_form_factors_simplified, set_local_wind_speed, set_local_air_temperature
+from hydroshoot.energy import (set_form_factors_simplified, set_local_wind_speed, set_local_air_temperature,
+                               set_local_vpd, set_leaf_temperature_to_air_temperature)
 from hydroshoot.exchange import leaf_Na
 from hydroshoot.io import HydroShootInputs, HydroShootHourlyInputs
 from hydroshoot.irradiance import irradiance_distribution, hsCaribu, set_optical_properties
@@ -176,6 +177,13 @@ def init_hourly(g: MTG, inputs_hourly: HydroShootHourlyInputs, leaf_ppfd: dict,
     # initiate local air temperature
     g.properties()['Tac'] = set_local_air_temperature(
         g=g, meteo=inputs_hourly.weather, leaf_lbl_prefix=params.mtg_api.leaf_lbl_prefix)
+
+    # Initialize leaf temperature to air temperature
+    g = set_leaf_temperature_to_air_temperature(g=g, leaf_lbl_prefix=params.mtg_api.leaf_lbl_prefix)
+
+    # initiate local leaf-to-air vapor pressure deficit
+    g = set_local_vpd(
+        g=g, relative_humidity=inputs_hourly.weather['hs'].iloc[0], leaf_lbl_prefix=params.mtg_api.leaf_lbl_prefix)
 
     if leaf_ppfd is not None:
         diffuse_to_total_irradiance_ratio = leaf_ppfd[g.date]['diffuse_to_total_irradiance_ratio']

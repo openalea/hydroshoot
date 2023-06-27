@@ -8,13 +8,13 @@ This module computes leaf (and eventually other elements) tempertaure of a
 given plant shoot.
 """
 
-import time
 from math import pi
 
 import alinea.astk.icosphere as ico
 import openalea.plantgl.all as pgl
 from alinea.caribu.CaribuScene import CaribuScene
 from alinea.caribu.sky_tools import turtle
+from openalea.mtg.mtg import MTG
 from scipy import optimize
 from sympy import Symbol
 from sympy.solvers import nsolve
@@ -113,18 +113,19 @@ def set_form_factors_simplified(g, pattern=None, infinite=False, leaf_lbl_prefix
     return g
 
 
-def set_leaf_temperature_to_air_temperature(air_temperature, leaf_ids):
+def set_leaf_temperature_to_air_temperature(g: MTG, leaf_lbl_prefix: str):
     """Basic model for leaf temperature, considered equal to air temperature for all leaves
 
     Args:
-        air_temperature (float): [°C] air temperature
-        leaf_ids (list of int): leaf ids
+        g: a multiscale tree graph object
+        leaf_lbl_prefix (str): the prefix of the leaf label
 
     Returns:
-        (dict): keys are leaves vertices ids and their values are all equal to air temperature [°C]
+        the mtg updated with all leaves having their temperature equal to that of the (local) air
 
     """
-    return {vid: air_temperature for vid in leaf_ids}
+    g.properties()['Tlc'] = {vid: g.node(vid).Tac for vid in get_leaves(g=g, leaf_lbl_prefix=leaf_lbl_prefix)}
+    return g
 
 
 def set_local_wind_speed(g, meteo, leaf_lbl_prefix='L') -> dict:
@@ -158,6 +159,25 @@ def set_local_air_temperature(g, meteo, leaf_lbl_prefix='L') -> dict:
 
     """
     return {vid: meteo['Tac'].iloc[0] for vid in get_leaves(g=g, leaf_lbl_prefix=leaf_lbl_prefix)}
+
+
+def set_local_vpd(g: MTG, relative_humidity: float, leaf_lbl_prefix: str) -> MTG:
+    """Calculates leaf-to-air vapor pressure deficit for all leaves.
+
+    Args:
+        g: a multiscale tree graph object
+        relative_humidity: (%) air relative humidity (between 0 and 100)
+        leaf_lbl_prefix: the prefix of the leaf label
+
+    Returns:
+        the mtg updated with vapor pressure deficit values
+
+    """
+    g.properties()['vpd'] = {vid: utils.vapor_pressure_deficit(temp_air=g.node(vid).Tac,
+                                                               temp_leaf=g.node(vid).Tlc,
+                                                               rh=relative_humidity)
+                             for vid in get_leaves(g=g, leaf_lbl_prefix=leaf_lbl_prefix)}
+    return g
 
 
 def _gbH(leaf_length, wind_speed):
