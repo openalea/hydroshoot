@@ -115,7 +115,7 @@ where
 :math:`\Delta H_d \ [kJ \ {mol}_{CO_2}^{-1}]` is deactivation energy of the Arrhenius functions,
 :math:`\Delta S \ [kJ \ K^{-1} \ {mol}_{CO_2}^{-1}]` is entropy term,
 :math:`R \ [kJ \ K^{-1} \ {mol}^{-1}]` is the ideal gas constant, and
-:math:`T_{leaf} \ [^\circ C]` is leaf temperature.
+:math:`T_{leaf} \ [K]` is leaf temperature.
 
 
 Finally, for :math:`\Gamma`, :math:`K_c`, and :math:`K_o` temperature dependency writes:
