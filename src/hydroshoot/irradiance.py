@@ -231,7 +231,7 @@ def irradiance_distribution(meteo, geo_location, irradiance_unit,
     if rotation_angle != 0.:
         v_energy = [vec[0] for vec in source_cum]
         v_coord = [tuple(vector_rotation(vec[1], (0., 0., 1.), deg2rad(rotation_angle))) for vec in source_cum]
-        source_cum = zip(v_energy, v_coord)
+        source_cum = list(zip(v_energy, v_coord))
 
     # Add Sun to an existing pgl.scene
     if sun2scene is not None:
