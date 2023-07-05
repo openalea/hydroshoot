@@ -182,7 +182,7 @@ def vine_mtg(file_path):
         except:
             vid_diam = None
 
-        plant_id = int(plant_id)
+        plant_id = str(plant_id)
         if trunk_id in plant_base_identifier:
             baseXYZ = vid_position
             trunk_id = 0
