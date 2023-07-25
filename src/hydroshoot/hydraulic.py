@@ -115,8 +115,9 @@ def hydraulic_prop(g, length_conv=1.e-2, a=2.6, b=2.0, min_kmax=0.):
 
         elif n.label.startswith(('in', 'cx', 'Pet')):
             n.Flux = sum([vtx.Flux for vtx in n.children()])
-            diam = 0.5 * (n.TopDiameter + n.BotDiameter) * length_conv
-            n.Kmax = conductivity_max(diam, a, b, min_kmax)
+            if n.Kmax is None:
+                diam = 0.5 * (n.TopDiameter + n.BotDiameter) * length_conv
+                n.Kmax = conductivity_max(diam, a, b, min_kmax)
 
             n.FluxC = sum([vtx.FluxC for vtx in n.children()])
 
@@ -176,9 +177,14 @@ def transient_xylem_water_potential(g, calc_collar_water_potential: Callable,
                 n.psi_head = p.psi_head
             else:
                 flux = n.properties()['Flux']
-                length = n.properties()['Length'] * length_conv
-                z_head = n.properties()['TopPosition'][2] * length_conv
-                z_base = n.properties()['BotPosition'][2] * length_conv
+
+                if n.dl is None:
+                    n.dl = n.properties()['Length'] * length_conv
+
+                if n.dz is None:
+                    z_head = n.properties()['TopPosition'][2] * length_conv
+                    z_base = n.properties()['BotPosition'][2] * length_conv
+                    n.dz = z_head - z_base
 
                 if vtx_id == vid_base:
                     psi_base = calc_collar_water_potential(
@@ -200,13 +206,12 @@ def transient_xylem_water_potential(g, calc_collar_water_potential: Callable,
                 if not negligible_shoot_resistance:
                     k_act = k_max * cavitation_factor(psi, model, fifty_cent, sig_slope)
                     psi_head = max(psi_min,
-                                   psi_base - length * flux / k_act - (
-                                           cst.water_density * cst.gravitational_acceleration * (
-                                           z_head - z_base)) * 1.e-6)
+                                   psi_base - n.dl * flux / k_act - (
+                                           cst.water_density * cst.gravitational_acceleration * n.dz) * 1.e-6)
                 else:
                     k_act = None
                     psi_head = max(psi_min, psi_base - (
-                            cst.water_density * cst.gravitational_acceleration * (z_head - z_base)) * 1.e-6)
+                            cst.water_density * cst.gravitational_acceleration * n.dz) * 1.e-6)
 
                 n.psi_head = psi_head
                 n.KL = k_act
