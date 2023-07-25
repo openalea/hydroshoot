@@ -6,6 +6,8 @@ from copy import deepcopy
 import openalea.mtg.traversal as traversal
 from hydroshoot.params import Soil
 
+import hydroshoot.network as network
+
 class DotDict(dict):
     """dot.notation access to dictionary attributes"""
 
@@ -20,22 +22,20 @@ class DotDict(dict):
         return DotDict(deepcopy(dict(self), memo=memo))
 
 
+gg = network.setup_network()
+
 g = mtg.MTG()
 vid = g.add_component(g.root,label='inT')
 g.node(g.root).vid_base=vid
 g.node(g.root).vid_collar=vid
-g.node(vid).TopPosition = (0,0,10)
-g.node(vid).BotPosition = (0,0,1)
-g.node(vid).Length = 11
-g.node(vid).TopDiameter = 1
-g.node(vid).BotDiameter = 1
-#Kmax =f(diameter)
-#g.node(vid).Kmax = 1
-
+g.node(vid).dz = 0.1
+g.node(vid).Kmax = 1
+g.node(vid).dl = 0.1
 
 vid = g.add_child(vid, label='LI', edge_type='<')
 g.node(vid).leaf_area = 1
 g.node(vid).Length = 1
+
 # fraction of soil, leaves and sky seen by element (sum=2)
 g.node(vid).ff_sky = 0.6674578719442436
 g.node(vid).ff_leaves = 0.46764999380584427
