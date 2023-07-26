@@ -215,10 +215,14 @@ def calc_heat_boundary_layer_conductance(g, leaf_ids, unit_scene_length):
         g with the boundary layer conductance to heat 'gbH' in [W m-2 K-1] property for each leaf
 
     """
-    conv = {'mm': 1.e-3, 'cm': 1.e-2, 'm': 1.}[unit_scene_length]
+    if 'length' not in g.properties():
+        conv = {'mm': 1.e-3, 'cm': 1.e-2, 'm': 1.}[unit_scene_length]
+        Length = g.property('Length')
+        g.properties()['length'] = {vid: Length[vid] * conv for vid in Length}
+
     for vid in leaf_ids:
         g.node(vid).gbH = _gbH(
-            leaf_length=g.node(vid).properties()['Length'] * conv,
+            leaf_length=g.node(vid).properties()['length'],
             wind_speed=g.node(vid).properties()['u'])
     return g
 

@@ -178,8 +178,8 @@ def transient_xylem_water_potential(g, calc_collar_water_potential: Callable,
             else:
                 flux = n.properties()['Flux']
 
-                if n.dl is None:
-                    n.dl = n.properties()['Length'] * length_conv
+                if n.length is None:
+                    n.length = n.properties()['Length'] * length_conv
 
                 if n.dz is None:
                     z_head = n.properties()['TopPosition'][2] * length_conv
@@ -206,7 +206,7 @@ def transient_xylem_water_potential(g, calc_collar_water_potential: Callable,
                 if not negligible_shoot_resistance:
                     k_act = k_max * cavitation_factor(psi, model, fifty_cent, sig_slope)
                     psi_head = max(psi_min,
-                                   psi_base - n.dl * flux / k_act - (
+                                   psi_base - n.length * flux / k_act - (
                                            cst.water_density * cst.gravitational_acceleration * n.dz) * 1.e-6)
                 else:
                     k_act = None
