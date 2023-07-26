@@ -98,6 +98,10 @@ def hydraulic_prop(g, length_conv=1.e-2, a=2.6, b=2.0, min_kmax=0.):
 
     vid_base = g.node(g.root).vid_base
 
+    for prop in ('dz', 'Kmax'):
+        if prop not in g.properties():
+            g.add_property(prop)
+
     for vtx_id in traversal.post_order2(g, vid_base):
         n = g.node(vtx_id)
         if n.label.startswith('LI'):
