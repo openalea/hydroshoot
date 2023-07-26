@@ -302,7 +302,7 @@ def boundary_layer_conductance(leaf_length, wind_speed, atm_pressure, air_temp, 
 
     """
 
-    l_w = leaf_length / 100. * 0.72  # effective length in the downwind direction [m]
+    l_w = leaf_length * 0.72  # effective length in the downwind direction [m]
     d_bl = 4. * (l_w / max(1.e-3, wind_speed)) ** 0.5 / 1000.  # Boundary layer thickness in [m] (Nobel, 2009 pp.337)
     dj0 = 2.13 * 1.e-5  # [m2 s-1] at P=1. atm and t=0. °C (Nobel, pp.545)
     dj = dj0 * (101.3 / atm_pressure) * ((air_temp + 273.15) / 273.15) ** 1.8  # (Nobel, eq.8.8, pp.379)
@@ -610,8 +610,8 @@ def calc_gas_exchange_rates(leaf_water_potential, leaf_temperature, carboxylatio
             boundary_layer_conductance_rate, transpiration_rate)
 
 
-def set_gas_exchange_rates(g, photo_params, gs_params, relative_humidity, air_co2,
-                           atmospheric_pressure, E_type2, leaf_ids, rbt=2. / 3.):
+def set_gas_exchange_rates(g, photo_params, gs_params, relative_humidity, air_co2, atmospheric_pressure, E_type2,
+                           leaf_ids, rbt=2. / 3., length_conv=1):
     """Sets gas exchange fluxes at the leaf scale analytically.
 
     Args:
@@ -637,6 +637,7 @@ def set_gas_exchange_rates(g, photo_params, gs_params, relative_humidity, air_co
             gs (float): [mol m-2 s-1] stomatal conductance to water vapor
             gb (float): [mol m-2 s-1] boundary layer conductance to water vapor
             E (float): [mol m-2leaf s-1] transpiration per unit leaf surface area
+            :param length_conv:
 
     """
     all_leaf_water_potential = g.property('psi_head')
@@ -647,7 +648,13 @@ def set_gas_exchange_rates(g, photo_params, gs_params, relative_humidity, air_co
     all_rd = g.property('Rd')
     all_dhd = g.property('dHd')
     all_absorbed_ppfd = g.property(E_type2)
-    all_leaf_length = g.property('Length')
+    if 'length' in g.properties():
+        length = g.property('length')
+        all_leaf_length = {vid: length[vid] for vid in leaf_ids}
+    else:
+        length = g.property('Length')
+        all_leaf_length = {vid: length[vid] * length_conv for vid in leaf_ids}
+
     all_wind_speed = g.property('u')
     all_air_temperature = g.property('Tac')
     all_vapor_pressure_deficit = g.property('vpd')

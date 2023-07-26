@@ -74,11 +74,10 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params, calc_colla
                 psi_prev = deepcopy(g.property('psi_head'))
 
                 # Compute gas-exchange fluxes. Leaf T and Psi are from prev calc loop
-                exchange.set_gas_exchange_rates(
-                    g=g, photo_params=photosynthesis_params, gs_params=stomatal_conductance_params,
-                    relative_humidity=meteo['hs'], air_co2=meteo['Ca'],
-                    atmospheric_pressure=meteo['Pa'], E_type2=irradiance_type2, leaf_ids=leaf_ids,
-                    rbt=turbulence_resistance)
+                exchange.set_gas_exchange_rates(g=g, length_conv=length_conv, photo_params=photosynthesis_params,
+                                                gs_params=stomatal_conductance_params, relative_humidity=meteo['hs'],
+                                                air_co2=meteo['Ca'], atmospheric_pressure=meteo['Pa'],
+                                                E_type2=irradiance_type2, leaf_ids=leaf_ids, rbt=turbulence_resistance)
 
                 # Compute sap flow and hydraulic properties
                 hydraulic.hydraulic_prop(g, length_conv=length_conv,
@@ -129,11 +128,10 @@ def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params, calc_colla
 
         else:
             # Compute gas-exchange fluxes. Leaf T and Psi are from prev calc loop
-            exchange.set_gas_exchange_rates(
-                g=g, photo_params=photosynthesis_params, gs_params=stomatal_conductance_params,
-                relative_humidity=meteo['hs'], air_co2=meteo['Ca'],
-                atmospheric_pressure=meteo['Pa'], E_type2=irradiance_type2, leaf_ids=leaf_ids,
-                rbt=turbulence_resistance)
+            exchange.set_gas_exchange_rates(g=g, length_conv=length_conv, photo_params=photosynthesis_params,
+                                            gs_params=stomatal_conductance_params, relative_humidity=meteo['hs'],
+                                            air_co2=meteo['Ca'], atmospheric_pressure=meteo['Pa'],
+                                            E_type2=irradiance_type2, leaf_ids=leaf_ids, rbt=turbulence_resistance)
 
             # Compute sap flow and hydraulic properties
             hydraulic.hydraulic_prop(g, length_conv=length_conv,
