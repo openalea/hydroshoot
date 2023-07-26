@@ -23,11 +23,7 @@ class DotDict(dict):
 
 
 gg = network.setup_network()
-leaf_photosynthesis = dict(Vcm25=83.00828070320627,
-                           Jm25=180.8788133639022,
-                           TPU25=13.879614097237127,
-                           Rd=1.0534355642371143,
-                           dHd=200.0)
+
 g = mtg.MTG()
 vid = g.add_component(g.root, label='inT')
 g.node(g.root).vid_base=vid
@@ -44,13 +40,6 @@ g.node(vid).length = 1
 g.node(vid).ff_sky = 0.6674578719442436
 g.node(vid).ff_leaves = 0.46764999380584427
 g.node(vid).ff_soil = 0.8648921342499122
-
-# Farquhar
-g.node(vid).Vcm25 = 83.00828070320627
-g.node(vid).Jm25 = 180.8788133639022
-g.node(vid).TPU25 = 13.879614097237127
-g.node(vid).Rd = 1.0534355642371143
-g.node(vid).dHd = 200.0
 
 # micrometeo
 g.node(vid).u = 0.03
@@ -70,6 +59,11 @@ with open('params.json') as f:
 
 user_params['simulation']['conv_to_meter']={'mm': 1.e-3, 'cm': 1.e-2, 'm': 1.}[user_params['simulation']['unit_scene_length']]
 user_params['simulation']['conv_to_second']=3600.
+user_params['exchange']['par_photo'].update(dict(Vcm25=83.00828070320627,
+                           Jm25=180.8788133639022,
+                           TPU25=13.879614097237127,
+                           Rd=1.0534355642371143,
+                           dHd=200.0))
 for w in ('hydraulic_structure', 'negligible_shoot_resistance', 'energy_budget'):
     user_params['simulation']['is_' + w] = user_params['simulation'].pop(w)
 user_params['soil']['soil_dimensions']['radius']=0.1
