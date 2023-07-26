@@ -446,7 +446,7 @@ def an_gs_ci(absorbed_ppfd, vapor_pressure_deficit, leaf_temperature, leaf_water
         vapor_pressure_deficit (float): (kPa) leaf-to-air vapor pressure deficit
         leaf_temperature (float): [°C] leaf temperature
         leaf_water_potential (float): [MPa] bulk water potential of the leaf
-        photo_params (dict): default values at 25 °C of Farquhar's model
+        photo_params (dict): default values at 25 °C of Farquhar's model or a {leaf_id : photo_param} dict detailing them for several leaves
         gs_params (dict): stomatal conductance params (keys must be: 'model', 'g0', 'm0', 'psi0', 'D0', 'n')
         rbt (float): [m2 s ubar umol-1] combined turbulance and boundary layer resistance to CO2
         ca (float): [ubar] CO2 partial pressure of the air
@@ -507,9 +507,8 @@ def calc_transpiration_rate(vpd, gs, gb, atm_pressure=101.3):
     return gv * (vpd / atm_pressure)
 
 
-def calc_gas_exchange_rates(leaf_water_potential, leaf_temperature, carboxylation_max, electron_transport,
-                            triose_photsphate_transport, mitochondreal_respiration,
-                            entalpy_deactivation, absorbed_ppfd, leaf_length, wind_speed, photo_params, gs_params,
+def calc_gas_exchange_rates(leaf_water_potential, leaf_temperature, absorbed_ppfd,
+                            leaf_length, wind_speed, photo_params, gs_params,
                             air_temperature, vapor_pressure_deficit, air_co2, atmospheric_pressure, rbt=2. / 3.,
                             leaf_ids=None):
     """Computes gas exchange fluxes at the leaf scale analytically.
@@ -557,24 +556,23 @@ def calc_gas_exchange_rates(leaf_water_potential, leaf_temperature, carboxylatio
         water_potential_leaf = leaf_water_potential[vid]
         temperature_leaf = leaf_temperature[vid]
         vpd_leaf = vapor_pressure_deficit[vid]
-        entalpy_deactivation[vid] = dHd_sensibility(
+
+        if 'Vcm25' in photo_params:
+            # one set of parameter for all leaves
+            leaf_par_photo = deepcopy(photo_params)
+            dhd_max = photo_params['dHd']
+            photo_inhibition = photo_params['photo_inhibition']
+        else:
+            leaf_par_photo = photo_params[vid]
+            dhd_max = photo_params[vid]['dHd']
+            photo_inhibition = photo_params[vid]['photo_inhibition']
+
+        leaf_par_photo['dHd'] = dHd_sensibility(
             psi=water_potential_leaf,
             temp=temperature_leaf,
-            dhd_max=photo_params['dHd'],
-            dhd_inhib_beg=photo_params['photo_inhibition']['dhd_inhib_beg'],
-            dHd_inhib_max=photo_params['photo_inhibition']['dHd_inhib_max'],
-            psi_inhib_beg=photo_params['photo_inhibition']['psi_inhib_beg'],
-            psi_inhib_max=photo_params['photo_inhibition']['psi_inhib_max'],
-            temp_inhib_beg=photo_params['photo_inhibition']['temp_inhib_beg'],
-            temp_inhib_max=photo_params['photo_inhibition']['temp_inhib_max'])
+            dhd_max=dhd_max,
+            **photo_inhibition)
 
-        leaf_par_photo = deepcopy(photo_params)
-        leaf_par_photo.update(dict(
-            Vcm25=carboxylation_max[vid],
-            Jm25=electron_transport[vid],
-            TPU25=triose_photsphate_transport[vid],
-            Rd=mitochondreal_respiration[vid],
-            dHd=entalpy_deactivation[vid]))
 
         a_n, c_c, c_i, gs = an_gs_ci(
             absorbed_ppfd=absorbed_ppfd[vid],
@@ -642,12 +640,25 @@ def set_gas_exchange_rates(g, photo_params, gs_params, relative_humidity, air_co
     """
     all_leaf_water_potential = g.property('psi_head')
     all_leaf_temperature = g.property('Tlc')
-    all_vcm25 = g.property('Vcm25')
-    all_jm25 = g.property('Jm25')
-    all_tpu25 = g.property('TPU25')
-    all_rd = g.property('Rd')
-    all_dhd = g.property('dHd')
+    all_wind_speed = g.property('u')
+    all_air_temperature = g.property('Tac')
+    all_vapor_pressure_deficit = g.property('vpd')
     all_absorbed_ppfd = g.property(E_type2)
+
+    props = g.properties()
+    if all([p in props for p in ('Vcm25', 'Jm25', 'TPU25', 'Rd', 'dHd')]): # leaf photosynsthesis parameters are local
+        g.add_property('photo_params')
+        vcm25 = g.property('Vcm25')
+        jm25 = g.property('Jm25')
+        tpu25 = g.property('TPU25')
+        rd = g.property('Rd')
+        dhd = g.property('dHd')
+        par_photo = g.property('photo_params')
+        for vid in leaf_ids:
+            par_photo[vid] = deepcopy(photo_params)
+            par_photo[vid].update(dict(Vcm25=vcm25[vid], Jm25=jm25[vid], TPU25=tpu25[vid], Rd=rd[vid], dHd=dhd[vid]))
+        photo_params = par_photo
+
     if 'length' in g.properties():
         length = g.property('length')
         all_leaf_length = {vid: length[vid] for vid in leaf_ids}
@@ -655,19 +666,10 @@ def set_gas_exchange_rates(g, photo_params, gs_params, relative_humidity, air_co
         length = g.property('Length')
         all_leaf_length = {vid: length[vid] * length_conv for vid in leaf_ids}
 
-    all_wind_speed = g.property('u')
-    all_air_temperature = g.property('Tac')
-    all_vapor_pressure_deficit = g.property('vpd')
-
     (g.properties()['An'], g.properties()['Ci'], g.properties()['gs'], g.properties()['gb'],
      g.properties()['E']) = calc_gas_exchange_rates(
         leaf_water_potential=all_leaf_water_potential,
         leaf_temperature=all_leaf_temperature,
-        carboxylation_max=all_vcm25,
-        electron_transport=all_jm25,
-        triose_photsphate_transport=all_tpu25,
-        mitochondreal_respiration=all_rd,
-        entalpy_deactivation=all_dhd,
         absorbed_ppfd=all_absorbed_ppfd,
         leaf_length=all_leaf_length,
         wind_speed=all_wind_speed,
