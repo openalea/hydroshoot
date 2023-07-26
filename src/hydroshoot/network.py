@@ -5,7 +5,7 @@ from openalea.mtg.io import multiscale_edit
 import openalea.mtg.traversal as traversal
 
 
-def setup_network(n_metamer=1, metamer='I[+p<L]', kmax=0., dl=0.1, dz=0.1, leaf_dl=0.01, leaf_area=0.01,
+def setup_network(n_metamer=1, metamer='I[+p<L]', i_kmax=0., i_length=0.1, i_dz=0.1, leaf_length=0.01, leaf_area=0.01,
                   leaf_photosynthesis=None):
 
     if leaf_photosynthesis is None:
@@ -29,21 +29,23 @@ def setup_network(n_metamer=1, metamer='I[+p<L]', kmax=0., dl=0.1, dz=0.1, leaf_
     resistances = [vid for vid in label if label[vid] in ('I', 'p')]
     leaves = [vid for vid in label if label[vid] in ('L',)]
 
-    g.properties()['Kmax'] = {vid: kmax for vid in resistances}
-    g.properties()['dz'] = {vid: dz for vid in resistances}
-    g.properties()['dl'] = {vid: dl for vid in resistances}
+    g.properties()['Kmax'] = {vid: i_kmax for vid in resistances}
+    g.properties()['dz'] = {vid: i_dz for vid in resistances}
+    g.properties()['length'] = {vid: i_length for vid in resistances}
 
     g.properties()['leaf_area'] = {vid: leaf_area for vid in leaves}
-    g.properties()['leaf_dl'] = {vid: leaf_dl for vid in leaves}
-    g.properties()['leaf_photosynthesis'] = {vid: leaf_photosynthesis for vid in leaves}
-
-    g.properties()['Flux'] = {vid: 0 for vid in label}
-    g.properties()['FluxC'] = {vid: 0 for vid in label}
+    g.properties()['length'].update({vid: leaf_length for vid in leaves})
+    g.properties()['photosynthesis'] = {vid: leaf_photosynthesis for vid in leaves}
 
     return g
 
 
-
+def reset_fluxes(network):
+    g = network
+    label = g.property('label')
+    g.properties()['Flux'] = {vid: 0 for vid in label}
+    g.properties()['FluxC'] = {vid: 0 for vid in label}
+    return g
 
 def to_string(g):
     label = g.property('label')

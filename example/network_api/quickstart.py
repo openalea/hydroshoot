@@ -23,18 +23,22 @@ class DotDict(dict):
 
 
 gg = network.setup_network()
-
+leaf_photosynthesis = dict(Vcm25=83.00828070320627,
+                           Jm25=180.8788133639022,
+                           TPU25=13.879614097237127,
+                           Rd=1.0534355642371143,
+                           dHd=200.0)
 g = mtg.MTG()
-vid = g.add_component(g.root,label='inT')
+vid = g.add_component(g.root, label='inT')
 g.node(g.root).vid_base=vid
 g.node(g.root).vid_collar=vid
 g.node(vid).dz = 0.1
 g.node(vid).Kmax = 1
-g.node(vid).dl = 0.1
+g.node(vid).length = 0.1
 
 vid = g.add_child(vid, label='LI', edge_type='<')
 g.node(vid).leaf_area = 1
-g.node(vid).Length = 1
+g.node(vid).length = 1
 
 # fraction of soil, leaves and sky seen by element (sum=2)
 g.node(vid).ff_sky = 0.6674578719442436
