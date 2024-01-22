@@ -18,14 +18,14 @@ history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 # find version number in src/hydroshoot/version.py
 _version = {}
-with open("src/hydroshoot/version.py") as fp:
+with open("src/openalea/hydroshoot/version.py") as fp:
     exec(fp.read(), _version)
 
 version = _version["__version__"]
 
 data_files = []
 
-nb = len(normpath(abspath("src/hydroshoot_data"))) + 1
+nb = len(normpath(abspath("src/openalea/hydroshoot_data"))) + 1
 
 
 def data_rel_pth(pth):
@@ -35,14 +35,14 @@ def data_rel_pth(pth):
     return abs_pth[nb:]
 
 
-for root, dnames, fnames in walk("src/hydroshoot_data"):
+for root, dnames, fnames in walk("src/openalea/hydroshoot_data"):
     for name in fnames:
         data_files.append(data_rel_pth(pj(root, name)))
 
 
 setup_kwds = dict(
     name='hydroshoot',
-    version=version["__version__"],
+    version=version,
     description=short_descr,
     long_description=readme + '\n\n' + history,
     author="Rami Albasha, Christian Fournier, Christophe Pradal, Eric Lebon, ",
