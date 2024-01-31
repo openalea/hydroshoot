@@ -13,7 +13,7 @@ from typing import Callable
 import openalea.mtg.traversal as traversal
 from openalea.plantgl.all import surface as surf
 
-import hydroshoot.constants as cst
+import openalea.hydroshoot.constants as cst
 
 
 def conductivity_max(diameter, a=2.8, b=0.1, min_kmax=0.):

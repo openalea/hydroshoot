@@ -16,7 +16,7 @@ from pandas import date_range
 from pvlib.solarposition import ephemeris
 from pytz import timezone
 
-from hydroshoot.architecture import vector_rotation
+from openalea.hydroshoot.architecture import vector_rotation
 
 
 def local2solar(local_time, latitude, longitude, time_zone, temperature=25.):

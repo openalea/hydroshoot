@@ -19,9 +19,9 @@ from scipy import optimize
 from sympy import Symbol
 from sympy.solvers import nsolve
 
-import hydroshoot.constants as cst
-from hydroshoot import utilities as utils
-from hydroshoot.architecture import get_leaves
+import openalea.hydroshoot.constants as cst
+from openalea.hydroshoot import utilities as utils
+from openalea.hydroshoot.architecture import get_leaves
 
 
 def pgl_scene(g, flip=False):
