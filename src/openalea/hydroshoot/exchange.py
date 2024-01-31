@@ -10,8 +10,8 @@ This module computes net photosynthesis and stomatal conductance rates.
 from copy import deepcopy
 from math import exp, acos, sqrt, cos, log
 
-from hydroshoot import utilities as utils
-from hydroshoot.constants import oxygen_partial_pressure as o, ideal_gaz_cst as r
+from openalea.hydroshoot import utilities as utils
+from openalea.hydroshoot.constants import oxygen_partial_pressure as o, ideal_gaz_cst as r
 
 
 # ==============================================================================

@@ -3,7 +3,7 @@ from pathlib import Path
 from openalea.mtg import traversal
 from openalea.plantgl.all import Scene
 
-from hydroshoot import architecture, display, model
+from openalea.hydroshoot import architecture, display, model
 
 if __name__ == '__main__':
     path_project = Path(__file__).parent

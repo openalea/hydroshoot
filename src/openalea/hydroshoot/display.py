@@ -14,7 +14,7 @@ from openalea.mtg.plantframe import color as pglcolor
 
 plt.style.use('ggplot')
 
-from hydroshoot.soil import SOIL_PROPS
+from openalea.hydroshoot.soil import SOIL_PROPS
 
 DEFAULT_LABELS = {
     'Eabs': r'$\mathregular{E_{abs}\/[\mu mol\/m^{-2}\/s^{-1}]}$',

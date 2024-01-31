@@ -4,7 +4,7 @@ from os import getcwd
 from openalea.mtg import traversal
 from openalea.plantgl.all import Scene
 
-from hydroshoot import architecture, display, model
+from openalea.hydroshoot import architecture, display, model
 
 # =============================================================================
 # Construct the plant mock-up

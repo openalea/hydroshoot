@@ -1,4 +1,4 @@
-from hydroshoot import utilities
+from openalea.hydroshoot import utilities
 
 
 def test_calc_effective_daily_temperature():

@@ -3,7 +3,7 @@ from pathlib import Path
 
 from numpy.testing import assert_array_almost_equal
 
-from hydroshoot import model
+from openalea.hydroshoot import model
 from test import non_regression_data
 
 

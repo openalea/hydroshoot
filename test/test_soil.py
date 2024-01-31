@@ -1,6 +1,6 @@
 from numpy import linspace, arange
 
-from hydroshoot import soil
+from openalea.hydroshoot import soil
 
 SOIL_CLASSES = list(soil.SOIL_PROPS.keys())
 

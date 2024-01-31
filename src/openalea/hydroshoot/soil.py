@@ -1,6 +1,6 @@
 from math import pi, log
 
-from hydroshoot import constants as cst
+from openalea.hydroshoot import constants as cst
 
 SOIL_PROPS = dict(
     Sand=(0.045, 0.430, 0.145, 2.68, 712.8),

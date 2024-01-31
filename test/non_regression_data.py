@@ -5,7 +5,7 @@ from json import load
 from pandas import read_csv, DatetimeIndex
 
 from openalea.mtg import traversal
-from hydroshoot import architecture
+from openalea.hydroshoot import architecture
 
 sources_dir = join(dirname(__file__), 'data')
 

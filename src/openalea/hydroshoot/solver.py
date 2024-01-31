@@ -2,9 +2,9 @@ from copy import deepcopy
 
 import openalea.mtg.traversal as traversal
 
-from hydroshoot import hydraulic, exchange, energy
-from hydroshoot.architecture import get_leaves
-from hydroshoot.soil import update_soil_water_potential
+from openalea.hydroshoot import hydraulic, exchange, energy
+from openalea.hydroshoot.architecture import get_leaves
+from openalea.hydroshoot.soil import update_soil_water_potential
 
 
 def solve_interactions(g, meteo, psi_soil, t_soil, t_sky_eff, params, calc_collar_water_potential):

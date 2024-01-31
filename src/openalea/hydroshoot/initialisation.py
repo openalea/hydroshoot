@@ -6,15 +6,15 @@ from openalea.mtg.mtg import MTG
 from pandas import DataFrame
 from pandas import date_range
 
-from hydroshoot import soil
-from hydroshoot.architecture import get_mtg_base, add_soil_surface_mesh, get_leaves
-from hydroshoot.energy import (set_form_factors_simplified, set_local_wind_speed, set_local_air_temperature,
+from openalea.hydroshoot import soil
+from openalea.hydroshoot.architecture import get_mtg_base, add_soil_surface_mesh, get_leaves
+from openalea.hydroshoot.energy import (set_form_factors_simplified, set_local_wind_speed, set_local_air_temperature,
                                set_local_vpd, set_leaf_temperature_to_air_temperature)
-from hydroshoot.exchange import leaf_Na
-from hydroshoot.io import HydroShootInputs, HydroShootHourlyInputs
-from hydroshoot.irradiance import irradiance_distribution, hsCaribu, set_optical_properties
-from hydroshoot.params import Params
-from hydroshoot.preprocess import calc_gdd_since_budbreak
+from openalea.hydroshoot.exchange import leaf_Na
+from openalea.hydroshoot.io import HydroShootInputs, HydroShootHourlyInputs
+from openalea.hydroshoot.irradiance import irradiance_distribution, hsCaribu, set_optical_properties
+from openalea.hydroshoot.params import Params
+from openalea.hydroshoot.preprocess import calc_gdd_since_budbreak
 
 
 def calc_nitrogen_distribution(g: MTG, gdd_since_budbreak: float, weather: DataFrame, params: Params) -> float:

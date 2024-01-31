@@ -3,7 +3,7 @@ from datetime import datetime
 from numpy import arange, linspace, testing
 from pandas import Series
 
-from hydroshoot import exchange, utilities, constants
+from openalea.hydroshoot import exchange, utilities, constants
 
 
 def setup_default_photosynthesis_params():

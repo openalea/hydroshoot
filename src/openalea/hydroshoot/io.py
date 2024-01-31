@@ -6,11 +6,11 @@ from openalea.mtg.mtg import MTG
 from openalea.plantgl.all import Scene
 from pandas import DataFrame, read_csv, DatetimeIndex
 
-from hydroshoot.architecture import get_leaves
-from hydroshoot.display import visu
-from hydroshoot.energy import force_soil_temperature
-from hydroshoot.params import Params
-from hydroshoot.soil import update_soil_water_potential
+from openalea.hydroshoot.architecture import get_leaves
+from openalea.hydroshoot.display import visu
+from openalea.hydroshoot.energy import force_soil_temperature
+from openalea.hydroshoot.params import Params
+from openalea.hydroshoot.soil import update_soil_water_potential
 
 
 class HydroShootInputs(object):

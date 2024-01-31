@@ -62,7 +62,7 @@ Set the required files up
 
         .. code-block:: python
 
-            from hydroshoot import model
+            from openalea.hydroshoot import model
 
             model.run(g, working_directory, psi_soil=-0.5)
 
@@ -103,7 +103,7 @@ Let's build the mock-up using the digitalization data provided in "grapevine_pot
 
     from openalea.mtg import traversal
     from openalea.plantgl.all import Scene
-    from hydroshoot import architecture, display, model
+    from openalea.hydroshoot import architecture, display, model
 
     # Path for plant digitalization data.
     g = architecture.vine_mtg('grapevine_pot.csv')
