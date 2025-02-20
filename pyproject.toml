@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hydroshoot"
+authors = [
+  { name = "Rami Albasha"},
+  { name = "Christian Fournier"},
+  { name = "Christophe Pradal"},
+  { name = "Eric Lebon"},
+]
+description = "An automatic open source library for 3D shoot architecture reconstruction and analysis for image-based plant phenotyping"
+license = {file = "LICENSE"}
+requires-python = ">=3.8"
+classifiers = [
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: CeCILL-C License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering",
+]
+
+dynamic = ["version", "readme"]
+dependencies = [
+    "numpy",
+    "scipy",
+    "sympy",
+    "pandas",
+    "jsonschema",
+    "pvlib",
+]
+
+[project.optional-dependencies]
+test = ["pytest"]
+doc = [
+  "pydata-sphinx-theme",
+  "myst-parser",
+  "sphinx-favicon",
+  "nbsphinx",
+]
+
+[project.urls]
+Homepage = "https://openalea.readthedocs.io/"
+"Bug Tracker" = "https://github.com/hydroshoot/phenomenal/issues"
+Discussions = "https://github.com/hydroshoot/phenomenal/discussions"
+Changelog = "https://github.com/hydroshoot/phenomenal/releases"
+
+[tool.setuptools.dynamic]
+version = {attr = "hydroshoot.version.__version__"}
+readme = {file = ["README.rst"]}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["src.*"]
+
+[tool.setuptools.package-data]
+"hydroshoot_data" = ["*"]
