@@ -60,7 +60,6 @@ readme = {file = ["README.rst"]}
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["src.*"]
 
 [tool.setuptools.package-data]
 "hydroshoot_data" = ["*"]
