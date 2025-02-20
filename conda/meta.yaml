@@ -1,8 +1,6 @@
-{% set data = load_setup_py_data() %}
-
 package:
   name: openalea.hydroshoot
-  version: {{ data.get('version') }}
+  version: "5.2.2"
 
 
 source:
