@@ -1,4 +1,5 @@
 from math import pi, log
+import numpy as np
 
 from hydroshoot import constants as cst
 
@@ -174,7 +175,8 @@ def calc_root_soil_resistance(soil_conductivity: float, rhyzosphere_volume: floa
     root_length_density = root_length / rhyzosphere_volume  # [m m3]
     d = (pi * root_length_density) ** -0.5  # half distance between roots [m]
     k = soil_conductivity * 1.e-2 / 86400. * (2 * pi * d * root_length) * cst.water_density  # cm d-1 -> kg m-2 s-1
-    return log(d ** 2 / ((2 * root_radius) ** 2)) / (4 * pi * k)  # m2 s kg-1
+    with np.errstate(divide='ignore'):
+        return log(d ** 2 / ((2 * root_radius) ** 2)) / (4 * pi * k)  # m2 s kg-1
 
 
 def calc_collar_water_potential(transpiration: float, bulk_soil_water_potential: float, rhyzosphere_volume: float,

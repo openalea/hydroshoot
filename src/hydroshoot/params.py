@@ -91,8 +91,8 @@ class Simulation:
         self.is_negligible_shoot_resistance = simulation_dict['negligible_shoot_resistance']
         self.is_energy_budget = simulation_dict['energy_budget']
 
-        self.date_range = date_range(start=self.date_beg, end=self.date_end, freq='H')
-        self.conv_to_second = {'D': 86.4e3, 'H': 3600., 'T': 60., 'S': 1.}[self.date_range.freqstr]
+        self.date_range = date_range(start=self.date_beg, end=self.date_end, freq='h')
+        self.conv_to_second = {'D': 86.4e3, 'h': 3600., 'T': 60., 'S': 1.}[self.date_range.freqstr]
         self.conv_to_meter = {'mm': 1.e-3, 'cm': 1.e-2, 'm': 1.}[self.unit_scene_length]
         self.geo_location = (self._latitude, self._longitude, self._elevation)
 
