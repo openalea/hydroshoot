@@ -4,7 +4,7 @@ from numpy.testing import assert_almost_equal
 import hydroshoot.energy as energy
 from hydroshoot.architecture import get_leaves
 from hydroshoot.energy import set_form_factors_simplified, calc_leaf_temperature, force_soil_temperature
-from test.non_regression_data import potted_syrah, meteo
+from non_regression_data import potted_syrah, meteo
 
 
 def test_pgl_scene():
@@ -47,7 +47,7 @@ def test_form_factors_simplified():
 def test_forced_soil_temperature():
     met = meteo().iloc[[12], :]
     tsoil = force_soil_temperature(met)
-    assert tsoil == met.Tac[0] + 20
+    assert tsoil == met.Tac.iloc[0] + 20
 
 
 def test_leaf_temperature():
@@ -73,4 +73,4 @@ def test_leaf_temperature():
     first = list(tleaf.keys())[0]
     for vid in tleaf:
         assert tleaf[vid] == tleaf[first]
-        assert tleaf[vid] != met.Tac[0]
+        assert tleaf[vid] != met.Tac.iloc[0]

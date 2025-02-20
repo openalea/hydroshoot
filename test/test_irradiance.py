@@ -1,7 +1,7 @@
 from numpy.testing import assert_almost_equal
 
 from hydroshoot.irradiance import irradiance_distribution, hsCaribu, set_optical_properties, e_conv_PPFD
-from test.non_regression_data import potted_syrah, meteo
+from non_regression_data import potted_syrah, meteo
 
 
 def test_irradiance_distribution():
