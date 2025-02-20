@@ -1,0 +1,12 @@
+name: hydroshoot
+channels:
+  - conda-forge
+  - openalea3
+dependencies:
+  - openalea.mtg
+  - openalea.plantgl
+  - alinea.caribu
+  - alinea.astk
+  - pip
+  - pip:
+      - -e ..[doc]
