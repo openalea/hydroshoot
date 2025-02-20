@@ -9,7 +9,7 @@ source:
 build:
   noarch: python
   preserve_egg_dir: True
-  script: {{PYTHON}} setup.py install
+  script: {{PYTHON}} -m pip install .
 
 requirements:
   build:
