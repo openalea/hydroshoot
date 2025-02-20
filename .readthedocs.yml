@@ -1,0 +1,9 @@
+version: 2
+
+build:
+  os: "ubuntu-latest"
+  tools:
+    python: "mambaforge-latest"
+
+conda:
+  environment: doc/environment.yml
