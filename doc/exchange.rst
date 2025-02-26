@@ -204,8 +204,6 @@ where
 with
 
 .. math::
-    :nowrap:
-    
     D_{H_2O} = D_{H_2O, 0} \cdot \frac{P_a}{P_v} \cdot \left( \frac{T_{leaf}}{273} \right)^{1.8}
 
 where
