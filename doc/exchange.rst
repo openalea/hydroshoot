@@ -15,8 +15,6 @@ which also considers mesophyll conductance to CO2 diffusion :math:`g_m`. The sol
 equations (following **Evers et al. 2010** supporting information):
 
 .. math::
-    :nowrap:
-    
     \begin{array}{l}
         A_n = \frac{(C_c - \Gamma) \cdot x_1}{C_c + x_2} - R_d  \\
         C_c = C_i - \frac{A_n}{g_m}  \\
@@ -45,8 +43,6 @@ Net carbon assimilation rate per unit leaf area
 :math:`A_n` is given as:
 
 .. math::
-    :nowrap:
-    
     A_n = V_c \cdot \left(1 - \frac{\Gamma}{C_c} \right) - R_d
 
 where
@@ -59,8 +55,6 @@ respiration,
 :math:`V_c` is given as:
 
 .. math::
-    :nowrap:
-    
     V_c = \min \left(W_c, W_j, W_p \right)
 
 where
@@ -68,8 +62,6 @@ where
 rate, RuBP-limited carboxylation rate, and Triose phosphates-limited carboxylation rate, given as:
 
 .. math::
-    :nowrap:
-    
     \begin{array}{l}
         W_c = \frac{C_c \cdot V_{c, \max}}{C_c + K_c \cdot \left(1 + \frac{O}{K_o} \right)}    \\
         W_j = \frac{J}{4 + 8 \cdot \frac{\Gamma}{C_c}}    \\
@@ -88,8 +80,6 @@ where
 Finally, :math:`J` is given as:
 
 .. math::
-    :nowrap:
-    
     J = \frac{\alpha \cdot {PPFD}}{\sqrt{1 + \frac{\alpha^2 \cdot {PPFD}^2}{J_{max}^2}}}
 
 where
@@ -102,8 +92,6 @@ For :math:`V_{c, \ max}`, :math:`J_{max}`, :math:`TPU`, and :math:`R_d` temperat
 
 
 .. math::
-    :nowrap:
-    
     P = P^{25} \cdot \
         \frac   {\exp \left(c - \frac{\Delta H_a}{R \cdot T_{leaf}} \right)}
                 {1 + \exp \left(\frac   {\Delta S \cdot T_{leaf} - \Delta H_d}
@@ -123,8 +111,6 @@ where
 Finally, for :math:`\Gamma`, :math:`K_c`, and :math:`K_o` temperature dependency writes:
 
 .. math::
-    :nowrap:
-    
     P = \exp    \left(
             c - \frac{\Delta H_a}{R \cdot T_{leaf}}
                 \right)
@@ -138,8 +124,6 @@ to vary as a function leaf nitrogen content per unit leaf surface area (:math:`N
 **Prieto et al. (2012)**:
 
 .. math::
-    :nowrap:
-    
     P^{25} = S_{N_a} \ N_a - b_{N_a}
 
 
@@ -157,8 +141,6 @@ is determined by leaf exposure to light during the last past days **(Prieto et a
 respectively in the two following equations:
 
 .. math::
-    :nowrap:
-    
     \begin{array}{l}
     N_m = a_N \cdot \sum_{i=budburst}^d {\left( \max{\left( 0, T_{air, \i} - T_b \right)} \right)} + b_N   \\
     LMA = a_M \cdot \ \ln{(PPFD_{10})} + b_M
@@ -184,8 +166,6 @@ HydroShoot is provided with an empirical photoinhibition model which assumes tha
 stresses inhibit photosynthesis by reducing the electron transport rate (:math:`J`):
 
 .. math::
-    :nowrap:
-    
     \begin{array}{l}
     \Delta H_d = \Delta H_{d, \max} - \max \left( 0, \left( \Delta H_{d, \max} - \Delta H_{d, T} \right) \cdot \min \left( 1, \frac{\Psi_{leaf} - \Psi_{leaf, \max}}{\Psi_{leaf, \min} - \Psi_{leaf, \max}} \right) \right) \\
     \Delta H_{d, t} = \Delta H_{d, t1} - \left( \Delta H_{d, t1} - \Delta H_{d, t2} \right) \cdot \min \left( 1, \max \left( 0, \frac{T_{leaf} - T_{leaf1}}{T_{leaf2} - T_{leaf1}} \right) \right)
@@ -210,8 +190,6 @@ Transpiration rate per unit leaf area
 The transpiration rate (:math:`E, \ mol \ m^{-2} s^{-1}`) is calculated as:
 
 .. math::
-    :nowrap:
-    
     E = \frac{1}{\frac{1}{g_{b, \ H_2O}} + \frac{1}{1.6 \cdot g_{s, \ CO_2}}} \left( \frac{VPD}{P_a} \right)
 
 
@@ -221,8 +199,6 @@ where
 **Nobel (2005)** as:
 
 .. math::
-    :nowrap:
-    
     g_{b, \ H_2O} = \frac{D_{H_2O} \cdot P_v}{R \cdot T_{leaf} \cdot \Delta x}
 
 with
@@ -239,8 +215,6 @@ where
 :math:`\Delta x \ [m]` is the thickness of the boundary layer defined following **Nobel (2005)** as:
 
 .. math::
-    :nowrap:
-    
     \Delta x = 0.004 \sqrt{\frac{l}{v}}
 
 where
@@ -252,8 +226,6 @@ Finally, the impact of water stress on stomatal conductance (i.e. via the :math:
 one of the following options:
 
 .. math::
-    :nowrap:
-    
     f_w =
     \left\{
     \begin{array}{cl}
