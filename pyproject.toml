@@ -49,10 +49,10 @@ doc = [
 ]
 
 [project.urls]
-Homepage = "https://openalea.readthedocs.io/"
-"Bug Tracker" = "https://github.com/hydroshoot/phenomenal/issues"
-Discussions = "https://github.com/hydroshoot/phenomenal/discussions"
-Changelog = "https://github.com/hydroshoot/phenomenal/releases"
+Homepage = "https://hydroshoot.readthedocs.io/"
+"Bug Tracker" = "https://github.com/openalea/hydroshoot/issues"
+Discussions = "https://github.com/openalea/hydroshoot/discussions"
+Changelog = "https://github.com/openalea/hydroshoot/releases"
 
 [tool.setuptools.dynamic]
 version = {attr = "hydroshoot.version.__version__"}
