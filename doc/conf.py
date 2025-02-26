@@ -96,7 +96,7 @@ html_theme_options = {
     "icon_links": [
         {
             "name": "GitHub",
-            "url": "https://github.com/openalea/phenomenal",
+            "url": "https://github.com/openalea/hydroshoot",
             "icon": "fa-brands fa-github",
         },
     ],
@@ -136,7 +136,7 @@ latex_documents = [
         master_doc,
         "Hydroshoot.tex",
         "Hydroshoot Documentation",
-        "INRA / INRIA / CIRAD",
+        "INRAE / inria / CIRAD",
         "manual",
     ),
 ]
