@@ -6,3 +6,9 @@ dependencies:
   - openalea.plantgl
   - alinea.caribu
   - alinea.astk
+  - numpy
+  - scipy
+  - sympy
+  - pandas
+  - jsonschema
+  - pvlib-python
