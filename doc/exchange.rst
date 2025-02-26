@@ -15,18 +15,12 @@ which also considers mesophyll conductance to CO2 diffusion :math:`g_m`. The sol
 equations (following **Evers et al. 2010** supporting information):
 
 .. math::
-    \begin{array}
-
-    A_n = \frac{(C_c - \Gamma) \cdot x_1}{C_c + x_2} - R_d  \\
-
-    C_c = C_i - \frac{A_n}{g_m}  \\
-
-    g_{s, \ CO_2} = g_{s0, \ CO_2} + m_0 \cdot \frac{A_n + R_d}{C_i - \Gamma} \cdot f_w  \\
-
-    g_{s, \ CO_2} = \frac{A_n}{C_a - C_i - A_n \cdot r_{tb}}
-
+    \begin{array}{l}
+        A_n = \frac{(C_c - \Gamma) \cdot x_1}{C_c + x_2} - R_d  \\
+        C_c = C_i - \frac{A_n}{g_m}  \\
+        g_{s, CO_{2}} = g_{s0, CO_{2}} + m_0 \cdot \frac{A_n + R_d}{C_i - \Gamma} \cdot f_w  \\
+        g_{s, CO_{2}} = \frac{A_n}{C_a - C_i - A_n \cdot r_{tb}}
     \end{array}
-
 
 where
 :math:`A_n \ [\mu mol \ m^{-2} \ s^{-1}]` is net carbon assimilation rate,
@@ -68,14 +62,10 @@ where
 rate, RuBP-limited carboxylation rate, and Triose phosphates-limited carboxylation rate, given as:
 
 .. math::
-    \begin{array}
-
-    W_c = \frac{C_c \cdot V_{c, \ max}}{C_c + K_c \cdot \left(1 + \frac{O}{K_o} \right)}    \\
-
-    W_j = \frac{J}{4 + 8 \cdot \frac{\Gamma}{C_c}}    \\
-
-    W_p = \frac{3 \cdot TPU}{\left(1 - \frac{\Gamma}{C_c} \right)}
-
+    \begin{array}{l}
+        W_c = \frac{C_c \cdot V_{c, \max}}{C_c + K_c \cdot \left(1 + \frac{O}{K_o} \right)}    \\
+        W_j = \frac{J}{4 + 8 \cdot \frac{\Gamma}{C_c}}    \\
+        W_p = \frac{3 \cdot TPU}{\left(1 - \frac{\Gamma}{C_c} \right)}
     \end{array}
 
 where
