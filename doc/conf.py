@@ -43,7 +43,8 @@ extensions = [
     "sphinx.ext.autosummary",  # generates autodoc summaries
     "sphinx.ext.doctest",  # inclusion and testing of doctest code snippets
     "sphinx.ext.intersphinx",  # support for linking to other projects
-    "sphinx.ext.imgmath",  # support for math equations
+    #"sphinx.ext.imgmath",  # support for math equations
+    "sphinx.ext.mathjax",  # support for math equations
     "sphinx.ext.ifconfig",  # support for conditional content
     "sphinx.ext.viewcode",  # support for links to source code
     "sphinx.ext.coverage",  # includes doc coverage stats in the documentation
