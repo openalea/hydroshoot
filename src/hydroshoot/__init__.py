@@ -1,7 +1,7 @@
-# {# pkglts, base
+from importlib.metadata import version, PackageNotFoundError
 
-from . import version
-
-__version__ = version.__version__
-
-# #}
+try:
+    __version__ = version("hydroshoot")
+except PackageNotFoundError:
+    # package is not installed
+    pass
