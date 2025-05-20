@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -11,17 +11,16 @@ authors = [
   { name = "Eric Lebon"},
 ]
 description = "A functional-structural plant model (FSPM) to simulate gas and energy exchange of grapevine"
-license = {file = "LICENSE"}
-requires-python = ">=3.8"
+license = "CECILL-C"
+license-files = ["LICEN[CS]E*"]
+requires-python = ">=3.9"
 classifiers = [
   "Intended Audience :: Science/Research",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: CeCILL-C License",
   "Operating System :: OS Independent",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
@@ -55,8 +54,10 @@ Discussions = "https://github.com/openalea/hydroshoot/discussions"
 Changelog = "https://github.com/openalea/hydroshoot/releases"
 
 [tool.setuptools.dynamic]
-version = {attr = "hydroshoot.version.__version__"}
 readme = {file = ["README.rst"]}
+
+# enable dynamic version based on git tags
+[tool.setuptools_scm]
 
 [tool.setuptools.packages.find]
 where = ["src"]

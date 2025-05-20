@@ -1,35 +1,61 @@
-package:
-  name: hydroshoot
-  version: "5.2.2"
+{% set pyproject = load_file_data('../pyproject.toml', from_recipe_dir=True) %}
+{% set name = pyproject.get('project').get('name') %}
+{% set description = pyproject.get('project').get('description') %}
+{% set version = GIT_DESCRIBE_TAG | replace("v", "") %}
+{% set license = pyproject.get('project').get('license') %}
+{% set home = pyproject.get('project', {}).get('urls', {}).get('Homepage', '') %}
+{% set build_deps = pyproject.get("build-system", {}).get("requires", []) %}
+{% set deps = pyproject.get('project', {}).get('dependencies', []) %}
+{% set conda_deps = pyproject.get('tool', {}).get('conda-environment', {}).get('dependencies',[]) %}
 
+package:
+  name: {{ name }}
+  version: {{ version }}
 
 source:
-  git_url: ../
+  path: ..
 
 build:
-  noarch: python
+  number: 0
   preserve_egg_dir: True
-  script: {{PYTHON}} -m pip install .
+  script:
+    - {{ PYTHON }} -m pip install . --no-deps --ignore-installed --no-build-isolation -vv
 
 requirements:
-  build:
-    - python {{PY_VER}}
-    - setuptools
+  host:
+    - python
+    {% for dep in build_deps %}
+    - {{ dep }}
+    {% endfor  %}
 
   run:
     - python
-    - numpy
-    - scipy
-    - sympy
-    - pandas
-    - jsonschema
-    - pvlib-python
     - openalea.mtg
     - openalea.plantgl
     - alinea.caribu
     - alinea.astk
+    {% for dep in deps + conda_deps %}
+    - {{ dep }}
+    {% endfor %}
+
+
+test:
+  imports:
+    - hydroshoot
+  requires:
+    - pytest
+  source_files:
+    - test/
+  commands:
+    - pytest
 
 about:
-  summary: "HydroShoot is an FSPM model to simulate gas-exchange on vine"
-  license: "cecill-c"
-  license_file: LICENSE
+  home: {{ home }}
+  summary: {{ description }}
+  license: {{ license }}
+
+extra:
+  recipe-maintainers:
+    - artzet-s
+    - pradal
+    - fournier
