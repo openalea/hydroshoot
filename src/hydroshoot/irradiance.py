@@ -6,7 +6,7 @@ plant shoot geometry.
 TODO: plug to the standard interface of Caribu module.
 """
 
-import alinea.astk.icosphere as ico
+import openalea.astk.icosphere as ico
 from alinea.caribu.CaribuScene import CaribuScene
 from alinea.caribu.sky_tools import turtle, Gensun, GetLightsSun
 from alinea.caribu.sky_tools.spitters_horaire import RdRsH

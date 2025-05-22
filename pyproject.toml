@@ -64,3 +64,17 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "hydroshoot_data" = ["*"]
+
+# not used yet by pip, but by meta.yaml
+[tool.conda-environment]
+channels = [
+  "openalea3",
+  "conda-forge",
+]
+# deps not available in pip with conda name
+dependencies = [
+  "openalea.mtg",
+  "openalea.plantgl",
+  "alinea.caribu",
+  "openalea.astk",
+]
