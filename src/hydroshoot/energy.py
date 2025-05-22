@@ -10,7 +10,7 @@ given plant shoot.
 
 from math import pi
 
-import alinea.astk.icosphere as ico
+import openalea.astk.icosphere as ico
 import openalea.plantgl.all as pgl
 from alinea.caribu.CaribuScene import CaribuScene
 from alinea.caribu.sky_tools import turtle
