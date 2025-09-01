@@ -17,6 +17,7 @@ source:
   path: ..
 
 build:
+  string: py{{ PY_VER }}
   number: 0
   preserve_egg_dir: True
   script:
