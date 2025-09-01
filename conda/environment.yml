@@ -5,7 +5,7 @@ dependencies:
   - openalea.mtg
   - openalea.plantgl
   - alinea.caribu
-  - alinea.astk
+  - openalea.astk
   - pip
   - pip:
       - ..[test,doc]
