@@ -21,10 +21,6 @@ classifiers = [
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
   "Topic :: Scientific/Engineering",
 ]
 
@@ -66,7 +62,7 @@ where = ["src"]
 "hydroshoot_data" = ["*"]
 
 # not used yet by pip, but by meta.yaml
-[tool.conda-environment]
+[tool.conda.environment]
 channels = [
   "openalea3",
   "conda-forge",
