@@ -18,6 +18,7 @@ classifiers = [
   "Intended Audience :: Science/Research",
   "Intended Audience :: Developers",
   "Operating System :: OS Independent",
+  "Framework :: OpenAlea",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
@@ -55,7 +56,7 @@ readme = {file = ["README.rst"]}
 # enable dynamic version based on git tags
 [tool.setuptools_scm]
 # Format version to ease alignment with conda/meta.yaml tag-based versioning
-fallback_version = "0.0.0.dev0"
+fallback_version = "5.2.2.dev0"
 version_scheme = "guess-next-dev"
 local_scheme = "no-local-version"
 
