@@ -26,6 +26,7 @@ build:
 requirements:
   host:
     - python
+    - setuptools_scm
     {% for dep in build_deps %}
     - {{ dep }}
     {% endfor  %}
