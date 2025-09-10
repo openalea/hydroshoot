@@ -7,9 +7,9 @@ TODO: plug to the standard interface of Caribu module.
 """
 
 import openalea.astk.icosphere as ico
-from alinea.caribu.CaribuScene import CaribuScene
-from alinea.caribu.sky_tools import turtle, Gensun, GetLightsSun
-from alinea.caribu.sky_tools.spitters_horaire import RdRsH
+from openalea.caribu.CaribuScene import CaribuScene
+from openalea.caribu.sky_tools import turtle, Gensun, GetLightsSun
+from openalea.caribu.sky_tools.spitters_horaire import RdRsH
 from numpy import array, deg2rad
 from openalea.plantgl.all import Translated, Sphere, Shape, Material, Color3, Viewer
 from pandas import date_range

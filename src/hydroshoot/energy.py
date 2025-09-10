@@ -12,8 +12,8 @@ from math import pi
 
 import openalea.astk.icosphere as ico
 import openalea.plantgl.all as pgl
-from alinea.caribu.CaribuScene import CaribuScene
-from alinea.caribu.sky_tools import turtle
+from openalea.caribu.CaribuScene import CaribuScene
+from openalea.caribu.sky_tools import turtle
 from openalea.mtg.mtg import MTG
 from scipy import optimize
 from sympy import Symbol
