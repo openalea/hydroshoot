@@ -3,7 +3,7 @@ version: 2
 build:
   os: "ubuntu-lts-latest"
   tools:
-    python: "mambaforge-latest"
+    python: "miniconda3-3.12-24.9"
 
 conda:
   environment: doc/environment.yml
