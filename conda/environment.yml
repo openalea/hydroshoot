@@ -1,6 +1,9 @@
+name: hydroroot_dev
 channels:
-  - conda-forge
+  - openalea3/label/dev
+  - openalea3/label/rc
   - openalea3
+  - conda-forge
 dependencies:
   - openalea.mtg
   - openalea.plantgl
@@ -8,4 +11,4 @@ dependencies:
   - openalea.astk
   - pip
   - pip:
-      - ..[test,doc]
+      - -e .."[test,doc]"
