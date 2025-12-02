@@ -4,7 +4,7 @@ from pathlib import Path
 from numpy.testing import assert_array_almost_equal
 
 from openalea.hydroshoot import model
-from test import non_regression_data
+import non_regression_data
 
 
 def test_potted_grapevine():

@@ -10,10 +10,10 @@ given plant shoot.
 
 from math import pi
 
-import alinea.astk.icosphere as ico
+import openalea.astk.icosphere as ico
 import openalea.plantgl.all as pgl
-from alinea.caribu.CaribuScene import CaribuScene
-from alinea.caribu.sky_tools import turtle
+from openalea.caribu.CaribuScene import CaribuScene
+from openalea.caribu.sky_tools import turtle
 from openalea.mtg.mtg import MTG
 from scipy import optimize
 from sympy import Symbol
@@ -141,7 +141,7 @@ def set_local_wind_speed(g, meteo, leaf_lbl_prefix='L') -> dict:
 
     """
     leaves = get_leaves(g, leaf_lbl_prefix)
-    u = meteo.u[0]
+    u = meteo.u.iloc[0]
     return {vid: u for vid in leaves}
 
 
@@ -380,7 +380,7 @@ def force_soil_temperature(meteo):
         t_soil = meteo.Tsoil[0]
     else:
         dt_soil = [3, 3, 3, 3, 3, 3, 3, 3, 10, 15, 20, 20, 20, 20, 20, 15, 6, 5, 4, 3, 3, 3, 3, 3]
-        t_soil = meteo.Tac[0] + dt_soil[meteo.index.hour[0]]
+        t_soil = meteo.Tac.iloc[0] + dt_soil[meteo.index.hour[0]]
     return t_soil
 
 

@@ -2,7 +2,7 @@ from numpy import arange
 from openalea.mtg import traversal
 
 from openalea.hydroshoot import hydraulic, architecture
-from test.non_regression_data import potted_syrah
+from non_regression_data import potted_syrah
 
 
 def test_conductivity_max_increases_as_segment_diameter_increases():

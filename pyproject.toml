@@ -1,0 +1,81 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hydroshoot"
+authors = [
+  { name = "Rami Albasha"},
+  { name = "Christian Fournier"},
+  { name = "Christophe Pradal"},
+  { name = "Eric Lebon"},
+]
+description = "A functional-structural plant model (FSPM) to simulate gas and energy exchange of grapevine"
+license = "CECILL-C"
+license-files = ["LICEN[CS]E*"]
+requires-python = ">=3.9"
+classifiers = [
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Framework :: OpenAlea",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Scientific/Engineering",
+]
+
+dynamic = ["version", "readme"]
+dependencies = [
+    "numpy",
+    "scipy",
+    "sympy",
+    "pandas",
+    "jsonschema",
+    "pvlib",
+]
+
+[project.optional-dependencies]
+test = ["pytest"]
+doc = [
+  "pydata-sphinx-theme",
+  "myst-parser",
+  "sphinx-favicon",
+  "nbsphinx",
+]
+
+[project.urls]
+Homepage = "https://hydroshoot.readthedocs.io/"
+"Bug Tracker" = "https://github.com/openalea/hydroshoot/issues"
+Discussions = "https://github.com/openalea/hydroshoot/discussions"
+Changelog = "https://github.com/openalea/hydroshoot/releases"
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.rst"]}
+
+# enable dynamic version based on git tags
+[tool.setuptools_scm]
+# Format version to ease alignment with conda/meta.yaml tag-based versioning
+fallback_version = "5.2.2.dev0"
+version_scheme = "guess-next-dev"
+local_scheme = "no-local-version"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"hydroshoot_data" = ["*"]
+
+# not used yet by pip, but by meta.yaml
+[tool.conda.environment]
+channels = [
+  "openalea3",
+  "conda-forge",
+]
+# deps not available in pip with conda name
+dependencies = [
+  "openalea.mtg",
+  "openalea.plantgl",
+  "openalea.caribu",
+  "openalea.astk",
+]

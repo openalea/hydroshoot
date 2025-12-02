@@ -1,0 +1,18 @@
+name: hydroshoot
+channels:
+  - conda-forge
+  - openalea3
+dependencies:
+  - openalea.mtg
+  - openalea.plantgl
+  - openalea.caribu
+  - alinea.astk
+  - numpy
+  - scipy
+  - sympy
+  - pandas
+  - jsonschema
+  - pvlib-python
+  - pip
+  - pip:
+      - -e ..[doc]

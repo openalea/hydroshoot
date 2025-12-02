@@ -81,7 +81,7 @@ tests, including testing other Python versions with tox::
 
     (dvlpt)$ cd hydroshoot
     (dvlpt) hydroshoot$ flake8
-    (dvlpt) hydroshoot$ nosetests
+    (dvlpt) hydroshoot$ pytest
     (dvlpt) hydroshoot$ tox
 
    To get flake8 and tox, just pip install them into your virtualenv.
@@ -103,8 +103,8 @@ Before you submit a pull request, check that it meets these guidelines:
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
    feature to the list in README.rst.
-3. The pull request should work for Python 2.7, 3.4, and 3.5. Check
-   https://travis-ci.org/moi/hydroshoot/pull_requests
+3. The pull request should work for Python 3.8 and up. Check
+   https://github.com/openalea/hydroshoot/actions
    and make sure that the tests pass for all supported Python versions.
 
 Tips
@@ -112,9 +112,9 @@ Tips
 
 To run a subset of tests::
 
-    $ nosetests test/test_XXX
+    $ pytest test/test_XXX
 
 
 
-.. _issues: https://github.com/moi/hydroshoot/issues
+.. _issues: https://github.com/openalea/hydroshoot/issues
 .. _virtualenv: https://pypi.python.org/pypi/virtualenv

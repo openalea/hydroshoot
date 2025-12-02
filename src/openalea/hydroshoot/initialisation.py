@@ -26,7 +26,7 @@ def calc_nitrogen_distribution(g: MTG, gdd_since_budbreak: float, weather: DataF
             temperature_base=params.phenology.t_base)
 
     date_beg_sim = params.simulation.date_beg
-    date_range_last_10_days = date_range(date_beg_sim + timedelta(days=-10), date_beg_sim, freq='H')
+    date_range_last_10_days = date_range(date_beg_sim + timedelta(days=-10), date_beg_sim, freq='h')
     caribu_source, _ = irradiance_distribution(
         meteo=weather.loc[date_range_last_10_days, :],
         geo_location=params.simulation.geo_location,
@@ -70,7 +70,6 @@ def remove_stem_geometry(g: MTG):
     to_remove = [i for i in geom_prop if not g.node(i).label.startswith(('L', 'other', 'soil'))]
     [geom_prop.pop(x) for x in to_remove]
     g.properties()['geometry'] = geom_prop
-    pass
 
 
 def set_photosynthetic_capacity(g: MTG, photo_n_params: dict, deactivation_enthalopy: float, leaf_lbl_prefix: str):
@@ -82,7 +81,6 @@ def set_photosynthetic_capacity(g: MTG, photo_n_params: dict, deactivation_entha
         n.TPU25 = photo_n_params['TPU25_N'][0] * nitrogen_content + photo_n_params['TPU25_N'][1]
         n.Rd = photo_n_params['Rd_N'][0] * nitrogen_content + photo_n_params['Rd_N'][1]
         n.dHd = deactivation_enthalopy
-    pass
 
 
 def set_collar_water_potential_function(params: Params, **kwargs) -> Callable:

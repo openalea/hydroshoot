@@ -43,9 +43,9 @@ the hydraulic, energy and gas-exchange processes is handled in HydroShoot.
     :math:`CO_2` concentration :math:`[\mu mol\ {mol}^{-1}]`, wind speed (:math:`u, \ m \ s^{-1}`), and atmospheric
     pressure (:math:`P_a, \ kPa`). Inputs per individual leaves are the absorbed photosynthetic photon flux density
     (:math:`PPFD, \ \mu mol \ m^{-2} \ s^{-1}`) and :math:`{PPFD}_{10}` the absorbed :math:`PPFD` during the last
-    10 days. :math:`\Psi_u \ [MPa]` is xylem water potential at the nodes between each pair of hydraulic segments.
+    10 days. :math:`\Psi_u \ [MPa]` is xylem water potential at the nodes between each pair of hydraulic segments.
     :math:`\Psi_{u, \ init} \ [MPa]` is initial :math:`\Psi_u`. :math:`\Psi_{soil} \ [MPa]` is soil water potential.
-    :math:`T_i \ [K]` is leaf temperature. :math:`T_{i, \ init} \ [K]` is initial :math:`T_i`.
+    :math:`T_i \ [K]` is leaf temperature. :math:`T_{i, \ init} \ [K]` is initial :math:`T_i`.
     :math:`K_{init} \ [kg \ s^{-1} \ m \ {MPa}^{-1}]` is initial hydraulic conductivity of each segment.
     :math:`\epsilon_x \ [MPa]` is the maximum allowable error of the estimation of xylem water potential. Finally,
     :math:`\epsilon_T \ [K]` is the maximum allowable error of the estimation of leaf temperature.

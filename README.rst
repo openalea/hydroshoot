@@ -25,9 +25,9 @@ Brief Description
 HydroShoot is a functional-structural plant modelling package. 
 
 Hydroshoot is composed of 3 generic modules used to simulate:
-	- xylem water transport (*hydraulic*)
-	- leaves energy budget (*energy*)
-	- leaves gas exchange fluxes (*exchange*).
+    - xylem water transport (*hydraulic*)
+    - leaves energy budget (*energy*)
+    - leaves gas exchange fluxes (*exchange*).
 
 Hydroshoot provides a grapevine-specific module (*architecture*) which builds plant shoot structure for potted of trained grapevines.
 
@@ -40,9 +40,9 @@ HydroShoot must temporarily be installed manually by cloning this repo locally t
 An installation procedure using conda will be possible in the future.
 
 You can follow the following steps for installation:
-     ``conda create -n hydroshoot -c openalea3 -c conda-forge openalea.hydroshoot``
+     ``mamba create -n hydroshoot -c openalea3 -c conda-forge openalea.hydroshoot``
  
-     ``conda activate hydroshoot``
+     ``mamba activate hydroshoot``
 
 
 You're done !
