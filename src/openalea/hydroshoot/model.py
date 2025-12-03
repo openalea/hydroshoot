@@ -11,9 +11,9 @@ from openalea.mtg.mtg import MTG
 from openalea.plantgl.all import Scene, surface
 from pandas import DataFrame
 
-from hydroshoot import (architecture, solver, io, soil, constants)
-from hydroshoot.energy import calc_effective_sky_temperature
-from hydroshoot.initialisation import init_model, init_hourly, set_collar_water_potential_function
+from openalea.hydroshoot import (architecture, solver, io, soil, constants)
+from openalea.hydroshoot.energy import calc_effective_sky_temperature
+from openalea.hydroshoot.initialisation import init_model, init_hourly, set_collar_water_potential_function
 
 
 def run(g: MTG, wd: Path, path_weather: Path, params: dict = None, scene: Scene = None,

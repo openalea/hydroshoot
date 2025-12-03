@@ -1,6 +1,6 @@
 from numpy.testing import assert_almost_equal
 
-from hydroshoot.irradiance import irradiance_distribution, hsCaribu, set_optical_properties, e_conv_PPFD
+from openalea.hydroshoot.irradiance import irradiance_distribution, hsCaribu, set_optical_properties, e_conv_PPFD
 from non_regression_data import potted_syrah, meteo
 
 

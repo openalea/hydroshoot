@@ -1,9 +1,9 @@
 import openalea.plantgl.all as pgl
 from numpy.testing import assert_almost_equal
 
-import hydroshoot.energy as energy
-from hydroshoot.architecture import get_leaves
-from hydroshoot.energy import set_form_factors_simplified, calc_leaf_temperature, force_soil_temperature
+import openalea.hydroshoot.energy as energy
+from openalea.hydroshoot.architecture import get_leaves
+from openalea.hydroshoot.energy import set_form_factors_simplified, calc_leaf_temperature, force_soil_temperature
 from non_regression_data import potted_syrah, meteo
 
 

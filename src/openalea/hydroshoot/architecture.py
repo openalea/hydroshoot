@@ -27,7 +27,7 @@ from pandas import read_csv
 from scipy.linalg import norm, svd
 from scipy.spatial import distance
 
-from hydroshoot.extern.roman import toRoman
+from openalea.hydroshoot.extern.roman import toRoman
 
 
 # ==============================================================================

@@ -972,9 +972,9 @@ if __name__ == '__main__':
     from datetime import datetime, timedelta
     from matplotlib import dates, pyplot, patches, colors, colorbar, rcParams, ticker, gridspec
 
-    from hydroshoot.architecture import mtg_load
-    from hydroshoot.utilities import vapor_pressure_deficit as VPDa
-    from hydroshoot import display
+    from openalea.hydroshoot.architecture import mtg_load
+    from openalea.hydroshoot.utilities import vapor_pressure_deficit as VPDa
+    from openalea.hydroshoot import display
 
     rcParams.update({'font.size': 11})
     pyplot.style.use('seaborn-ticks')

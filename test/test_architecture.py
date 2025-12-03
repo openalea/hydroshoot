@@ -1,6 +1,6 @@
 from os.path import dirname, join
 
-from hydroshoot import architecture
+from openalea.hydroshoot import architecture
 
 Source_Dir = join(dirname(__file__), 'data')
 

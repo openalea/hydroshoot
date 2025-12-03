@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pandas import date_range, DataFrame
 
-from hydroshoot.utilities import calc_effective_daily_temperature
+from openalea.hydroshoot.utilities import calc_effective_daily_temperature
 
 
 def calc_gdd_since_budbreak(weather: DataFrame, date_budbreak: datetime, date_beg_sim: datetime,

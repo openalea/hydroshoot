@@ -8,7 +8,7 @@ from pathlib import Path
 from openalea.mtg import traversal, mtg
 from openalea.plantgl.all import Scene
 
-from hydroshoot import architecture, display, model
+from openalea.hydroshoot import architecture, display, model
 
 
 def build_mtg(path_file: Path, is_show_scene: bool = True) -> (mtg.MTG, Scene):

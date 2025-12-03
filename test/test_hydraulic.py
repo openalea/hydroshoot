@@ -1,7 +1,7 @@
 from numpy import arange
 from openalea.mtg import traversal
 
-from hydroshoot import hydraulic, architecture
+from openalea.hydroshoot import hydraulic, architecture
 from non_regression_data import potted_syrah
 
 
