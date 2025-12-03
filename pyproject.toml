@@ -3,7 +3,7 @@ requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "hydroshoot"
+name = "openalea.hydroshoot"
 authors = [
   { name = "Rami Albasha"},
   { name = "Christian Fournier"},
