@@ -1,12 +1,12 @@
 version: 2
 
 build:
-  os: "ubuntu-lts-latest"
+  os: "ubuntu-24.04"
   tools:
     python: "miniconda3-3.12-24.9"
 
 conda:
-  environment: doc/environment.yml
+  environment: conda/environment.yml
 
 sphinx:
   # Path to your Sphinx configuration file.

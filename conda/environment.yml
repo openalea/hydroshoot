@@ -1,4 +1,4 @@
-name: hydroroot_dev
+name: hydroshoot
 channels:
   - openalea3/label/dev
   - openalea3/label/rc
@@ -9,6 +9,12 @@ dependencies:
   - openalea.plantgl
   - openalea.caribu
   - openalea.astk
+  - numpy
+  - scipy
+  - sympy
+  - pandas
+  - jsonschema
+  - pvlib-python
   - pip
   - pip:
       - -e .."[test,doc]"

@@ -106,7 +106,7 @@ Let's build the mock-up using the digitalization data provided in "grapevine_pot
     from openalea.hydroshoot import architecture, display, model
 
     # Path for plant digitalization data.
-    g = architecture.vine_mtg('grapevine_pot.csv')
+    grapevine_mtg = architecture.vine_mtg('grapevine_pot.csv')
 
     for v in traversal.iter_mtg2(grapevine_mtg, grapevine_mtg.root):
         architecture.vine_phyto_modular(grapevine_mtg, v)
@@ -118,7 +118,7 @@ Display now the scene using **display** module, you should be having something l
 
 .. code-block:: python
 
-    scene = display.visu(g, def_elmnt_color_dict=True, scene=Scene(),
+    scene = display.visu(grapevine_mtg, def_elmnt_color_dict=True, scene=Scene(),
                          view_result=True)
 
 
