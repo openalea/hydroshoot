@@ -104,9 +104,10 @@ Let's build the mock-up using the digitalization data provided in "grapevine_pot
     from openalea.mtg import traversal
     from openalea.plantgl.all import Scene
     from openalea.hydroshoot import architecture, display, model
+    from pathlib import Path
 
     # Path for plant digitalization data.
-    g = architecture.vine_mtg('grapevine_pot.csv')
+    grapevine_mtg = architecture.vine_mtg('grapevine_pot.csv')
 
     for v in traversal.iter_mtg2(grapevine_mtg, grapevine_mtg.root):
         architecture.vine_phyto_modular(grapevine_mtg, v)
@@ -118,7 +119,7 @@ Display now the scene using **display** module, you should be having something l
 
 .. code-block:: python
 
-    scene = display.visu(g, def_elmnt_color_dict=True, scene=Scene(),
+    scene = display.visu(grapevine_mtg, def_elmnt_color_dict=True, scene=Scene(),
                          view_result=True)
 
 
@@ -134,9 +135,12 @@ potential to a fixed value of -0.5 :math:`MPa`. Ensure first that the model will
 start and end dates of the simulation in the "params.json" file ("sdate": "2012-08-01 11:00:00",
 "edate": "2012-08-01 11:00:00").
 
+Create a folder named 'output' and run the model.
+
 .. code-block:: python
 
-    model.run(g, str(getcwd()) + '/', scene, psi_soil=-0.2, gdd_since_budbreak=100.)
+    model.run(grapevine_mtg, Path(str(getcwd()) + '/'), Path(str(getcwd()) + '/meteo.input'),
+                Scene = scene, psi_soil=-0.2, gdd_since_budbreak=100.)
 
 You should now have created the '/output/' folder where output files ("time_series.ouput", "mtg20120801110000.pckl")
 are stored. "time_series.ouput" file should contain close values to those below:
