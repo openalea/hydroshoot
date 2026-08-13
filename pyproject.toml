@@ -71,7 +71,7 @@ Discussions = "https://github.com/openalea/hydroshoot/discussions"
 Changelog = "https://github.com/openalea/hydroshoot/releases"
 
 [tool.setuptools.dynamic]
-readme = {file = ["README.rst"]}
+readme = {file = ["README.rst"], content-type = "text/x-rst"}
 
 # enable dynamic version based on git tags
 [tool.setuptools_scm]
