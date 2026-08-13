@@ -27,22 +27,42 @@ classifiers = [
 
 dynamic = ["version", "readme"]
 dependencies = [
-    "numpy",
-    "scipy",
-    "sympy",
-    "pandas",
-    "jsonschema",
-    "pvlib",
+  "numpy",
+  "pandas"
 ]
 
 [project.optional-dependencies]
+architecture = [
+  "scipy"
+]
+
+energy = [
+  "scipy"
+]
+
+irradiance = [
+  "pvlib",
+  "pytz"
+]
+
+exchange = []
+
 test = ["pytest"]
+
 doc = [
   "pydata-sphinx-theme",
   "myst-parser",
   "sphinx-favicon",
   "nbsphinx",
 ]
+
+complete = [
+  "openalea.hydroshoot[architecture,energy,irradiance,exchange]",
+]
+complete-dev = [
+  "openalea.hydroshoot[complete,test,doc]",
+]
+
 
 [project.urls]
 Homepage = "https://hydroshoot.readthedocs.io/"

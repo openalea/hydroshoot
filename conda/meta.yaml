@@ -6,8 +6,12 @@
 {% set home = pyproject.get('project', {}).get('urls', {}).get('Homepage', '') %}
 {% set build_deps = pyproject.get("build-system", {}).get("requires", []) %}
 {% set deps = pyproject.get('project', {}).get('dependencies', []) %}
+{% set optional_deps = pyproject.get('project', {}).get('optional-dependencies', {}) %}
+{% set arch_deps = optional_deps.get('architecture', []) %}
+{% set energy_deps = optional_deps.get('energy', []) %}
+{% set irrad_deps = optional_deps.get('irradiance', []) %}
+{% set test_deps = optional_deps.get('test', []) %}
 {% set conda_deps = pyproject.get('tool', {}).get('conda', {}).get('environment', {}).get('dependencies',[]) %}
-{% set test_deps = pyproject.get('project', {}).get('optional-dependencies', {}).get('test',[]) %}
 
 package:
   name: {{ name }}
@@ -32,7 +36,7 @@ requirements:
 
   run:
     - python
-    {% for dep in deps + conda_deps %}
+    {% for dep in deps + conda_deps + arch_deps + energy_deps + irrad_deps %}
     - {{ dep }}
     {% endfor %}
 
