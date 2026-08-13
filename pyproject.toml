@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "setuptools-scm"]
+requires = ["setuptools>=77", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -27,22 +27,42 @@ classifiers = [
 
 dynamic = ["version", "readme"]
 dependencies = [
-    "numpy",
-    "scipy",
-    "sympy",
-    "pandas",
-    "jsonschema",
-    "pvlib",
+  "numpy",
+  "pandas"
 ]
 
 [project.optional-dependencies]
+architecture = [
+  "scipy"
+]
+
+energy = [
+  "scipy"
+]
+
+irradiance = [
+  "pvlib",
+  "pytz"
+]
+
+exchange = []
+
 test = ["pytest"]
+
 doc = [
   "pydata-sphinx-theme",
   "myst-parser",
   "sphinx-favicon",
   "nbsphinx",
 ]
+
+complete = [
+  "openalea.hydroshoot[architecture,energy,irradiance,exchange]",
+]
+complete-dev = [
+  "openalea.hydroshoot[complete,test,doc]",
+]
+
 
 [project.urls]
 Homepage = "https://hydroshoot.readthedocs.io/"
@@ -51,7 +71,7 @@ Discussions = "https://github.com/openalea/hydroshoot/discussions"
 Changelog = "https://github.com/openalea/hydroshoot/releases"
 
 [tool.setuptools.dynamic]
-readme = {file = ["README.rst"]}
+readme = {file = ["README.rst"], content-type = "text/x-rst"}
 
 # enable dynamic version based on git tags
 [tool.setuptools_scm]
@@ -62,9 +82,6 @@ local_scheme = "no-local-version"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[tool.setuptools.package-data]
-"hydroshoot_data" = ["*"]
 
 # not used yet by pip, but by meta.yaml
 [tool.conda.environment]
