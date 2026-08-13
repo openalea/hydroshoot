@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "setuptools-scm"]
+requires = ["setuptools>=77", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -82,9 +82,6 @@ local_scheme = "no-local-version"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[tool.setuptools.package-data]
-"hydroshoot_data" = ["*"]
 
 # not used yet by pip, but by meta.yaml
 [tool.conda.environment]
