@@ -45,7 +45,9 @@ test:
   imports:
     - {{ name }}
   requires:
-    - pytest
+    {% for dep in test_deps %}
+    - {{ dep }}
+    {% endfor %}
   source_files:
     - test/
   commands:
